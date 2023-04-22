@@ -428,7 +428,7 @@ incoming incomingMsg model =
             case vs.viewMode of
                 Normal "" ->
                     ( model, Cmd.none, [] )
-                        |> activate "" False
+                        |> andThen (changeMode (Normal activeId) True)
 
                 _ ->
                     ( model, Cmd.none, [] )
