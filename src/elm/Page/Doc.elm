@@ -1010,7 +1010,7 @@ activate tryId instant ( model, prevCmd, prevMsgsToParent ) =
                         colIdx =
                             getDepth 0 model.workingTree.tree activeTree.id
                     in
-                    ( newModel (Normal "TODO")
+                    ( newModel (Normal activeId)
                     , Cmd.batch
                         [ prevCmd
                         , send
@@ -1282,7 +1282,7 @@ exitFullscreen model =
             ( model, Cmd.none, [] )
 
         FullscreenEditing { field } ->
-            ( { model | viewState = { vs | viewMode = Editing { cardId = "TODO", field = field } } }
+            ( { model | viewState = { vs | viewMode = Editing { cardId = activeId, field = field } } }
             , Cmd.batch [ send <| SetField activeId field, focus activeId ]
             , []
             )
@@ -1302,8 +1302,11 @@ closeCard ( model, prevCmd, prevMsgsToParent ) =
     let
         vs =
             model.viewState
+
+        activeId =
+            getActiveId (Model model)
     in
-    ( { model | viewState = { vs | viewMode = Normal "TODO" } }, prevCmd, prevMsgsToParent )
+    ( { model | viewState = { vs | viewMode = Normal activeId } }, prevCmd, prevMsgsToParent )
 
 
 deleteCard : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
@@ -1463,7 +1466,7 @@ cancelCard ( model, prevCmd, prevMsgsToParent ) =
             getActiveId (Model model)
     in
     ( { model
-        | viewState = { vs | viewMode = Normal "TODO" }
+        | viewState = { vs | viewMode = Normal activeId }
       }
     , prevCmd
     , prevMsgsToParent
