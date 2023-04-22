@@ -30,7 +30,7 @@ describe('Document Editing', () => {
     cy.get('textarea').should('have.focus')
       .type('Hello World :)')
 
-    cy.get('body').type('{ctrl}{enter}')
+    cy.shortcut('{ctrl}{enter}')
 
     cy.get('#card-1 .view').contains('Hello World :)')
 
@@ -58,6 +58,7 @@ describe('Document Editing', () => {
     cy.writeInCard('XYZ')
     cy.getCard(2,1,1).click()
     cy.getCard(2,1,1).should('not.contain', 'XYZ')
+    cy.getCard(1,1,1).should('contain', 'XYZ')
 
     // Clicking outside a card while editing should save that card
     cy.get('#card-1').click()
@@ -67,12 +68,13 @@ describe('Document Editing', () => {
     cy.get('#card-1').should('contain', 'UVW')
 
     // Create and saves a card below using shortcuts
-    cy.get('body').type('{ctrl}j')
+    cy.shortcut('l')
+    cy.shortcut('{ctrl}j')
 
     cy.get('textarea').should('have.focus')
       .type('Another one below')
 
-    cy.get('body').type('{ctrl}{enter}')
+    cy.shortcut('{ctrl}{enter}')
 
     cy.get('div.card.active')
       .contains('Another one below')
