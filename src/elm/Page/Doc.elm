@@ -614,14 +614,8 @@ incoming incomingMsg model =
                                 ( beforeText, afterText ) =
                                     model.textCursorInfo.text
                             in
-                            ( { model
-                                | viewState =
-                                    { vs | viewMode = Editing { cardId = cardId, field = beforeText } }
-                              }
-                            , Cmd.none
-                            , []
-                            )
-                                |> saveCardIfEditing
+                            ( model, Cmd.none, [] )
+                                |> andThen (saveCard { cardId = cardId, field = beforeText })
                                 |> insertBelow activeId afterText
                                 |> setCursorPosition 0
 
@@ -950,6 +944,11 @@ changeMode newViewMode instant model =
 
         targetTree_ =
             getTree (getActiveIdFromViewMode newViewMode) model.workingTree.tree
+
+        _ =
+            Debug.log
+                ("changeMode " ++ Debug.toString vs.viewMode ++ " -> " ++ Debug.toString newViewMode)
+                (targetTree_ |> Maybe.map (\t -> ( t.id, t.content )))
     in
     case targetTree_ of
         Just targetTree ->
@@ -1014,8 +1013,12 @@ changeMode newViewMode instant model =
                     ( newModel newViewMode, scrollCmd, [] )
                         |> andThen (saveCard oldEditData)
 
-                ( Editing oldEditData, Editing newEditData ) ->
-                    ( model, Cmd.none, [] )
+                ( Editing _, Editing newEditData ) ->
+                    ( newModel newViewMode
+                    , Cmd.batch [ focus newEditData.cardId, scrollCmd ]
+                    , []
+                    )
+                        |> preventIfBlocked model
 
                 ( Editing oldEditData, FullscreenEditing newEditData ) ->
                     ( model, Cmd.none, [] )
