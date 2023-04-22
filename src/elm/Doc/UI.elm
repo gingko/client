@@ -297,7 +297,7 @@ viewSearchField searchFieldMsg { viewState, globalData } =
                 emptyText
     in
     case viewState.viewMode of
-        Normal ->
+        Normal _ ->
             div
                 [ id "search-field" ]
                 [ input
@@ -430,7 +430,7 @@ viewShortcuts msgs lang isOpen isMac children textCursorInfo viewMode =
                 Icon.color "#445"
         in
         case viewMode of
-            Normal ->
+            Normal _ ->
                 [ div
                     [ id "shortcuts-tray", classList [ ( "open", isOpen ) ], onClick msgs.toggledShortcutTray ]
                     [ div [ id "shortcuts" ]

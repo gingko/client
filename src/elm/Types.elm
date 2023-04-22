@@ -87,8 +87,8 @@ dropIdToValue dropId =
 
 
 type ViewMode
-    = Normal
-    | Editing { field : String }
+    = Normal String
+    | Editing { cardId : String, field : String }
     | FullscreenEditing { field : String }
 
 

@@ -75,10 +75,10 @@ init isNew globalData =
                     ""
             , viewMode =
                 if isNew then
-                    Editing { field = "" }
+                    Editing { cardId = "1", field = "" }
 
                 else
-                    Normal
+                    Normal ""
             , activePast = []
             , descendants = []
             , ancestors = [ "0" ]
@@ -235,15 +235,15 @@ update msg ({ workingTree } as model) =
 
         UpdateEditingField id newField ->
             case vs.viewMode of
-                Editing { field } ->
-                    if field /= newField then
+                Editing { cardId, field } ->
+                    if id == cardId && field /= newField then
                         ( { model
-                            | viewState = { vs | viewMode = Editing { field = newField } }
+                            | viewState = { vs | viewMode = Editing { cardId = id, field = newField } }
                             , dirty = True
                           }
                         , Cmd.batch
                             [ send <| SetDirty True
-                            , send <| SetTextareaClone id newField
+                            , send <| SetTextareaClone cardId newField
                             ]
                         , []
                         )
@@ -455,11 +455,23 @@ incoming incomingMsg model =
                 ( { model | workingTree = newTree, viewState = { vs | draggedTree = draggedTree } }, Cmd.none, [] )
 
         DragExternalStarted ->
-            if model.viewState.viewMode == Normal then
-                ( { model | viewState = { vs | dragModel = ( Tuple.first vs.dragModel, { dropId = Nothing, isDragging = True } ) } }, Cmd.none, [] )
+            case vs.viewMode of
+                Normal _ ->
+                    ( { model
+                        | viewState =
+                            { vs
+                                | dragModel =
+                                    ( Tuple.first vs.dragModel
+                                    , { dropId = Nothing, isDragging = True }
+                                    )
+                            }
+                      }
+                    , Cmd.none
+                    , []
+                    )
 
-            else
-                ( model, Cmd.none, [] )
+                _ ->
+                    ( model, Cmd.none, [] )
 
         DropExternal dropText ->
             case Tuple.second vs.dragModel |> .dropId of
@@ -506,9 +518,9 @@ incoming incomingMsg model =
 
         FieldChanged str ->
             case vs.viewMode of
-                Editing _ ->
+                Editing { cardId } ->
                     ( { model
-                        | viewState = { vs | viewMode = Editing { field = str } }
+                        | viewState = { vs | viewMode = Editing { cardId = cardId, field = str } }
                         , dirty = True
                       }
                     , Cmd.none
@@ -579,12 +591,12 @@ incoming incomingMsg model =
             case shortcut of
                 "shift+enter" ->
                     case vs.viewMode of
-                        Normal ->
+                        Normal active ->
                             ( model
                             , Cmd.none
                             , []
                             )
-                                |> openCardFullscreen vs.active (getContent vs.active model.workingTree.tree)
+                                |> openCardFullscreen active (getContent active model.workingTree.tree)
                                 |> preventIfBlocked model
 
                         _ ->
@@ -607,15 +619,18 @@ incoming incomingMsg model =
 
                 "mod+j" ->
                     case vs.viewMode of
-                        Normal ->
-                            insertBelow vs.active "" ( model, Cmd.none, [] )
+                        Normal active ->
+                            insertBelow active "" ( model, Cmd.none, [] )
 
-                        Editing _ ->
+                        Editing { cardId } ->
                             let
                                 ( beforeText, afterText ) =
                                     model.textCursorInfo.text
                             in
-                            ( { model | viewState = { vs | viewMode = Editing { field = beforeText } } }
+                            ( { model
+                                | viewState =
+                                    { vs | viewMode = Editing { cardId = cardId, field = beforeText } }
+                              }
                             , Cmd.none
                             , []
                             )
@@ -641,15 +656,18 @@ incoming incomingMsg model =
 
                 "mod+k" ->
                     case vs.viewMode of
-                        Normal ->
-                            insertAbove vs.active "" ( model, Cmd.none, [] )
+                        Normal active ->
+                            insertAbove active "" ( model, Cmd.none, [] )
 
-                        Editing _ ->
+                        Editing { cardId } ->
                             let
                                 ( beforeText, afterText ) =
                                     model.textCursorInfo.text
                             in
-                            ( { model | viewState = { vs | viewMode = Editing { field = afterText } } }
+                            ( { model
+                                | viewState =
+                                    { vs | viewMode = Editing { cardId = cardId, field = afterText } }
+                              }
                             , Cmd.none
                             , []
                             )
@@ -673,15 +691,18 @@ incoming incomingMsg model =
 
                 "mod+l" ->
                     case vs.viewMode of
-                        Normal ->
-                            insertChild vs.active "" ( model, Cmd.none, [] )
+                        Normal active ->
+                            insertChild active "" ( model, Cmd.none, [] )
 
-                        Editing _ ->
+                        Editing { cardId } ->
                             let
                                 ( beforeText, afterText ) =
                                     model.textCursorInfo.text
                             in
-                            ( { model | viewState = { vs | viewMode = Editing { field = beforeText } } }
+                            ( { model
+                                | viewState =
+                                    { vs | viewMode = Editing { cardId = cardId, field = beforeText } }
+                              }
                             , Cmd.none
                             , []
                             )
@@ -728,9 +749,9 @@ incoming incomingMsg model =
 
                 "down" ->
                     case vs.viewMode of
-                        Normal ->
+                        Normal active ->
                             ( model, Cmd.none, [] )
-                                |> goDown vs.active
+                                |> goDown active
 
                         FullscreenEditing _ ->
                             {- check if at end
@@ -809,7 +830,7 @@ incoming incomingMsg model =
 
                 "mod+b" ->
                     case vs.viewMode of
-                        Normal ->
+                        Normal _ ->
                             ( model
                             , Cmd.none
                             , []
@@ -823,7 +844,7 @@ incoming incomingMsg model =
 
                 "mod+i" ->
                     case vs.viewMode of
-                        Normal ->
+                        Normal _ ->
                             ( model
                             , Cmd.none
                             , []
@@ -837,7 +858,7 @@ incoming incomingMsg model =
 
                 "/" ->
                     case vs.viewMode of
-                        Normal ->
+                        Normal _ ->
                             ( model
                             , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "search-input")
                             , []
@@ -1104,8 +1125,8 @@ saveAndStopEditing model =
             model.viewState
     in
     case vs.viewMode of
-        Normal ->
-            model |> openCard vs.active (getContent vs.active model.workingTree.tree)
+        Normal active ->
+            model |> openCard active (getContent active model.workingTree.tree)
 
         Editing _ ->
             ( model, Cmd.none, [] )
@@ -1126,7 +1147,7 @@ saveCardIfEditing ( model, prevCmd, prevParentMsgs ) =
             model.viewState
     in
     case vs.viewMode of
-        Normal ->
+        Normal _ ->
             ( model
             , prevCmd
             , prevParentMsgs
@@ -1183,8 +1204,8 @@ openCard id str model =
 
         ( newViewMode, maybeScroll ) =
             case vs.viewMode of
-                Normal ->
-                    ( Editing { field = str }, Cmd.none )
+                Normal _ ->
+                    ( Editing { cardId = id, field = str }, Cmd.none )
 
                 FullscreenEditing _ ->
                     ( FullscreenEditing { field = str }, send <| ScrollFullscreenCards id )
@@ -1241,14 +1262,14 @@ exitFullscreen model =
             model.viewState
     in
     case vs.viewMode of
-        Normal ->
+        Normal _ ->
             ( model, Cmd.none, [] )
 
         Editing _ ->
             ( model, Cmd.none, [] )
 
         FullscreenEditing { field } ->
-            ( { model | viewState = { vs | viewMode = Editing { field = field } } }
+            ( { model | viewState = { vs | viewMode = Editing { cardId = "TODO", field = field } } }
             , Cmd.batch [ send <| SetField vs.active field, focus vs.active ]
             , []
             )
@@ -1269,7 +1290,7 @@ closeCard ( model, prevCmd, prevMsgsToParent ) =
         vs =
             model.viewState
     in
-    ( { model | viewState = { vs | viewMode = Normal } }, prevCmd, prevMsgsToParent )
+    ( { model | viewState = { vs | viewMode = Normal "TODO" } }, prevCmd, prevMsgsToParent )
 
 
 deleteCard : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
@@ -1426,7 +1447,7 @@ cancelCard ( model, prevCmd, prevMsgsToParent ) =
             model.viewState
     in
     ( { model
-        | viewState = { vs | viewMode = Normal }
+        | viewState = { vs | viewMode = Normal "TODO" }
       }
     , prevCmd
     , prevMsgsToParent
@@ -1444,7 +1465,7 @@ intentCancelCard model =
             getContent vs.active model.workingTree.tree
     in
     case vs.viewMode of
-        Normal ->
+        Normal _ ->
             ( model
             , Cmd.none
             , []
@@ -1907,7 +1928,13 @@ viewLoaded ({ docMsg } as appMsg) model =
                 , navDown = mobileBtnMsg "down"
                 , navRight = mobileBtnMsg "right"
                 }
-                (model.viewState.viewMode /= Normal)
+                (case model.viewState.viewMode of
+                    Normal _ ->
+                        False
+
+                    _ ->
+                        True
+                )
            , Keyed.node "div" [ style "display" "contents" ] [ ( "randomstringforloadingoverlay", div [ id "loading-overlay" ] [] ) ]
            , div [ id "preloader" ] []
            ]
@@ -1941,7 +1968,7 @@ treeView lang isMac vstate model =
             let
                 editing_ =
                     case vstate.viewMode of
-                        Normal ->
+                        Normal _ ->
                             VisibleNormal
 
                         Editing _ ->
@@ -2439,7 +2466,14 @@ isNormalMode (Model model) =
     model
         |> .viewState
         |> .viewMode
-        |> (==) Normal
+        |> (\vm ->
+                case vm of
+                    Normal _ ->
+                        True
+
+                    _ ->
+                        False
+           )
 
 
 getViewMode : Model -> ViewMode
@@ -2487,7 +2521,7 @@ getField (Model model) =
         Editing { field } ->
             field
 
-        Normal ->
+        Normal _ ->
             ""
 
 
@@ -2506,8 +2540,11 @@ updateField id field (Model model) =
             model.viewState
     in
     case vs.viewMode of
-        Editing _ ->
-            ( { model | viewState = { vs | viewMode = Editing { field = field } }, dirty = True }
+        Editing { cardId } ->
+            ( { model
+                | viewState = { vs | viewMode = Editing { cardId = cardId, field = field } }
+                , dirty = True
+              }
             , send <| SetDirty True
             , []
             )
@@ -2522,7 +2559,7 @@ updateField id field (Model model) =
                 |> activate id False
                 |> (\( m, c, _ ) -> ( Model m, c ))
 
-        Normal ->
+        Normal _ ->
             ( Model model, Cmd.none )
 
 
@@ -2591,7 +2628,7 @@ normalMode model operation =
     , []
     )
         |> (case model.viewState.viewMode of
-                Normal ->
+                Normal _ ->
                     operation
 
                 _ ->
