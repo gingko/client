@@ -150,12 +150,7 @@ update msg ({ workingTree } as model) =
     case msg of
         -- === Card Activation ===
         Activate id ->
-            ( model
-            , Cmd.none
-            , []
-            )
-                |> saveCardIfEditing
-                |> activate id False
+            changeMode (Normal id) False model
 
         SearchFieldUpdated inputField ->
             let
@@ -539,13 +534,7 @@ incoming incomingMsg model =
                 ( model, Cmd.none, [] )
 
         ClickedOutsideCard ->
-            case model.viewState.viewMode of
-                Editing _ ->
-                    ( model, Cmd.none, [] )
-                        |> closeCard
-
-                _ ->
-                    ( model, Cmd.none, [] )
+            changeMode (Normal (getActiveIdFromViewState vs)) False model
 
         CheckboxClicked cardId checkboxNumber ->
             case getTree cardId model.workingTree.tree of
@@ -1008,11 +997,14 @@ changeMode newViewMode instant model =
                                 , ancestors = anc
                             }
                     }
+
+                scrollCmd =
+                    send (ScrollCards (id :: newPast) scrollPositions colIdx instant)
             in
             case ( vs.viewMode, newViewMode ) of
-                ( Normal _, Normal newId ) ->
+                ( Normal _, Normal _ ) ->
                     ( newModel newViewMode
-                    , send (ScrollCards (id :: newPast) scrollPositions colIdx instant)
+                    , scrollCmd
                     , []
                     )
 
@@ -1022,8 +1014,9 @@ changeMode newViewMode instant model =
                 ( Normal _, FullscreenEditing newEditData ) ->
                     ( model, Cmd.none, [] )
 
-                ( Editing oldEditData, Normal newId ) ->
-                    ( model, Cmd.none, [] )
+                ( Editing oldEditData, Normal _ ) ->
+                    ( newModel newViewMode, scrollCmd, [] )
+                        |> andThen (saveCard oldEditData)
 
                 ( Editing oldEditData, Editing newEditData ) ->
                     ( model, Cmd.none, [] )
@@ -1136,7 +1129,7 @@ goLeft id ( model, prevCmd, prevMsgsToParent ) =
     , prevCmd
     , prevMsgsToParent
     )
-        |> activate targetId False
+        |> andThen (changeMode (Normal targetId) False)
 
 
 goDown : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
@@ -1154,7 +1147,7 @@ goDown id ( model, prevCmd, prevMsgsToParent ) =
     , prevCmd
     , prevMsgsToParent
     )
-        |> activate targetId False
+        |> andThen (changeMode (Normal targetId) False)
 
 
 goUp : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
@@ -1172,7 +1165,7 @@ goUp id ( model, prevCmd, prevMsgsToParent ) =
     , prevCmd
     , prevMsgsToParent
     )
-        |> activate targetId False
+        |> andThen (changeMode (Normal targetId) False)
 
 
 goRight : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
@@ -1218,7 +1211,7 @@ goRight id ( model, prevCmd, prevMsgsToParent ) =
                 , prevCmd
                 , prevMsgsToParent
                 )
-                    |> activate prevActiveOfChildren False
+                    |> andThen (changeMode (Normal prevActiveOfChildren) False)
 
 
 
