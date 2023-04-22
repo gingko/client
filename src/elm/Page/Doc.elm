@@ -45,7 +45,6 @@ type alias ModelData =
     -- Transient state
     , viewState : ViewState
     , dirty : Bool
-    , field : String
     , textCursorInfo : TextCursorInfo
     , fileSearchField : String
 
@@ -91,7 +90,6 @@ init isNew globalData =
             , collaborators = []
             }
         , dirty = False
-        , field = ""
         , textCursorInfo = { selected = False, position = End, text = ( "", "" ) }
         , fileSearchField = ""
         , fonts = Fonts.default
@@ -247,7 +245,6 @@ update msg ({ workingTree } as model) =
                     if oldStr /= str then
                         ( { model
                             | viewState = { vs | viewMode = Editing str }
-                            , field = str
                             , dirty = True
                           }
                         , Cmd.batch
@@ -509,7 +506,12 @@ incoming incomingMsg model =
             normalMode model (pasteInto vs.active tree)
 
         FieldChanged str ->
-            ( { model | field = str, dirty = True }, Cmd.none, [] )
+            case vs.viewMode of
+                Editing _ ->
+                    ( { model | viewState = { vs | viewMode = Editing str }, dirty = True }, Cmd.none, [] )
+
+                _ ->
+                    ( model, Cmd.none, [] )
 
         TextCursor textCursorInfo ->
             if model.textCursorInfo /= textCursorInfo then
@@ -599,56 +601,84 @@ incoming incomingMsg model =
                     model |> intentCancelCard
 
                 "mod+j" ->
-                    if model.viewState.viewMode == Normal then
-                        insertBelow vs.active "" ( model, Cmd.none, [] )
+                    case vs.viewMode of
+                        Normal ->
+                            insertBelow vs.active "" ( model, Cmd.none, [] )
 
-                    else
-                        let
-                            ( beforeText, afterText ) =
-                                model.textCursorInfo.text
-                        in
-                        ( { model | field = beforeText }
-                        , Cmd.none
-                        , []
-                        )
-                            |> saveCardIfEditing
-                            |> insertBelow vs.active afterText
-                            |> setCursorPosition 0
+                        Editing _ ->
+                            let
+                                ( beforeText, afterText ) =
+                                    model.textCursorInfo.text
+                            in
+                            ( { model | viewState = { vs | viewMode = Editing beforeText } }
+                            , Cmd.none
+                            , []
+                            )
+                                |> saveCardIfEditing
+                                |> insertBelow vs.active afterText
+                                |> setCursorPosition 0
+
+                        FullscreenEditing ->
+                            -- TODO
+                            ( model
+                            , Cmd.none
+                            , []
+                            )
 
                 "mod+down" ->
                     normalMode model (insertBelow vs.active "")
 
                 "mod+k" ->
-                    if model.viewState.viewMode == Normal then
-                        insertAbove vs.active "" ( model, Cmd.none, [] )
+                    case vs.viewMode of
+                        Normal ->
+                            insertAbove vs.active "" ( model, Cmd.none, [] )
 
-                    else
-                        let
-                            ( beforeText, afterText ) =
-                                model.textCursorInfo.text
-                        in
-                        ( { model | field = afterText }
-                        , Cmd.none
-                        , []
-                        )
-                            |> saveCardIfEditing
-                            |> insertAbove vs.active beforeText
+                        Editing _ ->
+                            let
+                                ( beforeText, afterText ) =
+                                    model.textCursorInfo.text
+                            in
+                            ( { model | viewState = { vs | viewMode = Editing afterText } }
+                            , Cmd.none
+                            , []
+                            )
+                                |> saveCardIfEditing
+                                |> insertBelow vs.active beforeText
+
+                        FullscreenEditing ->
+                            -- TODO
+                            ( model
+                            , Cmd.none
+                            , []
+                            )
 
                 "mod+up" ->
                     normalMode model (insertAbove vs.active "")
 
                 "mod+l" ->
-                    let
-                        ( beforeText, afterText ) =
-                            model.textCursorInfo.text
-                    in
-                    ( { model | field = beforeText }
-                    , Cmd.none
-                    , []
-                    )
-                        |> saveCardIfEditing
-                        |> insertChild vs.active afterText
-                        |> setCursorPosition 0
+                    case vs.viewMode of
+                        Normal ->
+                            insertChild vs.active "" ( model, Cmd.none, [] )
+
+                        Editing _ ->
+                            let
+                                ( beforeText, afterText ) =
+                                    model.textCursorInfo.text
+                            in
+                            ( { model | viewState = { vs | viewMode = Editing beforeText } }
+                            , Cmd.none
+                            , []
+                            )
+                                |> saveCardIfEditing
+                                |> insertChild vs.active afterText
+                                |> setCursorPosition 0
+
+                        FullscreenEditing ->
+                            -- TODO
+                            ( model
+                            , Cmd.none
+                            , []
+                            )
 
                 "mod+right" ->
                     normalMode model (insertChild vs.active "")
@@ -1080,10 +1110,10 @@ saveCardIfEditing ( model, prevCmd, prevParentMsgs ) =
             , prevParentMsgs
             )
 
-        _ ->
+        Editing field ->
             let
                 newTree =
-                    TreeStructure.update (TreeStructure.Upd vs.active model.field) model.workingTree
+                    TreeStructure.update (TreeStructure.Upd vs.active field) model.workingTree
             in
             if newTree.tree /= model.workingTree.tree then
                 ( { model
@@ -1092,7 +1122,7 @@ saveCardIfEditing ( model, prevCmd, prevParentMsgs ) =
                 , prevCmd
                 , prevParentMsgs
                 )
-                    |> localSave (CTUpd vs.active model.field)
+                    |> localSave (CTUpd vs.active field)
                     |> addToHistory
 
             else
@@ -1100,6 +1130,13 @@ saveCardIfEditing ( model, prevCmd, prevParentMsgs ) =
                 , Cmd.batch [ prevCmd, send <| SetDirty False ]
                 , prevParentMsgs
                 )
+
+        FullscreenEditing ->
+            -- TODO
+            ( model
+            , prevCmd
+            , prevParentMsgs
+            )
 
 
 openCard : String -> String -> ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
@@ -1117,7 +1154,6 @@ openCard id str model =
     in
     ( { model
         | viewState = { vs | active = id, viewMode = newViewMode }
-        , field = str
       }
     , Cmd.batch [ focus id, maybeScroll ]
     , []
@@ -1134,7 +1170,7 @@ openCardFullscreen id str ( model, prevCmd, prevMsgsToParent ) =
                     vs =
                         m.viewState
                 in
-                ( { m | viewState = { vs | active = id, viewMode = FullscreenEditing }, field = str }
+                ( { m | viewState = { vs | active = id, viewMode = FullscreenEditing } }
                 , Cmd.batch [ c, focus id ]
                 , p
                 )
@@ -1159,10 +1195,18 @@ exitFullscreen model =
         vs =
             model.viewState
     in
-    ( { model | viewState = { vs | viewMode = Editing model.field } }
-    , Cmd.batch [ send <| SetField vs.active model.field, focus vs.active ]
-    , []
-    )
+    case vs.viewMode of
+        Normal ->
+            ( model, Cmd.none, [] )
+
+        Editing _ ->
+            ( model, Cmd.none, [] )
+
+        FullscreenEditing ->
+            ( { model | viewState = { vs | viewMode = Editing "TODO" } }
+            , Cmd.batch [ send <| SetField vs.active "TODO", focus vs.active ]
+            , []
+            )
 
 
 exitFullscreenExposed : Model -> ( Model, Cmd Msg )
@@ -1180,7 +1224,7 @@ closeCard ( model, prevCmd, prevMsgsToParent ) =
         vs =
             model.viewState
     in
-    ( { model | viewState = { vs | viewMode = Normal }, field = "" }, prevCmd, prevMsgsToParent )
+    ( { model | viewState = { vs | viewMode = Normal } }, prevCmd, prevMsgsToParent )
 
 
 deleteCard : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
@@ -1338,7 +1382,6 @@ cancelCard ( model, prevCmd, prevMsgsToParent ) =
     in
     ( { model
         | viewState = { vs | viewMode = Normal }
-        , field = ""
       }
     , prevCmd
     , prevMsgsToParent
@@ -2385,8 +2428,15 @@ lastActives activesResult (Model prevModel) =
 
 getField : Model -> String
 getField (Model model) =
-    model
-        |> .field
+    case model.viewState.viewMode of
+        FullscreenEditing ->
+            "TODO"
+
+        Editing field ->
+            field
+
+        Normal ->
+            ""
 
 
 openCardFullscreenMsg : String -> String -> Model -> ( Model, Cmd Msg )
@@ -2399,12 +2449,30 @@ openCardFullscreenMsg cardId str (Model model) =
 
 updateField : String -> String -> Model -> ( Model, Cmd Msg )
 updateField id field (Model model) =
-    ( { model | dirty = True, field = field }
-    , send <| SetDirty True
-    , []
-    )
-        |> activate id False
-        |> (\( m, c, _ ) -> ( Model m, c ))
+    let
+        vs =
+            model.viewState
+    in
+    case vs.viewMode of
+        Editing _ ->
+            ( { model | viewState = { vs | viewMode = Editing field }, dirty = True }
+            , send <| SetDirty True
+            , []
+            )
+                |> activate id False
+                |> (\( m, c, _ ) -> ( Model m, c ))
+
+        FullscreenEditing ->
+            -- TODO
+            ( { model | dirty = True }
+            , send <| SetDirty True
+            , []
+            )
+                |> activate id False
+                |> (\( m, c, _ ) -> ( Model m, c ))
+
+        Normal ->
+            ( Model model, Cmd.none )
 
 
 getTextCursorInfo : Model -> TextCursorInfo
