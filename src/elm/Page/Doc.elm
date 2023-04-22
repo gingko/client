@@ -636,12 +636,15 @@ incoming incomingMsg model =
                                 |> insertBelow activeId afterText
                                 |> setCursorPosition 0
 
-                        FullscreenEditing _ ->
+                        FullscreenEditing { cardId } ->
                             let
                                 ( beforeText, afterText ) =
                                     model.textCursorInfo.text
                             in
-                            ( { model | viewState = { vs | viewMode = FullscreenEditing { field = beforeText } } }
+                            ( { model
+                                | viewState =
+                                    { vs | viewMode = FullscreenEditing { cardId = cardId, field = beforeText } }
+                              }
                             , Cmd.none
                             , []
                             )
@@ -672,12 +675,15 @@ incoming incomingMsg model =
                                 |> saveCardIfEditing
                                 |> insertBelow activeId beforeText
 
-                        FullscreenEditing _ ->
+                        FullscreenEditing { cardId } ->
                             let
                                 ( beforeText, afterText ) =
                                     model.textCursorInfo.text
                             in
-                            ( { model | viewState = { vs | viewMode = FullscreenEditing { field = afterText } } }
+                            ( { model
+                                | viewState =
+                                    { vs | viewMode = FullscreenEditing { cardId = cardId, field = afterText } }
+                              }
                             , Cmd.none
                             , []
                             )
@@ -708,12 +714,15 @@ incoming incomingMsg model =
                                 |> insertChild activeId afterText
                                 |> setCursorPosition 0
 
-                        FullscreenEditing _ ->
+                        FullscreenEditing { cardId } ->
                             let
                                 ( beforeText, afterText ) =
                                     model.textCursorInfo.text
                             in
-                            ( { model | viewState = { vs | viewMode = FullscreenEditing { field = beforeText } } }
+                            ( { model
+                                | viewState =
+                                    { vs | viewMode = FullscreenEditing { cardId = cardId, field = beforeText } }
+                              }
                             , Cmd.none
                             , []
                             )
@@ -1112,7 +1121,7 @@ goRight id ( model, prevCmd, prevMsgsToParent ) =
                 , prevCmd
                 , prevMsgsToParent
                 )
-                    |> setNormalModeActiveCard id prevActiveOfChildren False
+                    |> activate prevActiveOfChildren False
 
 
 
@@ -1238,7 +1247,7 @@ openCard id str model =
                     ( Editing { cardId = id, field = str }, Cmd.none )
 
                 FullscreenEditing _ ->
-                    ( FullscreenEditing { field = str }, send <| ScrollFullscreenCards id )
+                    ( FullscreenEditing { cardId = id, field = str }, send <| ScrollFullscreenCards id )
 
                 Editing oldStr ->
                     ( Editing oldStr, Cmd.none )
@@ -1261,7 +1270,7 @@ openCardFullscreen id str ( model, prevCmd, prevMsgsToParent ) =
                     vs =
                         m.viewState
                 in
-                ( { m | viewState = { vs | viewMode = FullscreenEditing { field = str } } }
+                ( { m | viewState = { vs | viewMode = FullscreenEditing { cardId = id, field = str } } }
                 , Cmd.batch [ c, focus id ]
                 , p
                 )
@@ -1279,7 +1288,10 @@ enterFullscreen model =
     in
     case vs.viewMode of
         Editing { field } ->
-            ( { model | viewState = { vs | viewMode = FullscreenEditing { field = field } } }
+            ( { model
+                | viewState =
+                    { vs | viewMode = FullscreenEditing { cardId = activeId, field = field } }
+              }
             , focus activeId
             , []
             )
@@ -2572,8 +2584,8 @@ lastActives activesResult (Model prevModel) =
                     let
                         newViewMode =
                             case vs.viewMode of
-                                FullscreenEditing _ ->
-                                    FullscreenEditing { field = lastActive }
+                                FullscreenEditing { field } ->
+                                    FullscreenEditing { cardId = lastActive, field = field }
 
                                 Editing { field } ->
                                     Editing { cardId = lastActive, field = field }
@@ -2635,8 +2647,12 @@ updateField id field (Model model) =
                 |> activate id False
                 |> (\( m, c, _ ) -> ( Model m, c ))
 
-        FullscreenEditing _ ->
-            ( { model | viewState = { vs | viewMode = FullscreenEditing { field = field } }, dirty = True }
+        FullscreenEditing { cardId } ->
+            ( { model
+                | viewState =
+                    { vs | viewMode = FullscreenEditing { cardId = cardId, field = field } }
+                , dirty = True
+              }
             , send <| SetDirty True
             , []
             )
