@@ -107,7 +107,7 @@ type Msg
     | SearchFieldUpdated String
       -- === Card Editing  ===
     | OpenCard String String
-    | UpdateActiveField String String
+    | UpdateEditingField String String
     | AutoSave
     | SaveAndCloseCard
     | EditToFullscreenMode
@@ -233,14 +233,8 @@ update msg ({ workingTree } as model) =
             model
                 |> openCard id str
 
-        UpdateActiveField id str ->
+        UpdateEditingField id str ->
             case vs.viewMode of
-                Normal ->
-                    ( model
-                    , Cmd.none
-                    , []
-                    )
-
                 Editing oldStr ->
                     if oldStr /= str then
                         ( { model
@@ -260,7 +254,7 @@ update msg ({ workingTree } as model) =
                         , []
                         )
 
-                FullscreenEditing ->
+                _ ->
                     ( model
                     , Cmd.none
                     , []
@@ -493,11 +487,16 @@ incoming incomingMsg model =
                     ( model, Cmd.none, [] )
 
         FullscreenChanged fullscreen ->
-            if vs.viewMode == FullscreenEditing && not fullscreen then
-                exitFullscreen model
+            case vs.viewMode of
+                FullscreenEditing _ ->
+                    if not fullscreen then
+                        exitFullscreen model
 
-            else
-                ( model, Cmd.none, [] )
+                    else
+                        ( model, Cmd.none, [] )
+
+                _ ->
+                    ( model, Cmd.none, [] )
 
         Paste tree ->
             normalMode model (pasteBelow vs.active tree)
@@ -618,12 +617,18 @@ incoming incomingMsg model =
                                 |> insertBelow vs.active afterText
                                 |> setCursorPosition 0
 
-                        FullscreenEditing ->
-                            -- TODO
-                            ( model
+                        FullscreenEditing _ ->
+                            let
+                                ( beforeText, afterText ) =
+                                    model.textCursorInfo.text
+                            in
+                            ( { model | viewState = { vs | viewMode = FullscreenEditing beforeText } }
                             , Cmd.none
                             , []
                             )
+                                |> saveCardIfEditing
+                                |> insertBelow vs.active afterText
+                                |> setCursorPosition 0
 
                 "mod+down" ->
                     normalMode model (insertBelow vs.active "")
@@ -645,12 +650,17 @@ incoming incomingMsg model =
                                 |> saveCardIfEditing
                                 |> insertBelow vs.active beforeText
 
-                        FullscreenEditing ->
-                            -- TODO
-                            ( model
+                        FullscreenEditing _ ->
+                            let
+                                ( beforeText, afterText ) =
+                                    model.textCursorInfo.text
+                            in
+                            ( { model | viewState = { vs | viewMode = FullscreenEditing afterText } }
                             , Cmd.none
                             , []
                             )
+                                |> saveCardIfEditing
+                                |> insertBelow vs.active beforeText
 
                 "mod+up" ->
                     normalMode model (insertAbove vs.active "")
@@ -673,12 +683,18 @@ incoming incomingMsg model =
                                 |> insertChild vs.active afterText
                                 |> setCursorPosition 0
 
-                        FullscreenEditing ->
-                            -- TODO
-                            ( model
+                        FullscreenEditing _ ->
+                            let
+                                ( beforeText, afterText ) =
+                                    model.textCursorInfo.text
+                            in
+                            ( { model | viewState = { vs | viewMode = FullscreenEditing beforeText } }
                             , Cmd.none
                             , []
                             )
+                                |> saveCardIfEditing
+                                |> insertChild vs.active afterText
+                                |> setCursorPosition 0
 
                 "mod+right" ->
                     normalMode model (insertChild vs.active "")
@@ -710,7 +726,7 @@ incoming incomingMsg model =
                             ( model, Cmd.none, [] )
                                 |> goDown vs.active
 
-                        FullscreenEditing ->
+                        FullscreenEditing _ ->
                             {- check if at end
                                if so, getNextInColumn and openCardFullscreen it
                             -}
@@ -952,7 +968,7 @@ activate tryId instant ( model, prevCmd, prevMsgsToParent ) =
                     }
             in
             case vs.viewMode of
-                FullscreenEditing ->
+                FullscreenEditing _ ->
                     ( newModel
                     , Cmd.batch [ prevCmd, send <| ScrollFullscreenCards id ]
                     , prevMsgsToParent
@@ -1090,7 +1106,7 @@ saveAndStopEditing model =
                 |> saveCardIfEditing
                 |> closeCard
 
-        FullscreenEditing ->
+        FullscreenEditing _ ->
             ( model, Cmd.none, [] )
                 |> saveCardIfEditing
                 |> closeCard
@@ -1131,12 +1147,26 @@ saveCardIfEditing ( model, prevCmd, prevParentMsgs ) =
                 , prevParentMsgs
                 )
 
-        FullscreenEditing ->
-            -- TODO
-            ( model
-            , prevCmd
-            , prevParentMsgs
-            )
+        FullscreenEditing field ->
+            let
+                newTree =
+                    TreeStructure.update (TreeStructure.Upd vs.active field) model.workingTree
+            in
+            if newTree.tree /= model.workingTree.tree then
+                ( { model
+                    | workingTree = newTree
+                  }
+                , prevCmd
+                , prevParentMsgs
+                )
+                    |> localSave (CTUpd vs.active field)
+                    |> addToHistory
+
+            else
+                ( { model | dirty = False }
+                , Cmd.batch [ prevCmd, send <| SetDirty False ]
+                , prevParentMsgs
+                )
 
 
 openCard : String -> String -> ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
@@ -1146,11 +1176,15 @@ openCard id str model =
             model.viewState
 
         ( newViewMode, maybeScroll ) =
-            if vs.viewMode == FullscreenEditing then
-                ( FullscreenEditing, send <| ScrollFullscreenCards id )
+            case vs.viewMode of
+                Normal ->
+                    ( Editing str, Cmd.none )
 
-            else
-                ( Editing str, Cmd.none )
+                FullscreenEditing _ ->
+                    ( FullscreenEditing str, send <| ScrollFullscreenCards id )
+
+                Editing oldStr ->
+                    ( Editing oldStr, Cmd.none )
     in
     ( { model
         | viewState = { vs | active = id, viewMode = newViewMode }
@@ -1170,7 +1204,7 @@ openCardFullscreen id str ( model, prevCmd, prevMsgsToParent ) =
                     vs =
                         m.viewState
                 in
-                ( { m | viewState = { vs | active = id, viewMode = FullscreenEditing } }
+                ( { m | viewState = { vs | active = id, viewMode = FullscreenEditing str } }
                 , Cmd.batch [ c, focus id ]
                 , p
                 )
@@ -1183,10 +1217,15 @@ enterFullscreen model =
         vs =
             model.viewState
     in
-    ( { model | viewState = { vs | viewMode = FullscreenEditing } }
-    , focus vs.active
-    , []
-    )
+    case vs.viewMode of
+        Editing field ->
+            ( { model | viewState = { vs | viewMode = FullscreenEditing field } }
+            , focus vs.active
+            , []
+            )
+
+        _ ->
+            ( model, Cmd.none, [] )
 
 
 exitFullscreen : ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
@@ -1202,9 +1241,9 @@ exitFullscreen model =
         Editing _ ->
             ( model, Cmd.none, [] )
 
-        FullscreenEditing ->
-            ( { model | viewState = { vs | viewMode = Editing "TODO" } }
-            , Cmd.batch [ send <| SetField vs.active "TODO", focus vs.active ]
+        FullscreenEditing field ->
+            ( { model | viewState = { vs | viewMode = Editing field } }
+            , Cmd.batch [ send <| SetField vs.active field, focus vs.active ]
             , []
             )
 
@@ -1906,7 +1945,7 @@ treeView lang isMac vstate model =
                             else
                                 VisibleNormal
 
-                        FullscreenEditing ->
+                        FullscreenEditing _ ->
                             -- TODO : Impossible state
                             VisibleFullscreenEditing
             in
@@ -2154,7 +2193,7 @@ viewCardEditing lang cardId content isParent _ =
                 , ( "mousetrap", True )
                 ]
             , attribute "data-private" "lipsum"
-            , onInput <| UpdateActiveField cardId
+            , onInput <| UpdateEditingField cardId
             , value content
             ]
             []
@@ -2379,7 +2418,14 @@ isFullscreen (Model model) =
     model
         |> .viewState
         |> .viewMode
-        |> (==) FullscreenEditing
+        |> (\vm ->
+                case vm of
+                    FullscreenEditing _ ->
+                        True
+
+                    _ ->
+                        False
+           )
 
 
 isNormalMode : Model -> Bool
@@ -2429,8 +2475,8 @@ lastActives activesResult (Model prevModel) =
 getField : Model -> String
 getField (Model model) =
     case model.viewState.viewMode of
-        FullscreenEditing ->
-            "TODO"
+        FullscreenEditing field ->
+            field
 
         Editing field ->
             field
@@ -2462,9 +2508,8 @@ updateField id field (Model model) =
                 |> activate id False
                 |> (\( m, c, _ ) -> ( Model m, c ))
 
-        FullscreenEditing ->
-            -- TODO
-            ( { model | dirty = True }
+        FullscreenEditing _ ->
+            ( { model | viewState = { vs | viewMode = FullscreenEditing field }, dirty = True }
             , send <| SetDirty True
             , []
             )

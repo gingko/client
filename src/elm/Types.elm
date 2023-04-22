@@ -89,7 +89,7 @@ dropIdToValue dropId =
 type ViewMode
     = Normal
     | Editing String
-    | FullscreenEditing
+    | FullscreenEditing String
 
 
 type VisibleViewMode
