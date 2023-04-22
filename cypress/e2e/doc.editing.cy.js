@@ -177,9 +177,9 @@ describe('Document Editing', () => {
     cy.shortcut('{leftarrow}{leftarrow}{leftarrow}{leftarrow}{leftarrow}{leftarrow}{leftarrow}')
     cy.shortcut('{ctrl}j')
     cy.get('textarea')
-      .should('have.value', 'd :)XYZ')
+      .should('have.value', ')XYZUVW')
     cy.getCard(1,1,1)
-      .should('not.contain','orld :)')
+      .should('not.contain',')XYZUVW')
     cy.shortcut('{ctrl}{enter}')
 
     // New card, to test title shortcuts
