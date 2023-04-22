@@ -67,13 +67,7 @@ init isNew globalData =
         , block = Nothing
         , uid = "0"
         , viewState =
-            { active =
-                if isNew then
-                    "1"
-
-                else
-                    ""
-            , viewMode =
+            { viewMode =
                 if isNew then
                     Editing { cardId = "1", field = "" }
 
@@ -216,7 +210,7 @@ update msg ({ workingTree } as model) =
                             activate id False
 
                         ( Nothing, _ ) ->
-                            activate vs.active False
+                            activate (getActiveId (Model model)) False
 
                         _ ->
                             identity
@@ -421,6 +415,9 @@ incoming incomingMsg model =
     let
         vs =
             model.viewState
+
+        activeId =
+            getActiveId (Model model)
     in
     case incomingMsg of
         -- === Dialogs, Menus, Window State ===
@@ -433,12 +430,13 @@ incoming incomingMsg model =
 
         -- === DOM ===
         InitialActivation ->
-            if vs.active == "" then
-                ( model, Cmd.none, [] )
-                    |> activate "" False
+            case vs.viewMode of
+                Normal "" ->
+                    ( model, Cmd.none, [] )
+                        |> activate "" False
 
-            else
-                ( model, Cmd.none, [] )
+                _ ->
+                    ( model, Cmd.none, [] )
 
         DragStarted dragId ->
             let
@@ -511,10 +509,10 @@ incoming incomingMsg model =
                     ( model, Cmd.none, [] )
 
         Paste tree ->
-            normalMode model (pasteBelow vs.active tree)
+            normalMode model (pasteBelow activeId tree)
 
         PasteInto tree ->
-            normalMode model (pasteInto vs.active tree)
+            normalMode model (pasteInto activeId tree)
 
         FieldChanged str ->
             case vs.viewMode of
@@ -609,10 +607,10 @@ incoming incomingMsg model =
                     saveCardIfEditing ( model, Cmd.none, [] )
 
                 "enter" ->
-                    normalMode model (andThen <| openCard vs.active (getContent vs.active model.workingTree.tree))
+                    normalMode model (andThen <| openCard activeId (getContent activeId model.workingTree.tree))
 
                 "mod+backspace" ->
-                    normalMode model (deleteCard vs.active)
+                    normalMode model (deleteCard activeId)
 
                 "esc" ->
                     model |> intentCancelCard
@@ -635,7 +633,7 @@ incoming incomingMsg model =
                             , []
                             )
                                 |> saveCardIfEditing
-                                |> insertBelow vs.active afterText
+                                |> insertBelow activeId afterText
                                 |> setCursorPosition 0
 
                         FullscreenEditing _ ->
@@ -648,11 +646,11 @@ incoming incomingMsg model =
                             , []
                             )
                                 |> saveCardIfEditing
-                                |> insertBelow vs.active afterText
+                                |> insertBelow activeId afterText
                                 |> setCursorPosition 0
 
                 "mod+down" ->
-                    normalMode model (insertBelow vs.active "")
+                    normalMode model (insertBelow activeId "")
 
                 "mod+k" ->
                     case vs.viewMode of
@@ -672,7 +670,7 @@ incoming incomingMsg model =
                             , []
                             )
                                 |> saveCardIfEditing
-                                |> insertBelow vs.active beforeText
+                                |> insertBelow activeId beforeText
 
                         FullscreenEditing _ ->
                             let
@@ -684,10 +682,10 @@ incoming incomingMsg model =
                             , []
                             )
                                 |> saveCardIfEditing
-                                |> insertBelow vs.active beforeText
+                                |> insertBelow activeId beforeText
 
                 "mod+up" ->
-                    normalMode model (insertAbove vs.active "")
+                    normalMode model (insertAbove activeId "")
 
                 "mod+l" ->
                     case vs.viewMode of
@@ -707,7 +705,7 @@ incoming incomingMsg model =
                             , []
                             )
                                 |> saveCardIfEditing
-                                |> insertChild vs.active afterText
+                                |> insertChild activeId afterText
                                 |> setCursorPosition 0
 
                         FullscreenEditing _ ->
@@ -720,32 +718,32 @@ incoming incomingMsg model =
                             , []
                             )
                                 |> saveCardIfEditing
-                                |> insertChild vs.active afterText
+                                |> insertChild activeId afterText
                                 |> setCursorPosition 0
 
                 "mod+right" ->
-                    normalMode model (insertChild vs.active "")
+                    normalMode model (insertChild activeId "")
 
                 "mod+shift+j" ->
-                    normalMode model (mergeDown vs.active)
+                    normalMode model (mergeDown activeId)
 
                 "mod+shift+down" ->
-                    normalMode model (mergeDown vs.active)
+                    normalMode model (mergeDown activeId)
 
                 "mod+shift+k" ->
-                    normalMode model (mergeUp vs.active)
+                    normalMode model (mergeUp activeId)
 
                 "mod+shift+up" ->
-                    normalMode model (mergeUp vs.active)
+                    normalMode model (mergeUp activeId)
 
                 "h" ->
-                    normalMode model (goLeft vs.active)
+                    normalMode model (goLeft activeId)
 
                 "left" ->
-                    normalMode model (goLeft vs.active)
+                    normalMode model (goLeft activeId)
 
                 "j" ->
-                    normalMode model (goDown vs.active)
+                    normalMode model (goDown activeId)
 
                 "down" ->
                     case vs.viewMode of
@@ -763,70 +761,70 @@ incoming incomingMsg model =
                             ( model, Cmd.none, [] )
 
                 "k" ->
-                    normalMode model (goUp vs.active)
+                    normalMode model (goUp activeId)
 
                 "up" ->
-                    normalMode model (goUp vs.active)
+                    normalMode model (goUp activeId)
 
                 "l" ->
-                    normalMode model (goRight vs.active)
+                    normalMode model (goRight activeId)
 
                 "right" ->
-                    normalMode model (goRight vs.active)
+                    normalMode model (goRight activeId)
 
                 "alt+up" ->
-                    normalMode model (moveWithin vs.active -1)
+                    normalMode model (moveWithin activeId -1)
 
                 "alt+k" ->
-                    normalMode model (moveWithin vs.active -1)
+                    normalMode model (moveWithin activeId -1)
 
                 "alt+down" ->
-                    normalMode model (moveWithin vs.active 1)
+                    normalMode model (moveWithin activeId 1)
 
                 "alt+j" ->
-                    normalMode model (moveWithin vs.active 1)
+                    normalMode model (moveWithin activeId 1)
 
                 "alt+left" ->
-                    normalMode model (moveLeft vs.active)
+                    normalMode model (moveLeft activeId)
 
                 "alt+h" ->
-                    normalMode model (moveLeft vs.active)
+                    normalMode model (moveLeft activeId)
 
                 "alt+right" ->
-                    normalMode model (moveRight vs.active)
+                    normalMode model (moveRight activeId)
 
                 "alt+l" ->
-                    normalMode model (moveRight vs.active)
+                    normalMode model (moveRight activeId)
 
                 "alt+shift+up" ->
-                    normalMode model (moveWithin vs.active -5)
+                    normalMode model (moveWithin activeId -5)
 
                 "alt+shift+down" ->
-                    normalMode model (moveWithin vs.active 5)
+                    normalMode model (moveWithin activeId 5)
 
                 "alt+pageup" ->
-                    normalMode model (moveWithin vs.active -999999)
+                    normalMode model (moveWithin activeId -999999)
 
                 "alt+pagedown" ->
-                    normalMode model (moveWithin vs.active 999999)
+                    normalMode model (moveWithin activeId 999999)
 
                 "home" ->
-                    normalMode model (goToTopOfColumn vs.active)
+                    normalMode model (goToTopOfColumn activeId)
 
                 "end" ->
-                    normalMode model (goToBottomOfColumn vs.active)
+                    normalMode model (goToBottomOfColumn activeId)
 
                 "pageup" ->
-                    normalMode model (goToTopOfGroup vs.active True)
+                    normalMode model (goToTopOfGroup activeId True)
 
                 "pagedown" ->
-                    normalMode model (goToBottomOfGroup vs.active True)
+                    normalMode model (goToBottomOfGroup activeId True)
 
                 "mod+x" ->
-                    normalMode model (cut vs.active)
+                    normalMode model (cut activeId)
 
                 "mod+c" ->
-                    normalMode model (copy vs.active)
+                    normalMode model (copy activeId)
 
                 "mod+b" ->
                     case vs.viewMode of
@@ -838,7 +836,7 @@ incoming incomingMsg model =
 
                         _ ->
                             ( model
-                            , send (TextSurround vs.active "**")
+                            , send (TextSurround activeId "**")
                             , []
                             )
 
@@ -852,7 +850,7 @@ incoming incomingMsg model =
 
                         _ ->
                             ( model
-                            , send (TextSurround vs.active "*")
+                            , send (TextSurround activeId "*")
                             , []
                             )
 
@@ -945,6 +943,9 @@ activate tryId instant ( model, prevCmd, prevMsgsToParent ) =
     let
         vs =
             model.viewState
+
+        activeId =
+            getActiveId (Model model)
     in
     let
         activeTree__ =
@@ -965,11 +966,11 @@ activate tryId instant ( model, prevCmd, prevMsgsToParent ) =
         Just activeTree ->
             let
                 newPast =
-                    if tryId == vs.active then
+                    if tryId == activeId then
                         vs.activePast
 
                     else
-                        vs.active :: vs.activePast |> List.take 40
+                        activeId :: vs.activePast |> List.take 40
 
                 id =
                     activeTree.id
@@ -983,11 +984,11 @@ activate tryId instant ( model, prevCmd, prevMsgsToParent ) =
                     getAncestors model.workingTree.tree activeTree []
                         |> List.map .id
 
-                newModel =
+                newModel newVm =
                     { model
                         | viewState =
                             { vs
-                                | active = id
+                                | viewMode = newVm
                                 , activePast = newPast
                                 , descendants = desc
                                 , ancestors = anc
@@ -996,7 +997,7 @@ activate tryId instant ( model, prevCmd, prevMsgsToParent ) =
             in
             case vs.viewMode of
                 FullscreenEditing _ ->
-                    ( newModel
+                    ( newModel (Normal "TODO")
                     , Cmd.batch [ prevCmd, send <| ScrollFullscreenCards id ]
                     , prevMsgsToParent
                     )
@@ -1009,7 +1010,7 @@ activate tryId instant ( model, prevCmd, prevMsgsToParent ) =
                         colIdx =
                             getDepth 0 model.workingTree.tree activeTree.id
                     in
-                    ( newModel
+                    ( newModel (Normal "TODO")
                     , Cmd.batch
                         [ prevCmd
                         , send
@@ -1123,6 +1124,9 @@ saveAndStopEditing model =
     let
         vs =
             model.viewState
+
+        activeId =
+            getActiveId (Model model)
     in
     case vs.viewMode of
         Normal active ->
@@ -1137,7 +1141,7 @@ saveAndStopEditing model =
             ( model, Cmd.none, [] )
                 |> saveCardIfEditing
                 |> closeCard
-                |> activate model.viewState.active True
+                |> activate activeId True
 
 
 saveCardIfEditing : ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
@@ -1145,6 +1149,9 @@ saveCardIfEditing ( model, prevCmd, prevParentMsgs ) =
     let
         vs =
             model.viewState
+
+        activeId =
+            getActiveId (Model model)
     in
     case vs.viewMode of
         Normal _ ->
@@ -1156,7 +1163,7 @@ saveCardIfEditing ( model, prevCmd, prevParentMsgs ) =
         Editing { field } ->
             let
                 newTree =
-                    TreeStructure.update (TreeStructure.Upd vs.active field) model.workingTree
+                    TreeStructure.update (TreeStructure.Upd activeId field) model.workingTree
             in
             if newTree.tree /= model.workingTree.tree then
                 ( { model
@@ -1165,7 +1172,7 @@ saveCardIfEditing ( model, prevCmd, prevParentMsgs ) =
                 , prevCmd
                 , prevParentMsgs
                 )
-                    |> localSave (CTUpd vs.active field)
+                    |> localSave (CTUpd activeId field)
                     |> addToHistory
 
             else
@@ -1177,7 +1184,7 @@ saveCardIfEditing ( model, prevCmd, prevParentMsgs ) =
         FullscreenEditing { field } ->
             let
                 newTree =
-                    TreeStructure.update (TreeStructure.Upd vs.active field) model.workingTree
+                    TreeStructure.update (TreeStructure.Upd activeId field) model.workingTree
             in
             if newTree.tree /= model.workingTree.tree then
                 ( { model
@@ -1186,7 +1193,7 @@ saveCardIfEditing ( model, prevCmd, prevParentMsgs ) =
                 , prevCmd
                 , prevParentMsgs
                 )
-                    |> localSave (CTUpd vs.active field)
+                    |> localSave (CTUpd activeId field)
                     |> addToHistory
 
             else
@@ -1214,7 +1221,7 @@ openCard id str model =
                     ( Editing oldStr, Cmd.none )
     in
     ( { model
-        | viewState = { vs | active = id, viewMode = newViewMode }
+        | viewState = { vs | viewMode = newViewMode }
       }
     , Cmd.batch [ focus id, maybeScroll ]
     , []
@@ -1231,7 +1238,7 @@ openCardFullscreen id str ( model, prevCmd, prevMsgsToParent ) =
                     vs =
                         m.viewState
                 in
-                ( { m | viewState = { vs | active = id, viewMode = FullscreenEditing { field = str } } }
+                ( { m | viewState = { vs | viewMode = FullscreenEditing { field = str } } }
                 , Cmd.batch [ c, focus id ]
                 , p
                 )
@@ -1243,11 +1250,14 @@ enterFullscreen model =
     let
         vs =
             model.viewState
+
+        activeId =
+            getActiveId (Model model)
     in
     case vs.viewMode of
         Editing { field } ->
             ( { model | viewState = { vs | viewMode = FullscreenEditing { field = field } } }
-            , focus vs.active
+            , focus activeId
             , []
             )
 
@@ -1260,6 +1270,9 @@ exitFullscreen model =
     let
         vs =
             model.viewState
+
+        activeId =
+            getActiveId (Model model)
     in
     case vs.viewMode of
         Normal _ ->
@@ -1270,7 +1283,7 @@ exitFullscreen model =
 
         FullscreenEditing { field } ->
             ( { model | viewState = { vs | viewMode = Editing { cardId = "TODO", field = field } } }
-            , Cmd.batch [ send <| SetField vs.active field, focus vs.active ]
+            , Cmd.batch [ send <| SetField activeId field, focus activeId ]
             , []
             )
 
@@ -1445,6 +1458,9 @@ cancelCard ( model, prevCmd, prevMsgsToParent ) =
     let
         vs =
             model.viewState
+
+        activeId =
+            getActiveId (Model model)
     in
     ( { model
         | viewState = { vs | viewMode = Normal "TODO" }
@@ -1452,7 +1468,7 @@ cancelCard ( model, prevCmd, prevMsgsToParent ) =
     , prevCmd
     , prevMsgsToParent
     )
-        |> activate vs.active True
+        |> activate activeId True
 
 
 intentCancelCard : ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
@@ -1461,8 +1477,11 @@ intentCancelCard model =
         vs =
             model.viewState
 
+        activeId =
+            getActiveId (Model model)
+
         originalContent =
-            getContent vs.active model.workingTree.tree
+            getContent activeId model.workingTree.tree
     in
     case vs.viewMode of
         Normal _ ->
@@ -1473,7 +1492,7 @@ intentCancelCard model =
 
         _ ->
             ( model
-            , send (ConfirmCancelCard vs.active originalContent (tr (GlobalData.language model.globalData) AreYouSureCancel))
+            , send (ConfirmCancelCard activeId originalContent (tr (GlobalData.language model.globalData) AreYouSureCancel))
             , []
             )
 
@@ -1871,8 +1890,11 @@ view appMsg (Model model) =
 viewLoaded : AppMsgs msg -> ModelData -> List (Html msg)
 viewLoaded ({ docMsg } as appMsg) model =
     let
+        activeId =
+            getActiveId (Model model)
+
         activeTree_ =
-            getTree model.viewState.active model.workingTree.tree
+            getTree activeId model.workingTree.tree
 
         mobileBtnMsg shortcut =
             appMsg.keyboard shortcut
@@ -1943,6 +1965,9 @@ viewLoaded ({ docMsg } as appMsg) model =
 treeView : Language -> Bool -> ViewState -> TreeStructure.Model -> Html Msg
 treeView lang isMac vstate model =
     let
+        activeId =
+            getActiveIdFromViewState vstate
+
         searchFilter term_ cols =
             case term_ of
                 Just term ->
@@ -1972,7 +1997,7 @@ treeView lang isMac vstate model =
                             VisibleNormal
 
                         Editing _ ->
-                            if c |> List.concat |> List.map .id |> List.member vstate.active then
+                            if c |> List.concat |> List.map .id |> List.member activeId then
                                 VisibleEditing
 
                             else
@@ -1983,7 +2008,7 @@ treeView lang isMac vstate model =
                             VisibleFullscreenEditing
             in
             VisibleViewState
-                vstate.active
+                activeId
                 editing_
                 vstate.descendants
                 vstate.ancestors
@@ -2426,7 +2451,7 @@ setTree tree (Model model) =
         | workingTree = TreeStructure.setTree tree model.workingTree
     }
         |> (\m -> ( m, Cmd.none, [] ))
-        |> activate model.viewState.active False
+        |> activate (getActiveId (Model model)) False
         |> (\( m, c, msgs ) -> ( Model m, c, msgs ))
 
 
@@ -2485,9 +2510,28 @@ getViewMode (Model model) =
 
 getActiveId : Model -> String
 getActiveId (Model model) =
-    model
-        |> .viewState
-        |> .active
+    case model.viewState.viewMode of
+        FullscreenEditing _ ->
+            "fullscreen"
+
+        Editing { cardId } ->
+            cardId
+
+        Normal id ->
+            id
+
+
+getActiveIdFromViewState : ViewState -> String
+getActiveIdFromViewState viewState =
+    case viewState.viewMode of
+        FullscreenEditing _ ->
+            "fullscreen"
+
+        Editing { cardId } ->
+            cardId
+
+        Normal id ->
+            id
 
 
 lastActives : Result Json.Error (List String) -> Model -> ( Model, Cmd Msg )
@@ -2499,7 +2543,21 @@ lastActives activesResult (Model prevModel) =
         ( newViewState, maybeScroll ) =
             case activesResult of
                 Ok (lastActive :: activePast) ->
-                    ( { vs | active = lastActive, activePast = activePast }, activate lastActive True )
+                    let
+                        newViewMode =
+                            case vs.viewMode of
+                                FullscreenEditing _ ->
+                                    FullscreenEditing { field = lastActive }
+
+                                Editing { field } ->
+                                    Editing { cardId = lastActive, field = field }
+
+                                Normal _ ->
+                                    Normal lastActive
+                    in
+                    ( { vs | viewMode = newViewMode, activePast = activePast }
+                    , activate lastActive True
+                    )
 
                 Ok _ ->
                     ( vs, activate "1" True )
@@ -2609,7 +2667,7 @@ getWorkingTree (Model model) =
 
 getActiveTree : Model -> Maybe Tree
 getActiveTree (Model model) =
-    getTree model.viewState.active model.workingTree.tree
+    getTree (getActiveId (Model model)) model.workingTree.tree
 
 
 

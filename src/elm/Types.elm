@@ -125,8 +125,7 @@ type Mode
 
 
 type alias ViewState =
-    { active : String
-    , activePast : List String
+    { activePast : List String
     , descendants : List String
     , ancestors : List String
     , viewMode : ViewMode
