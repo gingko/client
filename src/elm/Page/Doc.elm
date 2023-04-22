@@ -1009,7 +1009,11 @@ changeMode newViewMode instant model =
                     )
 
                 ( Normal _, Editing newEditData ) ->
-                    ( model, Cmd.none, [] )
+                    ( newModel newViewMode
+                    , focus newEditData.cardId
+                    , []
+                    )
+                        |> preventIfBlocked model
 
                 ( Normal _, FullscreenEditing newEditData ) ->
                     ( model, Cmd.none, [] )
@@ -1327,28 +1331,7 @@ saveCardIfEditing ( model, prevCmd, prevParentMsgs ) =
 
 openCard : String -> String -> ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
 openCard id str model =
-    let
-        vs =
-            model.viewState
-
-        ( newViewMode, maybeScroll ) =
-            case vs.viewMode of
-                Normal _ ->
-                    ( Editing { cardId = id, field = str }, Cmd.none )
-
-                FullscreenEditing _ ->
-                    ( FullscreenEditing { cardId = id, field = str }, send <| ScrollFullscreenCards id )
-
-                Editing oldStr ->
-                    ( Editing oldStr, Cmd.none )
-    in
-    ( { model
-        | viewState = { vs | viewMode = newViewMode }
-      }
-    , Cmd.batch [ focus id, maybeScroll ]
-    , []
-    )
-        |> preventIfBlocked model
+    changeMode (Editing { cardId = id, field = str }) False model
 
 
 openCardFullscreen : String -> String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
@@ -1657,8 +1640,7 @@ insert pid pos initText ( model, prevCmd, prevMsgsToParent ) =
                 )
            ]
     )
-        |> andThen (openCard newIdString initText)
-        |> activate newIdString False
+        |> andThen (changeMode (Editing { cardId = newIdString, field = initText }) False)
         |> preventIfBlocked model
 
 
