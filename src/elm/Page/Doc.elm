@@ -1112,11 +1112,34 @@ goRight id ( model, prevCmd, prevMsgsToParent ) =
                 , prevCmd
                 , prevMsgsToParent
                 )
-                    |> activate prevActiveOfChildren False
+                    |> setNormalModeActiveCard id prevActiveOfChildren False
 
 
 
 -- === Card Editing  ===
+
+
+saveCard : { cardId : String, field : String } -> ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
+saveCard { cardId, field } model =
+    let
+        newTree =
+            TreeStructure.update (TreeStructure.Upd cardId field) model.workingTree
+    in
+    if newTree.tree /= model.workingTree.tree then
+        ( { model
+            | workingTree = newTree
+          }
+        , Cmd.none
+        , []
+        )
+            |> localSave (CTUpd cardId field)
+            |> addToHistory
+
+    else
+        ( { model | dirty = False }
+        , send <| SetDirty False
+        , []
+        )
 
 
 saveAndStopEditing : ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
