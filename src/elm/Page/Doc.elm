@@ -947,13 +947,110 @@ andThen f ( model, cmd, msgs ) =
 -- === Card Activation ===
 
 
+changeMode : ViewMode -> Bool -> ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
+changeMode newViewMode instant model =
+    let
+        vs =
+            model.viewState
+
+        oldId =
+            getActiveIdFromViewMode vs.viewMode
+
+        tryId =
+            getActiveIdFromViewMode newViewMode
+
+        activeTree__ =
+            getTree (getActiveIdFromViewMode newViewMode) model.workingTree.tree
+
+        activeTree_ =
+            case activeTree__ of
+                Just aTree ->
+                    Just aTree
+
+                Nothing ->
+                    getFirstCard model.workingTree.tree
+    in
+    case activeTree_ of
+        Just activeTree ->
+            let
+                newPast =
+                    if tryId == oldId then
+                        vs.activePast
+
+                    else
+                        oldId :: vs.activePast |> List.take 40
+
+                id =
+                    activeTree.id
+
+                desc =
+                    activeTree
+                        |> getDescendants
+                        |> List.map .id
+
+                anc =
+                    getAncestors model.workingTree.tree activeTree []
+                        |> List.map .id
+
+                scrollPositions =
+                    getScrollPositions activeTree newPast model.workingTree.tree
+
+                colIdx =
+                    getDepth 0 model.workingTree.tree activeTree.id
+
+                newModel newVm =
+                    { model
+                        | viewState =
+                            { vs
+                                | viewMode = newVm
+                                , activePast = newPast
+                                , descendants = desc
+                                , ancestors = anc
+                            }
+                    }
+            in
+            case ( vs.viewMode, newViewMode ) of
+                ( Normal _, Normal newId ) ->
+                    ( newModel newViewMode
+                    , send (ScrollCards (id :: newPast) scrollPositions colIdx instant)
+                    , []
+                    )
+
+                ( Normal _, Editing newEditData ) ->
+                    ( model, Cmd.none, [] )
+
+                ( Normal _, FullscreenEditing newEditData ) ->
+                    ( model, Cmd.none, [] )
+
+                ( Editing oldEditData, Normal newId ) ->
+                    ( model, Cmd.none, [] )
+
+                ( Editing oldEditData, Editing newEditData ) ->
+                    ( model, Cmd.none, [] )
+
+                ( Editing oldEditData, FullscreenEditing newEditData ) ->
+                    ( model, Cmd.none, [] )
+
+                ( FullscreenEditing oldEditData, Normal newId ) ->
+                    ( model, Cmd.none, [] )
+
+                ( FullscreenEditing oldEditData, Editing newEditData ) ->
+                    ( model, Cmd.none, [] )
+
+                ( FullscreenEditing oldEditData, FullscreenEditing newEditData ) ->
+                    ( model, Cmd.none, [] )
+
+        Nothing ->
+            ( model, Cmd.none, [] )
+
+
 activate : String -> Bool -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 activate tryId instant ( model, prevCmd, prevMsgsToParent ) =
     let
         vs =
             model.viewState
 
-        activeId =
+        oldId =
             getActiveId (Model model)
     in
     let
@@ -975,11 +1072,11 @@ activate tryId instant ( model, prevCmd, prevMsgsToParent ) =
         Just activeTree ->
             let
                 newPast =
-                    if tryId == activeId then
+                    if tryId == oldId then
                         vs.activePast
 
                     else
-                        activeId :: vs.activePast |> List.take 40
+                        oldId :: vs.activePast |> List.take 40
 
                 id =
                     activeTree.id
@@ -1019,7 +1116,7 @@ activate tryId instant ( model, prevCmd, prevMsgsToParent ) =
                         colIdx =
                             getDepth 0 model.workingTree.tree activeTree.id
                     in
-                    ( newModel (Normal activeId)
+                    ( newModel (Normal oldId)
                     , Cmd.batch
                         [ prevCmd
                         , send
@@ -2549,8 +2646,21 @@ getViewMode (Model model) =
 getActiveId : Model -> String
 getActiveId (Model model) =
     case model.viewState.viewMode of
-        FullscreenEditing _ ->
-            "fullscreen"
+        FullscreenEditing { cardId } ->
+            cardId
+
+        Editing { cardId } ->
+            cardId
+
+        Normal id ->
+            id
+
+
+getActiveIdFromViewMode : ViewMode -> String
+getActiveIdFromViewMode viewMode =
+    case viewMode of
+        FullscreenEditing { cardId } ->
+            cardId
 
         Editing { cardId } ->
             cardId
@@ -2562,8 +2672,8 @@ getActiveId (Model model) =
 getActiveIdFromViewState : ViewState -> String
 getActiveIdFromViewState viewState =
     case viewState.viewMode of
-        FullscreenEditing _ ->
-            "fullscreen"
+        FullscreenEditing { cardId } ->
+            cardId
 
         Editing { cardId } ->
             cardId
