@@ -75,7 +75,7 @@ init isNew globalData =
                     ""
             , viewMode =
                 if isNew then
-                    Editing ""
+                    Editing { field = "" }
 
                 else
                     Normal
@@ -233,17 +233,17 @@ update msg ({ workingTree } as model) =
             model
                 |> openCard id str
 
-        UpdateEditingField id str ->
+        UpdateEditingField id newField ->
             case vs.viewMode of
-                Editing oldStr ->
-                    if oldStr /= str then
+                Editing { field } ->
+                    if field /= newField then
                         ( { model
-                            | viewState = { vs | viewMode = Editing str }
+                            | viewState = { vs | viewMode = Editing { field = newField } }
                             , dirty = True
                           }
                         , Cmd.batch
                             [ send <| SetDirty True
-                            , send <| SetTextareaClone id str
+                            , send <| SetTextareaClone id newField
                             ]
                         , []
                         )
@@ -507,7 +507,13 @@ incoming incomingMsg model =
         FieldChanged str ->
             case vs.viewMode of
                 Editing _ ->
-                    ( { model | viewState = { vs | viewMode = Editing str }, dirty = True }, Cmd.none, [] )
+                    ( { model
+                        | viewState = { vs | viewMode = Editing { field = str } }
+                        , dirty = True
+                      }
+                    , Cmd.none
+                    , []
+                    )
 
                 _ ->
                     ( model, Cmd.none, [] )
@@ -609,7 +615,7 @@ incoming incomingMsg model =
                                 ( beforeText, afterText ) =
                                     model.textCursorInfo.text
                             in
-                            ( { model | viewState = { vs | viewMode = Editing beforeText } }
+                            ( { model | viewState = { vs | viewMode = Editing { field = beforeText } } }
                             , Cmd.none
                             , []
                             )
@@ -622,7 +628,7 @@ incoming incomingMsg model =
                                 ( beforeText, afterText ) =
                                     model.textCursorInfo.text
                             in
-                            ( { model | viewState = { vs | viewMode = FullscreenEditing beforeText } }
+                            ( { model | viewState = { vs | viewMode = FullscreenEditing { field = beforeText } } }
                             , Cmd.none
                             , []
                             )
@@ -643,7 +649,7 @@ incoming incomingMsg model =
                                 ( beforeText, afterText ) =
                                     model.textCursorInfo.text
                             in
-                            ( { model | viewState = { vs | viewMode = Editing afterText } }
+                            ( { model | viewState = { vs | viewMode = Editing { field = afterText } } }
                             , Cmd.none
                             , []
                             )
@@ -655,7 +661,7 @@ incoming incomingMsg model =
                                 ( beforeText, afterText ) =
                                     model.textCursorInfo.text
                             in
-                            ( { model | viewState = { vs | viewMode = FullscreenEditing afterText } }
+                            ( { model | viewState = { vs | viewMode = FullscreenEditing { field = afterText } } }
                             , Cmd.none
                             , []
                             )
@@ -675,7 +681,7 @@ incoming incomingMsg model =
                                 ( beforeText, afterText ) =
                                     model.textCursorInfo.text
                             in
-                            ( { model | viewState = { vs | viewMode = Editing beforeText } }
+                            ( { model | viewState = { vs | viewMode = Editing { field = beforeText } } }
                             , Cmd.none
                             , []
                             )
@@ -688,7 +694,7 @@ incoming incomingMsg model =
                                 ( beforeText, afterText ) =
                                     model.textCursorInfo.text
                             in
-                            ( { model | viewState = { vs | viewMode = FullscreenEditing beforeText } }
+                            ( { model | viewState = { vs | viewMode = FullscreenEditing { field = beforeText } } }
                             , Cmd.none
                             , []
                             )
@@ -1126,7 +1132,7 @@ saveCardIfEditing ( model, prevCmd, prevParentMsgs ) =
             , prevParentMsgs
             )
 
-        Editing field ->
+        Editing { field } ->
             let
                 newTree =
                     TreeStructure.update (TreeStructure.Upd vs.active field) model.workingTree
@@ -1147,7 +1153,7 @@ saveCardIfEditing ( model, prevCmd, prevParentMsgs ) =
                 , prevParentMsgs
                 )
 
-        FullscreenEditing field ->
+        FullscreenEditing { field } ->
             let
                 newTree =
                     TreeStructure.update (TreeStructure.Upd vs.active field) model.workingTree
@@ -1178,10 +1184,10 @@ openCard id str model =
         ( newViewMode, maybeScroll ) =
             case vs.viewMode of
                 Normal ->
-                    ( Editing str, Cmd.none )
+                    ( Editing { field = str }, Cmd.none )
 
                 FullscreenEditing _ ->
-                    ( FullscreenEditing str, send <| ScrollFullscreenCards id )
+                    ( FullscreenEditing { field = str }, send <| ScrollFullscreenCards id )
 
                 Editing oldStr ->
                     ( Editing oldStr, Cmd.none )
@@ -1204,7 +1210,7 @@ openCardFullscreen id str ( model, prevCmd, prevMsgsToParent ) =
                     vs =
                         m.viewState
                 in
-                ( { m | viewState = { vs | active = id, viewMode = FullscreenEditing str } }
+                ( { m | viewState = { vs | active = id, viewMode = FullscreenEditing { field = str } } }
                 , Cmd.batch [ c, focus id ]
                 , p
                 )
@@ -1218,8 +1224,8 @@ enterFullscreen model =
             model.viewState
     in
     case vs.viewMode of
-        Editing field ->
-            ( { model | viewState = { vs | viewMode = FullscreenEditing field } }
+        Editing { field } ->
+            ( { model | viewState = { vs | viewMode = FullscreenEditing { field = field } } }
             , focus vs.active
             , []
             )
@@ -1241,8 +1247,8 @@ exitFullscreen model =
         Editing _ ->
             ( model, Cmd.none, [] )
 
-        FullscreenEditing field ->
-            ( { model | viewState = { vs | viewMode = Editing field } }
+        FullscreenEditing { field } ->
+            ( { model | viewState = { vs | viewMode = Editing { field = field } } }
             , Cmd.batch [ send <| SetField vs.active field, focus vs.active ]
             , []
             )
@@ -2475,10 +2481,10 @@ lastActives activesResult (Model prevModel) =
 getField : Model -> String
 getField (Model model) =
     case model.viewState.viewMode of
-        FullscreenEditing field ->
+        FullscreenEditing { field } ->
             field
 
-        Editing field ->
+        Editing { field } ->
             field
 
         Normal ->
@@ -2501,7 +2507,7 @@ updateField id field (Model model) =
     in
     case vs.viewMode of
         Editing _ ->
-            ( { model | viewState = { vs | viewMode = Editing field }, dirty = True }
+            ( { model | viewState = { vs | viewMode = Editing { field = field } }, dirty = True }
             , send <| SetDirty True
             , []
             )
@@ -2509,7 +2515,7 @@ updateField id field (Model model) =
                 |> (\( m, c, _ ) -> ( Model m, c ))
 
         FullscreenEditing _ ->
-            ( { model | viewState = { vs | viewMode = FullscreenEditing field }, dirty = True }
+            ( { model | viewState = { vs | viewMode = FullscreenEditing { field = field } }, dirty = True }
             , send <| SetDirty True
             , []
             )
