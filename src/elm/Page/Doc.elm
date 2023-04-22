@@ -948,19 +948,11 @@ changeMode newViewMode instant model =
         tryId =
             getActiveIdFromViewMode newViewMode
 
-        activeTree__ =
+        targetTree_ =
             getTree (getActiveIdFromViewMode newViewMode) model.workingTree.tree
-
-        activeTree_ =
-            case activeTree__ of
-                Just aTree ->
-                    Just aTree
-
-                Nothing ->
-                    getFirstCard model.workingTree.tree
     in
-    case activeTree_ of
-        Just activeTree ->
+    case targetTree_ of
+        Just targetTree ->
             let
                 newPast =
                     if tryId == oldId then
@@ -970,22 +962,22 @@ changeMode newViewMode instant model =
                         oldId :: vs.activePast |> List.take 40
 
                 id =
-                    activeTree.id
+                    targetTree.id
 
                 desc =
-                    activeTree
+                    targetTree
                         |> getDescendants
                         |> List.map .id
 
                 anc =
-                    getAncestors model.workingTree.tree activeTree []
+                    getAncestors model.workingTree.tree targetTree []
                         |> List.map .id
 
                 scrollPositions =
-                    getScrollPositions activeTree newPast model.workingTree.tree
+                    getScrollPositions targetTree newPast model.workingTree.tree
 
                 colIdx =
-                    getDepth 0 model.workingTree.tree activeTree.id
+                    getDepth 0 model.workingTree.tree targetTree.id
 
                 newModel newVm =
                     { model
@@ -1010,7 +1002,7 @@ changeMode newViewMode instant model =
 
                 ( Normal _, Editing newEditData ) ->
                     ( newModel newViewMode
-                    , focus newEditData.cardId
+                    , Cmd.batch [ focus newEditData.cardId, scrollCmd ]
                     , []
                     )
                         |> preventIfBlocked model
@@ -1038,7 +1030,12 @@ changeMode newViewMode instant model =
                     ( model, Cmd.none, [] )
 
         Nothing ->
-            ( model, Cmd.none, [] )
+            case getFirstCard model.workingTree.tree of
+                Just backupTree ->
+                    changeMode (Normal backupTree.id) instant model
+
+                Nothing ->
+                    ( model, Cmd.none, [] )
 
 
 activate : String -> Bool -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
