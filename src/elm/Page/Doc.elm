@@ -150,7 +150,7 @@ update msg ({ workingTree } as model) =
     case msg of
         -- === Card Activation ===
         Activate id ->
-            changeMode { to = Normal id, instant = False, save = False } model
+            changeMode { to = Normal id, instant = False, save = True } model
 
         SearchFieldUpdated inputField ->
             let
@@ -2740,9 +2740,12 @@ getField (Model model) =
 
 openCardFullscreenMsg : String -> String -> Model -> ( Model, Cmd Msg )
 openCardFullscreenMsg cardId str (Model model) =
-    ( model, Cmd.none, [] )
-        |> saveCardIfEditing
-        |> openCardFullscreen cardId str
+    changeMode
+        { to = FullscreenEditing { cardId = cardId, field = str }
+        , instant = False
+        , save = True
+        }
+        model
         |> (\( m, c, _ ) -> ( Model m, c ))
 
 
