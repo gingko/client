@@ -343,7 +343,7 @@ function initEventListeners () {
 /* === Elm / JS Interop === */
 
 function toElm(data, portName, tagName) {
-  console.log("toElm", portName, tagName, data);
+  //console.log("toElm", portName, tagName, data);
   if (!gingko) { return; }
   let portExists = gingko.ports.hasOwnProperty(portName);
   let tagGiven = typeof tagName == "string";
@@ -363,7 +363,7 @@ function toElm(data, portName, tagName) {
 }
 
 const fromElm = (msg, elmData) => {
-  console.log("fromElm", msg, elmData);
+  //console.log("fromElm", msg, elmData);
   window.elmMessages.push({tag: msg, data: elmData});
   window.elmMessages = window.elmMessages.slice(-10);
 
