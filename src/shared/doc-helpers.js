@@ -104,12 +104,19 @@ const selectionHandler = function () {
 };
 
 const editBlurHandler = (ev) => {
+  console.log("editBlurHandler", ev)
   let targetClasses = ev.target.classList;
-  if (ev.target.nodeName == "DIV" && targetClasses.contains("card-btn") && targetClasses.contains("save")) {
-    return;
-  } else if (ev.target.nodeName == "DIV" && targetClasses.contains("fullscreen-card-btn")) {
-    return;
-  } else if (isEditTextarea(ev.target)) {
+  const parentClasses = ev.target.parentElement.classList;
+  const grandparentClasses = ev.target.parentElement.parentElement.classList;
+
+  const isSaveButton = ev.target.nodeName == "DIV" && targetClasses.contains("card-btn") && targetClasses.contains("save");
+  const isFullscreenButton = ev.target.nodeName == "DIV" && targetClasses.contains("fullscreen-card-btn");
+  const isFullscreenSvg = ev.target.nodeName == "svg" && parentClasses.contains("fullscreen-card-btn");
+  const isFullscrerenPath = ev.target.nodeName == "path" && grandparentClasses.contains("fullscreen-card-btn");
+
+  console.log(isSaveButton, isFullscreenButton, isFullscreenSvg, isEditTextarea(ev.target))
+
+  if (isSaveButton || isFullscreenButton || isFullscreenSvg || isFullscrerenPath || isEditTextarea(ev.target)) {
     return;
   } else {
     if(!(isEditTextarea(document.activeElement))) {
