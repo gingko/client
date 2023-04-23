@@ -49,7 +49,7 @@ describe('Fullscreen Editing', () => {
     cy.focused().should('have.value', '# 3\nAnother Child card test')
 
     // Test change card focus
-    cy.get('textarea').first().focus()
+    cy.get('textarea').first().click()
       .type('{enter}abc')
     cy.wait(100)
     cy.get('#fullscreen-buttons #save-indicator').contains('Synced')
