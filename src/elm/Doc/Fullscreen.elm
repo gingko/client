@@ -52,20 +52,11 @@ view :
         , model : Model
         }
     -> String
-    -> String
     -> Html msg
-view msgs ({ model } as info) field activeId =
+view msgs ({ model } as info) activeId =
     let
-        updateField c =
-            if c.id == activeId then
-                { c | content = field }
-
-            else
-                c
-
         currentColumn =
             getColumnById activeId model.tree
-                |> Maybe.map (List.map (List.map updateField))
                 |> Maybe.withDefault []
     in
     div

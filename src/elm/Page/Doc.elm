@@ -1,4 +1,4 @@
-module Page.Doc exposing (Model, Msg, MsgToParent(..), exitFullscreenExposed, getActiveId, getActiveTree, getField, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isFullscreen, isNormalMode, lastActives, maybeActivate, opaqueIncoming, opaqueUpdate, openCardFullscreenMsg, saveAndStopEditing, saveCardIfEditing, setBlock, setDirty, setGlobalData, setLoading, setTree, setWorkingTree, subscriptions, updateField, view)
+module Page.Doc exposing (Model, Msg, MsgToParent(..), exitFullscreenExposed, getActiveId, getActiveTree, getField, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isFullscreen, isNormalMode, lastActives, maybeActivate, opaqueIncoming, opaqueUpdate, openCardFullscreenMsg, saveCardIfEditing, setBlock, setDirty, setGlobalData, setLoading, setTree, setWorkingTree, subscriptions, toggleEditing, updateFullscreenField, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -150,7 +150,7 @@ update msg ({ workingTree } as model) =
     case msg of
         -- === Card Activation ===
         Activate id ->
-            changeMode (Normal id) False model
+            changeMode { to = Normal id, instant = False, save = False } model
 
         SearchFieldUpdated inputField ->
             let
@@ -253,10 +253,22 @@ update msg ({ workingTree } as model) =
             ( model, Cmd.none, [] ) |> saveCardIfEditing
 
         SaveAndCloseCard ->
-            saveAndStopEditing model
+            changeMode
+                { to = Normal (getActiveId (Model model)), instant = True, save = True }
+                model
 
         EditToFullscreenMode ->
-            model |> enterFullscreen
+            case vs.viewMode of
+                Editing { cardId, field } ->
+                    changeMode
+                        { to = FullscreenEditing { cardId = cardId, field = field }
+                        , instant = True
+                        , save = False
+                        }
+                        model
+
+                _ ->
+                    ( model, Cmd.none, [] )
 
         DeleteCard id ->
             ( model
@@ -428,7 +440,7 @@ incoming incomingMsg model =
             case vs.viewMode of
                 Normal "" ->
                     ( model, Cmd.none, [] )
-                        |> andThen (changeMode (Normal activeId) True)
+                        |> andThen (changeMode { to = Normal activeId, instant = True, save = False })
 
                 _ ->
                     ( model, Cmd.none, [] )
@@ -534,7 +546,7 @@ incoming incomingMsg model =
                 ( model, Cmd.none, [] )
 
         ClickedOutsideCard ->
-            changeMode (Normal (getActiveIdFromViewState vs)) False model
+            changeMode { to = Normal (getActiveIdFromViewState vs), instant = False, save = True } model
 
         CheckboxClicked cardId checkboxNumber ->
             case getTree cardId model.workingTree.tree of
@@ -579,18 +591,22 @@ incoming incomingMsg model =
                 "shift+enter" ->
                     case vs.viewMode of
                         Normal active ->
-                            ( model
-                            , Cmd.none
-                            , []
-                            )
-                                |> openCardFullscreen active (getContent active model.workingTree.tree)
-                                |> preventIfBlocked model
+                            changeMode
+                                { to =
+                                    FullscreenEditing
+                                        { cardId = active
+                                        , field = getContent active model.workingTree.tree
+                                        }
+                                , instant = False
+                                , save = False
+                                }
+                                model
 
                         _ ->
                             ( model, Cmd.none, [] )
 
                 "mod+enter" ->
-                    saveAndStopEditing model
+                    toggleEditing model
 
                 "mod+s" ->
                     saveCardIfEditing ( model, Cmd.none, [] )
@@ -930,8 +946,8 @@ andThen f ( model, cmd, msgs ) =
 -- === Card Activation ===
 
 
-changeMode : ViewMode -> Bool -> ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
-changeMode newViewMode instant model =
+changeMode : { to : ViewMode, instant : Bool, save : Bool } -> ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
+changeMode { to, instant, save } model =
     let
         vs =
             model.viewState
@@ -940,15 +956,10 @@ changeMode newViewMode instant model =
             getActiveIdFromViewMode vs.viewMode
 
         tryId =
-            getActiveIdFromViewMode newViewMode
+            getActiveIdFromViewMode to
 
         targetTree_ =
-            getTree (getActiveIdFromViewMode newViewMode) model.workingTree.tree
-
-        _ =
-            Debug.log
-                ("changeMode " ++ Debug.toString vs.viewMode ++ " -> " ++ Debug.toString newViewMode)
-                (targetTree_ |> Maybe.map (\t -> ( t.id, t.content )))
+            getTree (getActiveIdFromViewMode to) model.workingTree.tree
     in
     case targetTree_ of
         Just targetTree ->
@@ -989,53 +1000,64 @@ changeMode newViewMode instant model =
                             }
                     }
 
+                saveIfAsked eD =
+                    if save then
+                        andThen (saveCard eD)
+
+                    else
+                        identity
+
                 scrollCmd =
                     send (ScrollCards (id :: newPast) scrollPositions colIdx instant)
             in
-            case ( vs.viewMode, newViewMode ) of
+            case ( vs.viewMode, to ) of
                 ( Normal _, Normal _ ) ->
-                    ( newModel newViewMode
+                    ( newModel to
                     , scrollCmd
                     , []
                     )
 
-                ( Normal _, Editing newEditData ) ->
-                    ( newModel newViewMode
-                    , Cmd.batch [ focus newEditData.cardId, scrollCmd ]
-                    , []
-                    )
-                        |> preventIfBlocked model
-
-                ( Normal _, FullscreenEditing newEditData ) ->
-                    ( model, Cmd.none, [] )
-
                 ( Editing oldEditData, Normal _ ) ->
-                    ( newModel newViewMode, scrollCmd, [] )
-                        |> andThen (saveCard oldEditData)
-
-                ( Editing _, Editing newEditData ) ->
-                    ( newModel newViewMode
-                    , Cmd.batch [ focus newEditData.cardId, scrollCmd ]
-                    , []
-                    )
-                        |> preventIfBlocked model
-
-                ( Editing oldEditData, FullscreenEditing newEditData ) ->
-                    ( model, Cmd.none, [] )
+                    ( newModel to, scrollCmd, [] )
+                        |> saveIfAsked oldEditData
 
                 ( FullscreenEditing oldEditData, Normal newId ) ->
-                    ( model, Cmd.none, [] )
+                    ( newModel to, scrollCmd, [] )
+                        |> saveIfAsked oldEditData
+
+                ( Normal _, Editing newEditData ) ->
+                    ( newModel to
+                    , Cmd.batch [ focus newEditData.cardId, scrollCmd ]
+                    , []
+                    )
+                        |> preventIfBlocked model
+
+                ( Editing _, Editing newEditData ) ->
+                    ( newModel to
+                    , Cmd.batch [ focus newEditData.cardId, scrollCmd ]
+                    , []
+                    )
+                        |> preventIfBlocked model
 
                 ( FullscreenEditing oldEditData, Editing newEditData ) ->
-                    ( model, Cmd.none, [] )
+                    ( newModel to
+                    , Cmd.batch [ focus newEditData.cardId, scrollCmd ]
+                    , []
+                    )
 
-                ( FullscreenEditing oldEditData, FullscreenEditing newEditData ) ->
-                    ( model, Cmd.none, [] )
+                ( Normal _, FullscreenEditing newEditData ) ->
+                    ( newModel to, focus newEditData.cardId, [] )
+
+                ( Editing _, FullscreenEditing newEditData ) ->
+                    ( newModel to, focus newEditData.cardId, [] )
+
+                ( FullscreenEditing _, FullscreenEditing _ ) ->
+                    ( newModel to, Cmd.none, [] )
 
         Nothing ->
             case getFirstCard model.workingTree.tree of
                 Just backupTree ->
-                    changeMode (Normal backupTree.id) instant model
+                    changeMode { to = Normal backupTree.id, instant = instant, save = False } model
 
                 Nothing ->
                     ( model, Cmd.none, [] )
@@ -1133,7 +1155,7 @@ goLeft id ( model, prevCmd, prevMsgsToParent ) =
     , prevCmd
     , prevMsgsToParent
     )
-        |> andThen (changeMode (Normal targetId) False)
+        |> andThen (changeMode { to = Normal targetId, instant = False, save = False })
 
 
 goDown : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
@@ -1151,7 +1173,7 @@ goDown id ( model, prevCmd, prevMsgsToParent ) =
     , prevCmd
     , prevMsgsToParent
     )
-        |> andThen (changeMode (Normal targetId) False)
+        |> andThen (changeMode { to = Normal targetId, instant = False, save = False })
 
 
 goUp : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
@@ -1169,7 +1191,7 @@ goUp id ( model, prevCmd, prevMsgsToParent ) =
     , prevCmd
     , prevMsgsToParent
     )
-        |> andThen (changeMode (Normal targetId) False)
+        |> andThen (changeMode { to = Normal targetId, instant = False, save = False })
 
 
 goRight : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
@@ -1215,7 +1237,13 @@ goRight id ( model, prevCmd, prevMsgsToParent ) =
                 , prevCmd
                 , prevMsgsToParent
                 )
-                    |> andThen (changeMode (Normal prevActiveOfChildren) False)
+                    |> andThen
+                        (changeMode
+                            { to = Normal prevActiveOfChildren
+                            , instant = False
+                            , save = False
+                            }
+                        )
 
 
 
@@ -1245,29 +1273,36 @@ saveCard { cardId, field } model =
         )
 
 
-saveAndStopEditing : ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
-saveAndStopEditing model =
+toggleEditing : ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
+toggleEditing model =
     let
         vs =
             model.viewState
-
-        activeId =
-            getActiveId (Model model)
     in
     case vs.viewMode of
         Normal active ->
-            model |> openCard active (getContent active model.workingTree.tree)
+            changeMode
+                { to = Editing { cardId = active, field = getContent active model.workingTree.tree }
+                , instant = True
+                , save = True
+                }
+                model
 
-        Editing _ ->
-            ( model, Cmd.none, [] )
-                |> saveCardIfEditing
-                |> closeCard
+        Editing { cardId, field } ->
+            changeMode
+                { to = Normal cardId
+                , instant = True
+                , save = True
+                }
+                model
 
-        FullscreenEditing _ ->
-            ( model, Cmd.none, [] )
-                |> saveCardIfEditing
-                |> closeCard
-                |> activate activeId True
+        FullscreenEditing { cardId, field } ->
+            changeMode
+                { to = Normal cardId
+                , instant = True
+                , save = True
+                }
+                model
 
 
 saveCardIfEditing : ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
@@ -1331,7 +1366,7 @@ saveCardIfEditing ( model, prevCmd, prevParentMsgs ) =
 
 openCard : String -> String -> ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
 openCard id str model =
-    changeMode (Editing { cardId = id, field = str }) False model
+    changeMode { to = Editing { cardId = id, field = str }, instant = False, save = False } model
 
 
 openCardFullscreen : String -> String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
@@ -1378,22 +1413,13 @@ exitFullscreen model =
     let
         vs =
             model.viewState
-
-        activeId =
-            getActiveId (Model model)
     in
     case vs.viewMode of
-        Normal _ ->
-            ( model, Cmd.none, [] )
+        FullscreenEditing editData ->
+            changeMode { to = Editing editData, instant = True, save = False } model
 
-        Editing _ ->
+        _ ->
             ( model, Cmd.none, [] )
-
-        FullscreenEditing { field } ->
-            ( { model | viewState = { vs | viewMode = Editing { cardId = activeId, field = field } } }
-            , Cmd.batch [ send <| SetField activeId field, focus activeId ]
-            , []
-            )
 
 
 exitFullscreenExposed : Model -> ( Model, Cmd Msg )
@@ -1640,7 +1666,13 @@ insert pid pos initText ( model, prevCmd, prevMsgsToParent ) =
                 )
            ]
     )
-        |> andThen (changeMode (Editing { cardId = newIdString, field = initText }) False)
+        |> andThen
+            (changeMode
+                { to = Editing { cardId = newIdString, field = initText }
+                , instant = False
+                , save = False
+                }
+            )
         |> preventIfBlocked model
 
 
@@ -2714,37 +2746,25 @@ openCardFullscreenMsg cardId str (Model model) =
         |> (\( m, c, _ ) -> ( Model m, c ))
 
 
-updateField : String -> String -> Model -> ( Model, Cmd Msg )
-updateField id field (Model model) =
+updateFullscreenField : String -> String -> Model -> ( Model, Cmd Msg )
+updateFullscreenField id field (Model model) =
     let
         vs =
             model.viewState
     in
     case vs.viewMode of
-        Editing { cardId } ->
-            ( { model
-                | viewState = { vs | viewMode = Editing { cardId = cardId, field = field } }
-                , dirty = True
-              }
-            , send <| SetDirty True
-            , []
-            )
-                |> activate id False
+        FullscreenEditing _ ->
+            ( { model | dirty = True }, send <| SetDirty True, [] )
+                |> andThen
+                    (changeMode
+                        { to = FullscreenEditing { cardId = id, field = field }
+                        , instant = False
+                        , save = True
+                        }
+                    )
                 |> (\( m, c, _ ) -> ( Model m, c ))
 
-        FullscreenEditing { cardId } ->
-            ( { model
-                | viewState =
-                    { vs | viewMode = FullscreenEditing { cardId = cardId, field = field } }
-                , dirty = True
-              }
-            , send <| SetDirty True
-            , []
-            )
-                |> activate id False
-                |> (\( m, c, _ ) -> ( Model m, c ))
-
-        Normal _ ->
+        _ ->
             ( Model model, Cmd.none )
 
 
@@ -2784,7 +2804,7 @@ maybeActivate (Model model) =
         activeId =
             getActiveId (Model model)
     in
-    changeMode (Normal activeId) False model
+    changeMode { to = Normal activeId, instant = False, save = False } model
         |> (\( m, c, _ ) -> ( Model m, c ))
 
 

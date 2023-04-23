@@ -24,7 +24,7 @@ import Html exposing (Html, br, button, div, h1, h2, li, p, strong, ul)
 import Html.Attributes exposing (class, classList, height, id, style, width)
 import Html.Events exposing (onClick)
 import Html.Extra exposing (viewIf)
-import Html.Lazy exposing (lazy3, lazy5)
+import Html.Lazy exposing (lazy2, lazy3, lazy5)
 import Http
 import Import.Bulk.UI as ImportModal
 import Import.Incoming
@@ -452,7 +452,7 @@ update msg model =
                             let
                                 ( newDocModel, newCmd ) =
                                     docModel
-                                        |> Page.Doc.updateField id field
+                                        |> Page.Doc.updateFullscreenField id field
                                         |> (\( m, c ) -> ( m, Cmd.map GotDocMsg c ))
                             in
                             ( { model | documentState = Doc { docState | docModel = newDocModel } }, newCmd )
@@ -1955,7 +1955,7 @@ view ({ documentState } as model) =
                     isMac =
                         GlobalData.isMac (toGlobalData model)
                 in
-                lazy3
+                lazy2
                     (Fullscreen.view
                         { toSelf = GotFullscreenMsg
                         , exitFullscreenRequested = ExitFullscreenRequested
@@ -1973,7 +1973,6 @@ view ({ documentState } as model) =
                     , lastRemoteSave = lastRemoteSave
                     , currentTime = GlobalData.currentTime (Page.Doc.getGlobalData docModel)
                     }
-                    (Page.Doc.getField docModel)
                     (Page.Doc.getActiveId docModel)
 
             else
