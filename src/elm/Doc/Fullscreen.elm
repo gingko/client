@@ -7,7 +7,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onFocus, onInput)
 import Html.Keyed as Keyed
-import Html.Lazy exposing (lazy2)
+import Html.Lazy exposing (lazy2, lazy3)
 import Time
 import Translation exposing (Language, TranslationId(..))
 import Types exposing (..)
@@ -61,8 +61,8 @@ view msgs ({ model } as info) activeId =
     in
     div
         [ id "app-fullscreen" ]
-        [ viewColumn activeId currentColumn |> Html.map msgs.toSelf
-        , viewFullscreenButtons msgs info
+        [ lazy2 viewColumn activeId currentColumn |> Html.map msgs.toSelf
+        , lazy2 viewFullscreenButtons msgs info
         ]
 
 
@@ -144,7 +144,7 @@ viewGroup : String -> Group -> Html Msg
 viewGroup active xs =
     let
         viewFunction t =
-            ( t.id, viewCard (t.id == active) t.id t.content )
+            ( t.id, lazy3 viewCard (t.id == active) t.id t.content )
     in
     Keyed.node "div"
         [ class "group-fullscreen" ]
