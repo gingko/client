@@ -546,7 +546,12 @@ incoming incomingMsg model =
                 ( model, Cmd.none, [] )
 
         ClickedOutsideCard ->
-            changeMode { to = Normal (getActiveIdFromViewState vs), instant = False, save = True } model
+            case vs.viewMode of
+                FullscreenEditing _ ->
+                    ( model, Cmd.none, [] )
+
+                _ ->
+                    changeMode { to = Normal (getActiveIdFromViewState vs), instant = False, save = True } model
 
         CheckboxClicked cardId checkboxNumber ->
             case getTree cardId model.workingTree.tree of

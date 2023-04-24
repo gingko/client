@@ -114,8 +114,6 @@ const editBlurHandler = (ev) => {
   const isFullscreenSvg = ev.target.nodeName == "svg" && parentClasses.contains("fullscreen-card-btn");
   const isFullscrerenPath = ev.target.nodeName == "path" && grandparentClasses.contains("fullscreen-card-btn");
 
-  console.log(isSaveButton, isFullscreenButton, isFullscreenSvg, isEditTextarea(ev.target))
-
   if (isSaveButton || isFullscreenButton || isFullscreenSvg || isFullscrerenPath || isEditTextarea(ev.target)) {
     return;
   } else {

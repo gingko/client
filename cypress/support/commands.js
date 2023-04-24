@@ -86,7 +86,7 @@ Cypress.Commands.add('login', (userEmail) => {
 
 Cypress.Commands.add('writeInCard', (textToType) => {
   cy.get('textarea')
-    .type(textToType)
+    .type(textToType, {delay: 30})
 })
 
 

@@ -44,16 +44,19 @@ describe('Fullscreen Editing', () => {
     })
 
     // Test typing
-    cy.focused().type(' test')
+    cy.focused().type(' test', {delay: 50})
     cy.get('#fullscreen-buttons #save-indicator').contains('Synced')
     cy.focused().should('have.value', '# 3\nAnother Child card test')
 
     // Test change card focus
     cy.get('textarea').first().click()
-      .type('{enter}abc')
+      .type('{enter}abc', {delay: 50})
     cy.wait(100)
     cy.get('#fullscreen-buttons #save-indicator').contains('Synced')
     cy.shortcut('{esc}')
+    cy.get('#app-fullscreen').should('not.exist')
+    cy.get('#fullscreen-main').should('not.exist')
+    cy.get('textarea').should('not.exist')
     cy.getCard(2,1,1).should('contain', 'cardabc')
     cy.getCard(2,1,2).should('contain', 'card test')
 
@@ -65,14 +68,14 @@ describe('Fullscreen Editing', () => {
 
     // Field preserved when exiting fullscreen
     cy.shortcut('{shift}{enter}')
-    cy.focused().type('lmn')
+    cy.focused().type('lmn', {delay: 50})
     cy.get('#fullscreen-exit').click()
     cy.focused()
       .should('have.value','# 2\nChild card\nabclmn')
 
     // Save and exit edit mode on Ctrl+Enter
     cy.get('.fullscreen-card-btn').click()
-    cy.focused().type(' line')
+    cy.focused().type(' line', {delay: 50})
     cy.shortcut('{ctrl}{enter}')
     cy.get('#app-fullscreen').should('not.exist')
     cy.get('#fullscreen-main').should('not.exist')
@@ -84,7 +87,7 @@ describe('Fullscreen Editing', () => {
     // Save and don't exit edit mode on Ctrl+S
     cy.shortcut('{downarrow}{shift}{enter}')
     cy.get('#fullscreen-main').should('be.visible')
-    cy.focused().type('xyz')
+    cy.focused().type('xyz', {delay: 50})
     cy.get('#fullscreen-buttons #save-indicator').should('be.visible')
     cy.shortcut('{ctrl}s')
     cy.get('#app-fullscreen')
