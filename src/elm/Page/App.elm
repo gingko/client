@@ -20,7 +20,7 @@ import File exposing (File)
 import File.Download as Download
 import File.Select as Select
 import GlobalData exposing (GlobalData)
-import Html exposing (Html, br, button, div, h1, h2, li, p, strong, ul)
+import Html exposing (Html, br, button, div, h1, h2, h3, li, p, small, strong, ul)
 import Html.Attributes exposing (class, classList, height, id, style, width)
 import Html.Events exposing (onClick)
 import Html.Extra exposing (viewIf)
@@ -2136,20 +2136,29 @@ viewModal globalData session modalState =
             Doc.Switcher.view SwitcherClosed FileSearchChanged switcherModel
 
         MigrateModal ->
-            [ div []
-                [ h2 [] [ textNoTr "Issues Reported With New Format" ]
-                , p [] [ textNoTr "Despite meticulous care and a solid month of testing the new format, it seems that some bugs have managed to survive 😕." ]
-                , p [] [ textNoTr "I've disabled the option to migrate documents to the new format until I can track down and fix these issues." ]
-                , p [] [ textNoTr "In the meantime, you can:" ]
+            [ div [ class "top" ] [ h2 [] [ textNoTr "We've made major improvements to how documents are stored.", br [] [], textNoTr "Upgrade this document to make it :" ] ]
+            , div [ class "left" ]
+                [ h3 [ style "text-align" "center" ] [ textNoTr "More Reliable" ]
                 , ul []
-                    [ li [] [ textNoTr "Keep using this document in the new format, while saving to JSON often as a backup...", br [] [], textNoTr "OR" ]
-                    , li [] [ textNoTr "You can export a JSON version of this document and re-import it, to get it back into the old format." ]
+                    [ li [] [ textNoTr "3 on-device backups, updated as you type" ]
+                    , li [] [ textNoTr "2 server backups up to once per second" ]
+                    , li [] [ textNoTr "Simpler data, in a more resilient database" ]
                     ]
-                , p [] [ textNoTr "Sorry for the inconvenience!" ]
-                , div [ style "display" "none" ] [ button [ onClick MigrateToCardBased ] [ textNoTr "Migrate" ] ]
+                ]
+            , div [ class "right" ]
+                [ h3 [ style "text-align" "center" ] [ textNoTr "Faster" ]
+                , ul []
+                    [ li [] [ textNoTr "35x faster syncing" ]
+                    , li [] [ textNoTr "25x less network data sent/received" ]
+                    , li [] [ textNoTr "100x faster loading of large documents" ]
+                    ]
+                ]
+            , div [ classList [ ( "bottom", True ), ( "modal-buttons", True ) ] ]
+                [ div [ onClick MigrateToCardBased ] [ textNoTr "Upgrade Document" ]
+                , p [ style "position" "absolute", style "bottom" "16px", style "color" "grey" ] [ small [] [ textNoTr "(Note: this downloads a backup of the current document before upgrading it)" ] ]
                 ]
             ]
-                |> SharedUI.modalWrapper ModalClosed (Just "migrate-bugs-modal") Nothing "\u{200E}"
+                |> SharedUI.modalWrapper ModalClosed (Just "migrate-modal") Nothing "\u{200E}"
 
         SidebarContextMenu docId ( x, y ) ->
             [ div [ onClick ModalClosed, id "sidebar-context-overlay" ] []

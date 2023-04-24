@@ -140,7 +140,7 @@ viewHeader msgs { session, title_, titleField_, headerMenu, isGitLike, exportSet
     in
     div [ id "document-header" ]
         [ titleArea
-        , viewIf (not isGitLike) <|
+        , viewIf isGitLike <|
             div
                 [ id "migrate-button"
                 , class "header-button"
@@ -148,7 +148,7 @@ viewHeader msgs { session, title_, titleField_, headerMenu, isGitLike, exportSet
                 , onMouseEnter <| msgs.tooltipRequested "migrate-button" BelowTooltip MigrateTooltip
                 , onMouseLeave msgs.tooltipClosed
                 ]
-                [ AntIcons.warningOutlined [] ]
+                [ AntIcons.thunderboltFilled [] ]
         , div
             [ id "history-icon"
             , class "header-button"
