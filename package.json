@@ -85,6 +85,7 @@
     }
   },
   "dependencies": {
+    "@sentry/browser": "^7.49.0",
     "@tpp/hybrid-logical-clock": "^1.0.0",
     "dexie": "^3.2.2",
     "electron-is-dev": "^0.3.0",

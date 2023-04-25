@@ -14,9 +14,22 @@ const config = require("../../config.js");
 const mycrypt = require("./encrypt.js");
 const PersistentWebSocket = require("pws");
 
+// Initialize Error Reporting
+import * as Sentry from '@sentry/browser';
 import LogRocket from 'logrocket';
+
 if(window.location.origin === config.PRODUCTION_SERVER) {
+  Sentry.init({ dsn: config.SENTRY_DSN
+    , integrations: [new Sentry.BrowserTracing()]
+    , tracesSampleRate: 1.0
+  });
+
   LogRocket.init(config.LOGROCKET_APPID);
+  LogRocket.getSessionURL(sessionURL => {
+    Sentry.configureScope(scope => {
+      scope.setExtra("sessionURL", sessionURL);
+    });
+  });
 }
 
 import PouchDB from "pouchdb";
