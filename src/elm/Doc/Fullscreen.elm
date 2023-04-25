@@ -172,6 +172,7 @@ viewCard isActive cardId content =
             , onFocus <| OpenCard cardId content
             , onInput <| UpdateField cardId
             , attribute "data-private" "lipsum"
+            , attribute "data-gramm" "false"
             , value content
             ]
             []

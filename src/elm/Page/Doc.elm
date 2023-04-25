@@ -2398,6 +2398,7 @@ viewCardEditing lang cardId content isParent _ =
                 , ( "mousetrap", True )
                 ]
             , attribute "data-private" "lipsum"
+            , attribute "data-gramm" "false"
             , onInput <| UpdateEditingField cardId
             , value content
             ]

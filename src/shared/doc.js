@@ -1216,6 +1216,27 @@ Mousetrap.bind(["shift+tab"], function () {
 
 /* === DOM manipulation === */
 
+window.addEventListener("error", (err) => {
+  console.log(err);
+  if (
+    err.message.match(/Cannot read properties of undefined \(reading 'childNodes'\)/)
+    ||
+    err.message.match(/Failed to execute 'removeChild' on 'Node'/)
+  ) {
+    alert("There may be an extension interfering with Gingko Writer.\n\nDisable your extensions and try again, or contact support");
+    cleanBodyHelp();
+  }
+});
+
+const cleanBodyHelp = () => {
+  console.log("cleanBodyHelp")
+  document.body
+    .querySelectorAll(
+      "[data-grammarly-shadow-root], [data-lastpass-root], [data-lastpass-icon-root]"
+    )
+    .forEach((el) => document.body.after(el));
+};
+
 
 const observer = helpers.getObserver(toElm);
 
