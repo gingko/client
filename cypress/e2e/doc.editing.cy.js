@@ -182,6 +182,18 @@ describe('Document Editing', () => {
       .should('not.contain',')XYZUVW')
     cy.shortcut('{ctrl}{enter}')
 
+    // Correctly splits card up
+    cy.shortcut('{enter}')
+    cy.shortcut('{leftarrow}{leftarrow}{leftarrow}')
+    cy.shortcut('{ctrl}k')
+    cy.get('textarea')
+      .should('have.value', ')XYZ')
+    cy.shortcut('{ctrl}{enter}')
+    cy.getCard(1,1,2)
+      .should('contain',')XYZ')
+    cy.getCard(1,1,3)
+      .should('contain','UVW')
+
     // New card, to test title shortcuts
     cy.shortcut('{ctrl}{rightArrow}')
     cy.writeInCard('A test title{enter}{enter}body')

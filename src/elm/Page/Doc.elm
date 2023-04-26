@@ -677,7 +677,7 @@ incoming incomingMsg model =
                             , []
                             )
                                 |> saveCardIfEditing
-                                |> insertBelow activeId beforeText
+                                |> insertAbove activeId beforeText
 
                         FullscreenEditing { cardId } ->
                             let
@@ -692,7 +692,7 @@ incoming incomingMsg model =
                             , []
                             )
                                 |> saveCardIfEditing
-                                |> insertBelow activeId beforeText
+                                |> insertAbove activeId beforeText
 
                 "mod+up" ->
                     normalMode model (insertAbove activeId "")
