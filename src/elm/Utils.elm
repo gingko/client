@@ -1,4 +1,4 @@
-module Utils exposing (emptyText, getFieldErrors, hash, hexEncode, onClickStop, randomPositiveInt, text, textNoTr)
+module Utils exposing (emptyText, getFieldErrors, hash, hexEncode, onClickStop, text, textNoTr)
 
 import Hex
 import Html exposing (Html)
