@@ -21,12 +21,12 @@ import Markdown
 import Outgoing exposing (Msg(..), send)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Random
+import RandomId exposing (stringGenerator)
 import Regex
 import Task
 import Time
 import Translation exposing (Language, TranslationId(..), tr)
 import Types exposing (..)
-import Utils exposing (randomPositiveInt)
 
 
 
@@ -1646,11 +1646,8 @@ intentCancelCard model =
 insert : String -> Int -> String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 insert pid pos initText ( model, prevCmd, prevMsgsToParent ) =
     let
-        ( newId, newSeed ) =
-            Random.step randomPositiveInt (GlobalData.seed model.globalData)
-
-        newIdString =
-            "node-" ++ (newId |> String.fromInt)
+        ( newIdString, newSeed ) =
+            Random.step (stringGenerator 24) (GlobalData.seed model.globalData)
     in
     ( { model
         | workingTree = TreeStructure.update (TreeStructure.Ins newIdString initText pid pos) model.workingTree
@@ -1979,10 +1976,10 @@ pasteBelow : String -> Tree -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( Mod
 pasteBelow id copiedTree ( model, prevCmd, prevMsgsToParent ) =
     let
         ( newId, newSeed ) =
-            Random.step randomPositiveInt (GlobalData.seed model.globalData)
+            Random.step (stringGenerator 24) (GlobalData.seed model.globalData)
 
         treeToPaste =
-            TreeStructure.renameNodes (newId |> String.fromInt) copiedTree
+            TreeStructure.renameNodes newId copiedTree
 
         pid =
             (getParent id model.workingTree.tree |> Maybe.map .id) |> Maybe.withDefault "0"
@@ -2001,10 +1998,10 @@ pasteInto : String -> Tree -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( Mode
 pasteInto id copiedTree ( model, prevCmd, prevMsgsToParent ) =
     let
         ( newId, newSeed ) =
-            Random.step randomPositiveInt (GlobalData.seed model.globalData)
+            Random.step (stringGenerator 24) (GlobalData.seed model.globalData)
 
         treeToPaste =
-            TreeStructure.renameNodes (newId |> String.fromInt) copiedTree
+            TreeStructure.renameNodes newId copiedTree
     in
     ( { model | globalData = GlobalData.setSeed newSeed model.globalData }
     , prevCmd

@@ -29,11 +29,6 @@ hash seed str =
         |> Hex.toString
 
 
-randomPositiveInt : Random.Generator Int
-randomPositiveInt =
-    Random.int 0 Random.maxInt
-
-
 
 -- Translation Helper Function
 
