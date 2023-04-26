@@ -173,7 +173,7 @@ async function setUserDbs(eml) {
     firstLoad = false;
   });
 
-  thirdPartyScriptsInit(arguments)
+  thirdPartyScriptsInit(eml)
 }
 
 
