@@ -24,5 +24,9 @@ describe('Loading indicators', () => {
       expect(win.elmMessages.map(m => m.tag))
         .to.not.include('EmptyMessageShown');
     })
+
+    // Redirects to 404 if already logged in
+    cy.visit(config.TEST_SERVER + '/login')
+    cy.url().should('match', /\/login\/404-not-found$/)
   })
 })
