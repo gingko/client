@@ -45,7 +45,8 @@ describe('User Signup Flow', () => {
     cy.request({url: config.TEST_SERVER + '/db/' + testUserDb, retryOnStatusCodeFailure: true})
 
     // Imports "Welcome Tree"
-    cy.url().should('match', /\/[a-zA-Z0-9]{7}$/)
+    cy.url().should('not.match', /\/import\/welcome$/)
+    cy.url().should('match', /\/[a-zA-Z0-9]{7}$/).as('welcomeUrl')
     cy.contains('Welcome to Gingko Writer')
 
     // Has email verification banner
@@ -55,7 +56,9 @@ describe('User Signup Flow', () => {
     cy.request('POST', config.TEST_SERVER + '/test/confirm')
 
     // Redirected to welcome, Confirmation banner gone
-    cy.url().should('match', /\/[a-zA-Z0-9]{7}$/)
+    cy.get('@welcomeUrl').then((welcomeUrl) => {
+      cy.url().should('eq', welcomeUrl)
+    })
     cy.contains('Welcome to Gingko Writer')
 
     cy.get('#email-confirm-banner')

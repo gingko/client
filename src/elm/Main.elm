@@ -119,7 +119,17 @@ handleUrlChange url model =
                     )
 
                 [ "confirm" ] ->
-                    ( model, Cmd.none )
+                    case model of
+                        App appModel ->
+                            ( Page.App.updateSession
+                                (Session.confirmEmail (GlobalData.currentTime globalData) session)
+                                appModel
+                                |> App
+                            , Cmd.none
+                            )
+
+                        _ ->
+                            ( model, Cmd.none )
 
                 [ dbName ] ->
                     let
