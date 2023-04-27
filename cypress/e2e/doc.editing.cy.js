@@ -194,7 +194,15 @@ describe('Document Editing', () => {
     cy.getCard(1,1,3)
       .should('contain','UVW')
 
+    // Copy/Paste tests
+    cy.getCard(2,1,1).click()
+    cy.shortcut('{ctrl}c')
+    cy.shortcut('{ctrl}v')
+    cy.getCard(2,1,1).should('not.have.class','active').should('contain', 'A child')
+    cy.getCard(2,1,2).should('have.class','active').should('contain', 'A child')
+
     // New card, to test title shortcuts
+    cy.getCard(1,1,1).click()
     cy.shortcut('{ctrl}{rightArrow}')
     cy.writeInCard('A test title{enter}{enter}body')
 
@@ -241,7 +249,7 @@ describe('Document Editing', () => {
     cy.get('textarea')
       .should('have.value', '**bold**')
     cy.shortcut('{ctrl}{enter}')
-    cy.getCard(2,2,2)
+    cy.getCard(2,1,4)
       .should('contain.html','<strong>bold</strong>')
     cy.shortcut('{ctrl}{downarrow}')
     cy.writeInCard('italic')
@@ -250,7 +258,7 @@ describe('Document Editing', () => {
     cy.get('textarea')
       .should('have.value', '*italic*')
     cy.shortcut('{ctrl}{enter}')
-    cy.getCard(2,2,3)
+    cy.getCard(2,1,5)
       .should('contain.html','<em>italic</em>')
 
   })
