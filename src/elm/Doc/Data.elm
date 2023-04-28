@@ -502,6 +502,7 @@ convert docId model =
                                 , t
                                 , RemoteData.fromMaybe (BadBody "Couldn't import git-like history") tr_
                                     |> RemoteData.map (fromTree docId 0 Nothing t 0)
+                                    |> RemoteData.map (prefixIds docId)
                                 )
                             )
             in
@@ -510,6 +511,7 @@ convert docId model =
                     let
                         currCards =
                             fromTree docId 0 Nothing ts 0 tree
+                                |> prefixIds docId
                     in
                     Just
                         ( CardBased currCards cardHistory Nothing
@@ -1059,8 +1061,13 @@ localSave treeId op model =
                 CTMrg aId bId bool ->
                     Enc.null
 
-                CTBlk tree string int ->
-                    Enc.null
+                CTBlk tree parId pos ->
+                    let
+                        toAdd =
+                            fromTree treeId 0 (Just parId) (Time.millisToPosix 0) pos tree
+                                |> List.map stripUpdatedAt
+                    in
+                    toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = Set.empty }
 
         GitLike gitData maybeConflictInfo ->
             Enc.null
@@ -1117,13 +1124,18 @@ fromTree treeId depth parId ts idx tree =
             tsInt =
                 Time.posixToMillis ts
         in
-        { id = treeId ++ ":" ++ tree.id, treeId = treeId, content = tree.content, parentId = parId |> Maybe.map (\pid -> treeId ++ ":" ++ pid), position = toFloat idx, deleted = False, synced = False, updatedAt = (tsInt |> String.fromInt) ++ ":" ++ String.fromInt depth ++ ":" ++ hash tsInt tree.id }
+        { id = tree.id, treeId = treeId, content = tree.content, parentId = parId, position = toFloat idx, deleted = False, synced = False, updatedAt = (tsInt |> String.fromInt) ++ ":" ++ String.fromInt depth ++ ":" ++ hash tsInt tree.id }
             :: (case tree.children of
                     Children children ->
                         children
                             |> List.indexedMap (fromTree treeId (depth + 1) (Just tree.id) ts)
                             |> List.concat
                )
+
+
+prefixIds : String -> List (Card a) -> List (Card a)
+prefixIds prefix cards =
+    List.map (\card -> { card | id = prefix ++ ":" ++ card.id, parentId = card.parentId |> Maybe.map (\pid -> prefix ++ ":" ++ pid) }) cards
 
 
 toTree : List (Card String) -> Tree
