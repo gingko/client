@@ -90,6 +90,30 @@ describe('Document Editing', () => {
 
     cy.contains('Synced')
 
+    // Can move back to last change
+    cy.shortcut('{ctrl}l')
+    cy.shortcut('{enter}')
+    cy.writeInCard('Change to undo')
+    cy.shortcut('{ctrl}{enter}')
+    cy.contains('Synced')
+    cy.shortcut('{ctrl}z')
+    cy.shortcut('{ctrl}z')
+
+    cy.contains('Restore this Version')
+
+    cy.get('#app-root')
+      .should('not.contain', 'Change to undo')
+
+    // Restores last change
+    cy.get('#history-restore').click()
+
+    cy.get('#app-root')
+      .should('not.contain', 'Change to undo')
+
+    cy.get('#history-menu').should('not.exist')
+
+    cy.wait(500)
+
     // Cancels changes correctly after confirmation
     let confirmCalled
     cy.on('window:confirm', (str) => {
@@ -126,6 +150,9 @@ describe('Document Editing', () => {
     cy.getCard(2,1,2)
       .contains('Another one below')
 
+    cy.get('#app-root')
+      .should('not.contain', 'Change to undo')
+
     // Has saved the activation state
     cy.wait(400)
     cy.getCard(1,1,1)
@@ -151,24 +178,6 @@ describe('Document Editing', () => {
       .clear()
 
     cy.contains('Hello World :)')
-
-    // Can move back to last change
-    cy.shortcut('{ctrl}z')
-
-    cy.contains('Restore this Version')
-
-    cy.get('#app-root')
-      .should('not.contain', 'Another one below')
-
-    // Restores last change
-    cy.get('#history-restore').click()
-
-    cy.get('#app-root')
-      .should('not.contain', 'Another one below')
-
-    cy.get('#history-menu').should('not.exist')
-
-    cy.wait(500)
 
     // Can split card down
     cy.shortcut('{enter}')
@@ -259,5 +268,7 @@ describe('Document Editing', () => {
     cy.getCard(2,1,5)
       .should('contain.html','<em>italic</em>')
 
+
+    // TODO : Test Card moving
   })
 })
