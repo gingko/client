@@ -2154,7 +2154,7 @@ viewModal globalData session modalState =
                     ]
                 ]
             , div [ classList [ ( "bottom", True ), ( "modal-buttons", True ) ] ]
-                [ div [ onClick MigrateToCardBased ] [ textNoTr "Upgrade Document" ]
+                [ div [ id "migrate-confirm", onClick MigrateToCardBased ] [ textNoTr "Upgrade Document" ]
                 , p [ style "position" "absolute", style "bottom" "16px", style "color" "grey" ] [ small [] [ textNoTr "(Note: this downloads a backup of the current document before upgrading it)" ] ]
                 ]
             ]
