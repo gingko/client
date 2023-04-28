@@ -1967,7 +1967,7 @@ paste subtree pid pos ( model, prevCmd, prevMsgsToParent ) =
     , prevCmd
     , prevMsgsToParent
     )
-        |> activate subtree.id False
+        |> andThen (changeMode { to = Normal subtree.id, instant = True, save = False })
         |> localSave (CTBlk subtree pid pos)
         |> addToHistory
 
