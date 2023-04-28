@@ -4,12 +4,17 @@ const { tr } = require("../../src/shared/translation.js");
 describe('Document Editing', () => {
   const testEmail = 'cypress@testing.com'
 
-  beforeEach(() => {
+  before(() => {
     cy.deleteUser(testEmail).then(()=>{
       cy.signup(testEmail).then(()=>{
         cy.visit(config.TEST_SERVER)
       })
     })
+  })
+
+  after(() => {
+    // Delete file downloaded during test
+    cy.exec('rm cypress/downloads/Untitled-migration-backup.json')
   })
 
   it('Can edit a document', () => {

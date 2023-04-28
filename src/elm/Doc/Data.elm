@@ -186,8 +186,29 @@ restore model historyId =
                                 |> List.map Tuple.second
                                 |> List.map stripUpdatedAt
                                 |> List.map (\c -> { c | synced = False })
+
+                        idsToMarkAsDeleted =
+                            Dict.diff oldDataDict newDataDict
+                                |> Dict.toList
+                                |> List.map Tuple.second
+                                |> List.map .id
+
+                        toMarkDeleted =
+                            oldData
+                                |> List.filter (\card -> List.member card.id idsToMarkAsDeleted)
+                                |> List.sortBy .updatedAt
+                                |> ListExtra.uniqueBy .id
+                                |> List.map (\card -> { card | deleted = True, synced = False } |> stripUpdatedAt)
                     in
-                    [ SaveCardBased (toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = Set.empty }) ]
+                    [ SaveCardBased
+                        (toSave
+                            { toAdd = toAdd
+                            , toMarkSynced = []
+                            , toMarkDeleted = toMarkDeleted
+                            , toRemove = Set.empty
+                            }
+                        )
+                    ]
 
                 _ ->
                     []
