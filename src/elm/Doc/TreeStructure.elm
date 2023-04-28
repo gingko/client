@@ -340,7 +340,7 @@ renameNodes : String -> Tree -> Tree
 renameNodes salt tree =
     let
         newId =
-            "node-" ++ sha1 (salt ++ tree.id)
+            sha1 (salt ++ tree.id)
     in
     { tree
         | id = newId
