@@ -276,24 +276,7 @@ cardDataReceived json ( oldModel, oldTree, treeId ) =
                     case oldModel of
                         CardBased oldData oldHistory oldConflicts_ ->
                             if cards /= oldData then
-                                let
-                                    latestUpdatedAt =
-                                        cards
-                                            |> List.map .updatedAt
-                                            |> List.sort
-                                            |> List.reverse
-                                            |> List.head
-                                            |> Maybe.withDefault ""
-
-                                    latestTs =
-                                        latestUpdatedAt
-                                            |> String.split ":"
-                                            |> List.head
-                                            |> Maybe.andThen String.toInt
-                                            |> Maybe.withDefault 0
-                                            |> Time.millisToPosix
-                                in
-                                CardBased cards (( latestUpdatedAt, latestTs, RemoteData.Success cards ) :: oldHistory |> ListExtra.uniqueBy (\( _, ts, _ ) -> Time.posixToMillis ts)) oldConflicts_
+                                CardBased cards oldHistory oldConflicts_
 
                             else
                                 oldModel

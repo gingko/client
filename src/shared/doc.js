@@ -524,7 +524,6 @@ const fromElm = (msg, elmData) => {
           dexie.cards.bulkDelete(elmData.toRemove);
           DIRTY = false;
         }).then(async () => {
-          await dexie.trees.update(TREE_ID, {updatedAt: timestamp, synced: false});
           if (elmData.toAdd.length > 0 || toMarkDeleted.length > 0) {
             if (elmData.toAdd.length == 1 && elmData.toAdd[0].content == "") {
               // Don't add new empty cards to history.
@@ -538,6 +537,7 @@ const fromElm = (msg, elmData) => {
             const snapshot = { snapshot: snapshotId, treeId: TREE_ID, data: snapshotData, local: true, ts: Number(lastUpdatedTime)};
             await dexie.tree_snapshots.put(snapshot);
           }
+          await dexie.trees.update(TREE_ID, {updatedAt: timestamp, synced: false});
         })
           .catch((e) => {
           alert("Error saving data!" + e);
