@@ -388,7 +388,7 @@ resolveConflicts selectedVersion model =
                 ( toAdd, toRemove ) =
                     case selectedVersion of
                         Types.Original ->
-                            ( versions.original |> List.map (\c -> { c | synced = False } |> stripUpdatedAt)
+                            ( versions.original |> List.map asUnsynced
                             , versions.original |> List.map .updatedAt |> Set.fromList
                             )
 
@@ -896,15 +896,15 @@ toSave { toAdd, toMarkSynced, toMarkDeleted, toRemove } =
         ]
 
 
-stripUpdatedAt : Card String -> Card ()
-stripUpdatedAt card =
+asUnsynced : Card String -> Card ()
+asUnsynced card =
     { id = card.id
     , treeId = card.treeId
     , content = card.content
     , parentId = card.parentId
     , position = card.position
     , deleted = card.deleted
-    , synced = card.synced
+    , synced = False
     , updatedAt = ()
     }
 
@@ -1042,7 +1042,7 @@ localSave treeId op model =
                             data
                                 |> List.filter (\card -> card.id == id)
                                 |> List.head
-                                |> Maybe.map (\card -> [ { card | content = newContent, synced = False } |> stripUpdatedAt ])
+                                |> Maybe.map (\card -> [ { card | content = newContent } |> asUnsynced ])
                                 |> Maybe.withDefault []
                     in
                     toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = Set.empty }
@@ -1064,7 +1064,7 @@ localSave treeId op model =
                                 |> List.filter (\card -> List.member card.id idsToMarkAsDeleted)
                                 |> List.sortBy .updatedAt
                                 |> ListExtra.uniqueBy .id
-                                |> List.map (\card -> { card | deleted = True, synced = False } |> stripUpdatedAt)
+                                |> List.map (\card -> { card | deleted = True } |> asUnsynced)
                     in
                     toSave { toAdd = [], toMarkSynced = [], toMarkDeleted = cardsToMarkAsDeleted, toRemove = Set.empty }
 
@@ -1074,7 +1074,7 @@ localSave treeId op model =
                             data
                                 |> List.filter (\card -> card.id == id)
                                 |> List.head
-                                |> Maybe.map (\card -> [ { card | position = getPosition id parId_ idx data, parentId = parId_, synced = False } |> stripUpdatedAt ])
+                                |> Maybe.map (\card -> [ { card | position = getPosition id parId_ idx data, parentId = parId_ } |> asUnsynced ])
                                 |> Maybe.withDefault []
                     in
                     toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = Set.empty }
@@ -1086,7 +1086,7 @@ localSave treeId op model =
                     let
                         toAdd =
                             fromTree treeId 0 (Just parId) (Time.millisToPosix 0) pos tree
-                                |> List.map stripUpdatedAt
+                                |> List.map asUnsynced
                     in
                     toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = Set.empty }
 
@@ -1483,7 +1483,7 @@ resolveDeleteConflicts allCards versions =
             -- ... and add new unsynced undeleted versions so we can create deltas based off them
             theirDeletionCards
                 |> List.filter (\c -> not (List.member c.id idsOfConflicts))
-                |> List.map (\c -> { c | synced = False, deleted = False } |> stripUpdatedAt)
+                |> List.map (\c -> { c | deleted = False } |> asUnsynced)
     in
     { toAdd = theirDeletionsLocalVersions, toMarkSynced = [], toMarkDeleted = [], toRemove = Set.union ourDeletionTimestamps theirDeletionsToRemove }
 
