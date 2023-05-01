@@ -172,33 +172,26 @@ restore model historyId =
                     let
                         oldDataDict =
                             oldData
-                                |> List.map (\c -> ( c.updatedAt, c ))
+                                |> List.sortBy .updatedAt
+                                |> List.reverse
+                                |> List.map (\c -> ( c.id, c ))
                                 |> Dict.fromList
 
                         newDataDict =
                             newData
-                                |> List.map (\c -> ( c.updatedAt, c ))
+                                |> List.sortBy .updatedAt
+                                |> List.reverse
+                                |> List.map (\c -> ( c.id, c ))
                                 |> Dict.fromList
 
-                        toAdd =
-                            Dict.diff newDataDict oldDataDict
-                                |> Dict.toList
-                                |> List.map Tuple.second
-                                |> List.map stripUpdatedAt
-                                |> List.map (\c -> { c | synced = False })
-
-                        idsToMarkAsDeleted =
-                            Dict.diff oldDataDict newDataDict
-                                |> Dict.toList
-                                |> List.map Tuple.second
-                                |> List.map .id
-
-                        toMarkDeleted =
-                            oldData
-                                |> List.filter (\card -> List.member card.id idsToMarkAsDeleted)
-                                |> List.sortBy .updatedAt
-                                |> ListExtra.uniqueBy .id
-                                |> List.map (\card -> { card | deleted = True, synced = False } |> stripUpdatedAt)
+                        ( toAdd, toMarkDeleted ) =
+                            Dict.merge
+                                (\_ a ( tA, tD ) -> ( tA, tD ++ [ a |> asUnsynced ] ))
+                                (\_ _ b ( tA, tD ) -> ( tA ++ [ b |> asUnsynced ], tD ++ [] ))
+                                (\_ a ( tA, tD ) -> ( tA ++ [ a |> asUnsynced ], tD ++ [] ))
+                                oldDataDict
+                                newDataDict
+                                ( [], [] )
                     in
                     [ SaveCardBased
                         (toSave
