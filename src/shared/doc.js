@@ -525,6 +525,14 @@ const fromElm = (msg, elmData) => {
           DIRTY = false;
         }).then(async () => {
           await dexie.trees.update(TREE_ID, {updatedAt: timestamp, synced: false});
+          if (elmData.toAdd.length > 0 || toMarkDeleted.length > 0) {
+            const cards = await dexie.cards.where({ treeId: TREE_ID, deleted: 0 }).toArray();
+            const lastUpdatedTime = cards.map((c) => c.updatedAt.split(':')[0]).reduce((a, b) => Math.max(a, b));
+            const snapshotId = `${lastUpdatedTime}:${TREE_ID}`;
+            const snapshotData = cards.map((c) => ({ ...c, snapshot: snapshotId, delta: 0}));
+            const snapshot = { snapshot: snapshotId, treeId: TREE_ID, data: snapshotData, local: true};
+            await dexie.tree_snapshots.put(snapshot);
+          }
         })
           .catch((e) => {
           alert("Error saving data!" + e);
@@ -707,13 +715,15 @@ const fromElm = (msg, elmData) => {
       // TODO: Check if we're actually in a card-based document
       wsSend('pullHistory', TREE_ID, false);
 
-      window.requestAnimationFrame(() => {
+      const timeout = document.getElementById('history-slider') ? 0 : 200;
+
+      setTimeout(() => {
         let slider = document.getElementById('history-slider')
         if (slider != null) {
           slider.stepUp(elmData);
           slider.dispatchEvent(new Event('input'));
         }
-      })
+      }, timeout)
     },
 
     SaveUserSetting: () => {

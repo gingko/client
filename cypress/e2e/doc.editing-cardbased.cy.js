@@ -80,6 +80,7 @@ describe('Document Editing', () => {
     cy.writeInCard('UVW')
     cy.get('div.buffer').first().click()
     cy.getCard(1,1,1).should('contain', 'UVW')
+    cy.contains('Synced')
 
     // Create and saves a card below using shortcuts
     cy.shortcut('l')
@@ -94,28 +95,6 @@ describe('Document Editing', () => {
       .contains('Another one below')
 
     cy.contains('Synced')
-
-    // Can move back to last change
-    cy.shortcut('{ctrl}l')
-    cy.shortcut('{enter}')
-    cy.writeInCard('Change to undo')
-    cy.shortcut('{ctrl}{enter}')
-    cy.contains('Synced')
-    cy.shortcut('{ctrl}z')
-    cy.shortcut('{ctrl}z')
-
-    cy.contains('Restore this Version')
-
-    cy.get('#app-root')
-      .should('not.contain', 'Change to undo')
-
-    // Restores last change
-    cy.get('#history-restore').click()
-
-    cy.get('#app-root')
-      .should('not.contain', 'Change to undo')
-
-    cy.get('#history-menu').should('not.exist')
 
     cy.wait(500)
 
@@ -183,6 +162,24 @@ describe('Document Editing', () => {
       .clear()
 
     cy.contains('Hello World :)')
+
+    // Can move back to last change
+    cy.shortcut('{ctrl}z')
+
+    cy.contains('Restore this Version')
+
+    cy.get('#app-root')
+      .should('not.contain', 'Another one below')
+
+    // Restores last change
+    cy.get('#history-restore').click()
+
+    cy.get('#app-root')
+      .should('not.contain', 'Another one below')
+
+    cy.get('#history-menu').should('not.exist')
+
+    cy.wait(500)
 
     // Can split card down
     cy.shortcut('{enter}')
