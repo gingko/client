@@ -535,7 +535,7 @@ const fromElm = (msg, elmData) => {
             const lastUpdatedTime = cards.map((c) => c.updatedAt.split(':')[0]).reduce((a, b) => Math.max(a, b));
             const snapshotId = `${lastUpdatedTime}:${TREE_ID}`;
             const snapshotData = cards.map((c) => ({ ...c, snapshot: snapshotId, delta: 0}));
-            const snapshot = { snapshot: snapshotId, treeId: TREE_ID, data: snapshotData, local: true};
+            const snapshot = { snapshot: snapshotId, treeId: TREE_ID, data: snapshotData, local: true, ts: Number(lastUpdatedTime)};
             await dexie.tree_snapshots.put(snapshot);
           }
         })
