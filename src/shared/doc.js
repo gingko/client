@@ -526,6 +526,11 @@ const fromElm = (msg, elmData) => {
         }).then(async () => {
           await dexie.trees.update(TREE_ID, {updatedAt: timestamp, synced: false});
           if (elmData.toAdd.length > 0 || toMarkDeleted.length > 0) {
+            if (elmData.toAdd.length == 1 && elmData.toAdd[0].content == "") {
+              // Don't add new empty cards to history.
+              return;
+            }
+
             const cards = await dexie.cards.where({ treeId: TREE_ID, deleted: 0 }).toArray();
             const lastUpdatedTime = cards.map((c) => c.updatedAt.split(':')[0]).reduce((a, b) => Math.max(a, b));
             const snapshotId = `${lastUpdatedTime}:${TREE_ID}`;
