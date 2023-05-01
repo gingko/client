@@ -258,7 +258,7 @@ describe('Document Editing', () => {
     cy.get('textarea')
       .should('have.value', '**bold**')
     cy.shortcut('{ctrl}{enter}')
-    cy.getCard(2,1,4)
+    cy.getCard(2,1,5)
       .should('contain.html','<strong>bold</strong>')
     cy.shortcut('{ctrl}{downarrow}')
     cy.writeInCard('italic')
@@ -267,7 +267,7 @@ describe('Document Editing', () => {
     cy.get('textarea')
       .should('have.value', '*italic*')
     cy.shortcut('{ctrl}{enter}')
-    cy.getCard(2,1,5)
+    cy.getCard(2,1,6)
       .should('contain.html','<em>italic</em>')
 
 
