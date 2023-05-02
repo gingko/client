@@ -134,9 +134,6 @@ describe('Document Editing', () => {
     cy.getCard(2,1,2)
       .contains('Another one below')
 
-    cy.get('#app-root')
-      .should('not.contain', 'Change to undo')
-
     // Has saved the activation state
     cy.wait(400)
     cy.getCard(1,1,1)
@@ -176,6 +173,9 @@ describe('Document Editing', () => {
 
     cy.get('#app-root')
       .should('not.contain', 'Another one below')
+
+    cy.get('#app-root')
+      .should('contain', 'Hello World :)XYZUVW')
 
     cy.get('#history-menu').should('not.exist')
 
@@ -258,7 +258,7 @@ describe('Document Editing', () => {
     cy.get('textarea')
       .should('have.value', '**bold**')
     cy.shortcut('{ctrl}{enter}')
-    cy.getCard(2,1,5)
+    cy.getCard(2,1,4)
       .should('contain.html','<strong>bold</strong>')
     cy.shortcut('{ctrl}{downarrow}')
     cy.writeInCard('italic')
@@ -267,7 +267,7 @@ describe('Document Editing', () => {
     cy.get('textarea')
       .should('have.value', '*italic*')
     cy.shortcut('{ctrl}{enter}')
-    cy.getCard(2,1,6)
+    cy.getCard(2,1,5)
       .should('contain.html','<em>italic</em>')
 
 
