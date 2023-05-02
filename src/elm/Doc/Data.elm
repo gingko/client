@@ -173,20 +173,18 @@ restore model historyId =
                         oldDataDict =
                             oldData
                                 |> List.sortBy .updatedAt
-                                |> List.reverse
                                 |> List.map (\c -> ( c.id, c ))
                                 |> Dict.fromList
 
                         newDataDict =
                             newData
                                 |> List.sortBy .updatedAt
-                                |> List.reverse
                                 |> List.map (\c -> ( c.id, c ))
                                 |> Dict.fromList
 
                         ( toAdd, toMarkDeleted ) =
                             Dict.merge
-                                (\_ a ( tA, tD ) -> ( tA, tD ++ [ a |> asUnsynced ] ))
+                                (\_ a ( tA, tD ) -> ( tA, tD ++ [ { a | deleted = True } |> asUnsynced ] ))
                                 (\_ _ b ( tA, tD ) -> ( tA ++ [ b |> asUnsynced ], tD ++ [] ))
                                 (\_ a ( tA, tD ) -> ( tA ++ [ a |> asUnsynced ], tD ++ [] ))
                                 oldDataDict
