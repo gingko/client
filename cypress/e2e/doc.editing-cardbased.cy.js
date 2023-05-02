@@ -187,6 +187,7 @@ describe('Document Editing', () => {
     cy.shortcut('{ctrl}j')
     cy.get('textarea')
       .should('have.value', ')XYZUVW')
+    cy.contains('Synced')
     cy.getCard(1,1,1)
       .should('not.contain',')XYZUVW')
     cy.shortcut('{ctrl}{enter}')
@@ -200,6 +201,7 @@ describe('Document Editing', () => {
     cy.shortcut('{ctrl}{enter}')
     cy.getCard(1,1,2)
       .should('contain',')XYZ')
+    cy.contains('Synced')
     cy.getCard(1,1,3)
       .should('contain','UVW')
 
@@ -271,14 +273,12 @@ describe('Document Editing', () => {
       .should('contain.html','<em>italic</em>')
 
 
-    // TODO : Test Card moving
-    /*
+    // Test Card moving
     cy.shortcut('{alt}{uparrow}')
     cy.contains('Synced')
     cy.getCard(2,1,4)
       .should('contain','italic')
     cy.getCard(2,1,5)
       .should('contain','bold')
-   */
   })
 })
