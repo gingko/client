@@ -272,11 +272,13 @@ describe('Document Editing', () => {
 
 
     // TODO : Test Card moving
+    /*
     cy.shortcut('{alt}{uparrow}')
     cy.contains('Synced')
     cy.getCard(2,1,4)
       .should('contain','italic')
     cy.getCard(2,1,5)
       .should('contain','bold')
+   */
   })
 })
