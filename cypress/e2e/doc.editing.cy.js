@@ -65,7 +65,9 @@ describe('Document Editing', () => {
     cy.shortcut('{enter}')
     cy.writeInCard('UVW')
     cy.get('div.buffer').first().click()
-    cy.get('#card-1').should('contain', 'UVW')
+    cy.get('#card-1')
+      .should('not.have.class', 'editing')
+      .should('contain', 'UVW')
 
     // Create and saves a card below using shortcuts
     cy.shortcut('l')
