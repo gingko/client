@@ -1,6 +1,7 @@
 module Utils exposing (emptyText, getFieldErrors, hash, hexEncode, myDebug, onClickStop, text, textNoTr)
 
-import DebugToJson exposing (pp)
+{--import DebugToJson exposing (pp)--}
+
 import Hex
 import Html exposing (Html)
 import Html.Events exposing (stopPropagationOn)
