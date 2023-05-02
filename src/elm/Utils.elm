@@ -1,11 +1,11 @@
-module Utils exposing (emptyText, getFieldErrors, hash, hexEncode, onClickStop, text, textNoTr)
+module Utils exposing (emptyText, getFieldErrors, hash, hexEncode, myDebug, onClickStop, text, textNoTr)
 
+import DebugToJson exposing (pp)
 import Hex
 import Html exposing (Html)
 import Html.Events exposing (stopPropagationOn)
 import Json.Decode as Dec
 import Murmur3 exposing (hashString)
-import Random
 import Translation exposing (Language, TranslationId, tr)
 
 
@@ -27,6 +27,20 @@ hash : Int -> String -> String
 hash seed str =
     hashString seed str
         |> Hex.toString
+
+
+
+-- Debugging
+
+
+myDebug : String -> a -> a
+myDebug label value =
+    let
+        _ =
+            --Debug.log label (pp (Debug.toString value))
+            ()
+    in
+    value
 
 
 
