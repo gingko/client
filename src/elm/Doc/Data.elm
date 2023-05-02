@@ -185,8 +185,14 @@ restore model historyId =
                         ( toAdd, toMarkDeleted ) =
                             Dict.merge
                                 (\_ a ( tA, tD ) -> ( tA, tD ++ [ { a | deleted = True } |> asUnsynced ] ))
-                                (\_ _ b ( tA, tD ) -> ( tA ++ [ b |> asUnsynced ], tD ++ [] ))
-                                (\_ a ( tA, tD ) -> ( tA ++ [ a |> asUnsynced ], tD ++ [] ))
+                                (\_ a b ( tA, tD ) ->
+                                    if a.updatedAt /= b.updatedAt then
+                                        ( tA ++ [ b |> asUnsynced ], tD )
+
+                                    else
+                                        ( tA, tD )
+                                )
+                                (\_ a ( tA, tD ) -> ( tA ++ [ a |> asUnsynced ], tD ))
                                 oldDataDict
                                 newDataDict
                                 ( [], [] )
