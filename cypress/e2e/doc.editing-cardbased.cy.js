@@ -45,13 +45,12 @@ describe('Document Editing', () => {
     cy.get('#migrate-button').click()
     cy.get('#migrate-confirm').click()
     cy.contains('Synced')
-    cy.getCard(1,1,1).as('firstCard').click() // TODO: Card not being selected after migration
+    cy.getCard(1,1,1).click() // TODO: Card not being selected after migration
 
     // Create a new child on clicking right + button
-    cy.url().as('testTreeUrl')
-    cy.get('@firstCard').then((firstCard) => {
-      firstCard.trigger('mouseover')
-    })
+    cy.getCard(1,1,1)
+      .should('have.class', 'active')
+      .trigger('mouseover')
 
     cy.get('.ins-right').click()
 
