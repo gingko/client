@@ -1208,6 +1208,10 @@ Mousetrap.bind(helpers.shortcuts, function (e, s) {
           } catch {
             toElm(clipString, "docMsgs", elmTag)
           }
+        }).catch(err => {
+          if (err.message.includes("denied")) {
+            alert("Clipboard access denied. Click on the padlock icon in the address bar and allow clipboard access.")
+          }
         });
       break;
 
