@@ -1194,6 +1194,10 @@ Mousetrap.bind(helpers.shortcuts, function (e, s) {
 
     case "mod+v":
     case "mod+shift+v":
+      if (document.activeElement.nodeName === "TEXTAREA") {
+        return;
+      }
+
       let elmTag = s === "mod+v" ? "Paste" : "PasteInto";
 
       navigator.clipboard.readText()
