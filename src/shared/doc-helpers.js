@@ -104,7 +104,9 @@ const selectionHandler = function () {
 };
 
 const editBlurHandler = (ev) => {
-  console.log("editBlurHandler", ev)
+  if (process.env.NODE_ENV === 'development') {
+    console.log("editBlurHandler", ev)
+  }
   let targetClasses = ev.target.classList;
   const parentClasses = ev.target.parentElement.classList;
   const grandparentClasses = ev.target.parentElement.parentElement.classList;
