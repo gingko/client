@@ -8,14 +8,14 @@ Cypress.LocalStorage.clear = function (keys, ls, rs) {
 describe('Fullscreen Editing', () => {
   const testEmail = 'cypress@testing.com'
 
-  before(() => {
+  beforeEach(() => {
     cy.deleteUser(testEmail).then(() => {
       cy.signup_with(testEmail, 'twoTrees')
       cy.fixture('twoTrees.ids.json').as('treeIds')
     })
   })
 
-  it('Can perform basic actions on New tree', function () {
+  it('Can perform basic actions on New tree', {retries: {runMode: 2, openMode: 0}}, function () {
     cy.visit(config.TEST_SERVER + '/' + this.treeIds[1])
 
     cy.contains('Another Child card')
