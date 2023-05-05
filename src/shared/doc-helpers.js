@@ -119,9 +119,7 @@ const editBlurHandler = (ev) => {
   if (isSaveButton || isFullscreenButton || isFullscreenSvg || isFullscrerenPath || isEditTextarea(ev.target)) {
     return;
   } else {
-    if(!(isEditTextarea(document.activeElement))) {
-      toElm(null, "docMsgs", "ClickedOutsideCard");
-    }
+    toElm(null, "docMsgs", "ClickedOutsideCard");
   }
 };
 
