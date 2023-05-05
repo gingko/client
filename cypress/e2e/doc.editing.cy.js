@@ -65,7 +65,7 @@ describe('Document Editing', () => {
     cy.shortcut('{enter}')
     cy.writeInCard('UVW')
     cy.get('div.buffer').first().click({force: true})
-    cy.contains('Synced')
+    cy.get('#save-indicator').should('not.contain', 'Unsaved Changes...')
     cy.get('#card-1')
       .should('not.have.class', 'editing')
       .should('contain', 'UVW')

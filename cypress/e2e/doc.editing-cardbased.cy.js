@@ -45,6 +45,7 @@ describe('Document Editing', () => {
     cy.get('#migrate-button').click()
     cy.get('#migrate-confirm').click()
     cy.contains('Synced')
+    cy.wait(250)
     cy.getCard(1,1,1).click() // TODO: Card not being selected after migration
 
     // Create a new child on clicking right + button
@@ -78,7 +79,7 @@ describe('Document Editing', () => {
     cy.shortcut('{enter}')
     cy.writeInCard('UVW')
     cy.get('div.buffer').first().click()
-    cy.contains('Synced')
+    cy.get('#save-indicator').should('not.contain', 'Unsaved Changes...')
     cy.getCard(1,1,1)
       .should('not.have.class', 'editing')
       .should('contain', 'UVW')
