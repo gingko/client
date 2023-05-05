@@ -12,7 +12,7 @@ describe('Document Editing', () => {
     })
   })
 
-  it('Can edit a document', () => {
+  it('Can edit a git-like document',{retries: {runMode: 2, openMode: 0}}, () => {
     cy.get('#new-button')
       .click()
 

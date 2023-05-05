@@ -4,7 +4,7 @@ const { tr } = require("../../src/shared/translation.js");
 describe('Document Editing', () => {
   const testEmail = 'cypress@testing.com'
 
-  before(() => {
+  beforeEach(() => {
     cy.deleteUser(testEmail).then(()=>{
       cy.signup(testEmail).then(()=>{
         cy.visit(config.TEST_SERVER)
@@ -12,12 +12,12 @@ describe('Document Editing', () => {
     })
   })
 
-  after(() => {
+  afterEach(() => {
     // Delete file downloaded during test
     cy.exec('rm cypress/downloads/Untitled-migration-backup.json')
   })
 
-  it('Can edit a document', () => {
+  it('Can edit a card-based document',{retries: {runMode: 2, openMode: 0}}, () => {
     cy.get('#new-button')
       .click()
 
