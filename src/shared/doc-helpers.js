@@ -54,13 +54,13 @@ const getObserver = (toElmFn) => {
         toElm.toMain('edit-mode-changed', true)
       }
       if (document.getElementById("app-fullscreen") === null) {
-        window.addEventListener('click', editBlurHandler)
+        document.addEventListener('click', editBlurHandler)
       }
     } else {
       if (Object.prototype.hasOwnProperty.call(toElm, 'toMain')) {
         toElm.toMain('edit-mode-changed', false)
       }
-      window.removeEventListener('click', editBlurHandler);
+      document.removeEventListener('click', editBlurHandler);
     }
   });
 }

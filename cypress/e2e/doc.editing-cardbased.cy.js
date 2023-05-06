@@ -78,7 +78,7 @@ describe('Document Editing', () => {
     cy.getCard(1,1,1).click()
     cy.shortcut('{enter}')
     cy.writeInCard('UVW')
-    cy.get('div.buffer').first().click()
+    cy.get('#document-header').click()
     cy.get('#save-indicator').should('not.contain', 'Unsaved Changes...')
     cy.getCard(1,1,1)
       .should('not.have.class', 'editing')
