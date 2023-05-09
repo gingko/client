@@ -28,6 +28,21 @@ describe('Payment Tests', () => {
     cy.get("#upgrade-cta")
       .should('not.contain', 'Trial Expired')
 
+    cy.request('POST', config.TEST_SERVER + '/test/expired')
+
+    cy.get("#upgrade-cta")
+      .should('contain', 'Trial Expired')
+
+    // Prevent editing in expired trial
+    const stub = cy.stub()
+    cy.on('window:alert', stub)
+    cy.getCard(1,1,1).click()
+    cy.shortcut('{enter}')
+      .then(() => {
+        expect(stub.getCall(0)).to.be.calledWith('Trial Expired')
+      })
+
+
     cy.get('#upgrade-button')
       .click()
 

@@ -41,7 +41,7 @@ import Page.Doc.Theme exposing (Theme(..), applyTheme)
 import Page.DocMessage
 import RandomId
 import Route
-import Session exposing (LoggedIn, Session(..))
+import Session exposing (LoggedIn, PaymentStatus(..), Session(..))
 import SharedUI
 import Svg.Attributes
 import Task
@@ -159,6 +159,7 @@ init nKey globalData session dbData_ =
                     , Task.attempt (always NoOp) (Browser.Dom.focus "card-edit-1")
                     ]
                 )
+                    |> setBlock Nothing
 
             else
                 ( defaultModel nKey
@@ -176,6 +177,7 @@ init nKey globalData session dbData_ =
                     )
                 , send <| LoadDocument dbData.dbName
                 )
+                    |> setBlock Nothing
 
         Nothing ->
             case Session.lastDocId session of
@@ -1858,11 +1860,33 @@ setBlock : Maybe String -> ( Model, Cmd msg ) -> ( Model, Cmd msg )
 setBlock block ( model, cmd ) =
     case model.documentState of
         Doc ({ docModel } as docState) ->
-            ( { model
-                | documentState = Doc { docState | docModel = Page.Doc.setBlock block docModel }
-              }
-            , cmd
-            )
+            case block of
+                Just _ ->
+                    ( { model
+                        | documentState = Doc { docState | docModel = Page.Doc.setBlock block docModel }
+                      }
+                    , cmd
+                    )
+
+                Nothing ->
+                    case Session.paymentStatus (toLoggedInSession model) of
+                        Customer _ ->
+                            ( { model
+                                | documentState = Doc { docState | docModel = Page.Doc.setBlock block docModel }
+                              }
+                            , cmd
+                            )
+
+                        Trial _ ->
+                            let
+                                lang =
+                                    GlobalData.language (toGlobalData model)
+                            in
+                            ( { model
+                                | documentState = Doc { docState | docModel = Page.Doc.setBlock (Just (tr lang TrialExpired)) docModel }
+                              }
+                            , cmd
+                            )
 
         Empty _ _ ->
             ( model, cmd )
