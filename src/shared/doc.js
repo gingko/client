@@ -1072,6 +1072,14 @@ let scrollHorizontalAmount = 20;
 let scrollHorizontalInterval = 15;
 let scrollVerticalAmount = 20;
 let scrollVerticalInterval = 15;
+
+document.ondragleave = (ev) => {
+  if(ev.relatedTarget === null) {
+    // Dragged outside of window
+    clearInterval(horizontalScrollInterval);
+    clearInterval(verticalScrollInterval);
+  }
+}
 // Prevent default events, for file dragging.
 document.ondragover = document.ondrop = (ev) => {
   // Clear autoscroll
