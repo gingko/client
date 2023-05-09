@@ -1877,13 +1877,26 @@ setBlock block ( model, cmd ) =
                             , cmd
                             )
 
-                        Trial _ ->
+                        Trial trialExpiry ->
                             let
+                                globalData =
+                                    toGlobalData model
+
+                                currTimeMs =
+                                    GlobalData.currentTime globalData |> Time.posixToMillis
+
                                 lang =
-                                    GlobalData.language (toGlobalData model)
+                                    GlobalData.language globalData
+
+                                maybeBlock =
+                                    if currTimeMs > Time.posixToMillis trialExpiry then
+                                        Just (tr lang TrialExpired)
+
+                                    else
+                                        Nothing
                             in
                             ( { model
-                                | documentState = Doc { docState | docModel = Page.Doc.setBlock (Just (tr lang TrialExpired)) docModel }
+                                | documentState = Doc { docState | docModel = Page.Doc.setBlock maybeBlock docModel }
                               }
                             , cmd
                             )
