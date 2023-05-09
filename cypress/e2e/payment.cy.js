@@ -97,5 +97,10 @@ describe('Payment Tests', () => {
     cy.contains('Another doc, with title')
     cy.get('#document-header')
       .should('not.contain', 'Upgrade')
+
+    // Can edit again after upgrade
+    cy.getCard(1,1,1).click()
+    cy.shortcut('{enter}')
+    cy.get('textarea').should('have.value', 'Another Test doc')
   })
 })

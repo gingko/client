@@ -488,6 +488,7 @@ update msg model =
 
         SettingsChanged json ->
             ( model |> updateSession (Session.sync json (GlobalData.currentTime globalData) session), Cmd.none )
+                |> setBlock Nothing
 
         LogoutRequested ->
             ( model, Session.logout )
@@ -1869,37 +1870,34 @@ setBlock block ( model, cmd ) =
                     )
 
                 Nothing ->
-                    case Session.paymentStatus (toLoggedInSession model) of
-                        Customer _ ->
-                            ( { model
-                                | documentState = Doc { docState | docModel = Page.Doc.setBlock block docModel }
-                              }
-                            , cmd
-                            )
+                    -- Reset to previous block state, depending on trial expiry
+                    let
+                        globalData =
+                            toGlobalData model
 
-                        Trial trialExpiry ->
-                            let
-                                globalData =
-                                    toGlobalData model
+                        currTime =
+                            GlobalData.currentTime globalData
 
-                                currTimeMs =
-                                    GlobalData.currentTime globalData |> Time.posixToMillis
+                        lang =
+                            GlobalData.language globalData
 
-                                lang =
-                                    GlobalData.language globalData
+                        daysLeft =
+                            Session.daysLeft currTime (toLoggedInSession model)
+                                -- "Nothing" means "Customer", confusingly
+                                |> Maybe.withDefault 9999
 
-                                maybeBlock =
-                                    if currTimeMs > Time.posixToMillis trialExpiry then
-                                        Just (tr lang TrialExpired)
+                        maybeBlock =
+                            if daysLeft <= 0 then
+                                Just (tr lang TrialExpired)
 
-                                    else
-                                        Nothing
-                            in
-                            ( { model
-                                | documentState = Doc { docState | docModel = Page.Doc.setBlock maybeBlock docModel }
-                              }
-                            , cmd
-                            )
+                            else
+                                Nothing
+                    in
+                    ( { model
+                        | documentState = Doc { docState | docModel = Page.Doc.setBlock maybeBlock docModel }
+                      }
+                    , cmd
+                    )
 
         Empty _ _ ->
             ( model, cmd )
