@@ -273,6 +273,7 @@ describe('Document Editing', () => {
     cy.shortcut('{ctrl}{enter}')
     cy.getCard(2,1,5)
       .should('contain.html','<em>italic</em>')
+    cy.contains('Synced')
 
 
     // Test Card moving
