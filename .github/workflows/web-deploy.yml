@@ -57,7 +57,7 @@ jobs:
         run: "pm2 stop --silent GingkoTest  || :"
 
       - name: Start Test Server
-        run: NODE_ENV=production PORT=8000 pm2 start ../server/dist/index.js --name GingkoTest
+        run: NODE_ENV=production DEBUG=cards PORT=8000 pm2 start ../server/dist/index.js --name GingkoTest
 
       - run: npm i
       - run: npm run build --if-present
