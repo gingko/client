@@ -65,6 +65,10 @@ describe('doc.settings.cy.js', () => {
 
     cy.get('#sidebar-document-list-wrap').contains('Untitled').click()
 
+    cy.get('@treeIds').then((treeIds) => {
+      cy.url().should('contain', treeIds[0])
+    })
+
     cy.getCard(1,1,1)
       .should('have.class', 'active')
 
