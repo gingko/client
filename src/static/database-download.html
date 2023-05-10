@@ -36,14 +36,18 @@
 
   async function downloadDb () {
     const dbs = await indexedDB.databases();
-    addInfo('Databases list: ' + dbs.map(x => { if (x.hasOwnProperty('name')) return x.name; }));
-    const dbName = dbs[0].name;
-    addInfo('Downloading from ' + dbName);
+    const dbNames = dbs.map(x => { if (x.hasOwnProperty('name')) return x.name; });
+    addInfo('Databases: ' + dbNames);
+    for (let dbName of dbNames) {
+      await singleDbDownload(dbName);
+    }
+  };
 
+  async function singleDbDownload(dbName) {
     let db = new Dexie(dbName);
     addInfo('Dexie loaded.');
+
     const { verno, tables } = await db.open();
-    addInfo('Database opened...');
     db.close();
 
     db = new Dexie(dbName);
@@ -52,10 +56,6 @@
       return p;
     }, {}));
 
-    addInfo('Starting database export. THIS MAY TAKE A WHILE! ...');
-    const filterFn = (table, value) => {
-      return value.hasOwnProperty('_doc_id_rev') && value['_doc_id_rev'].startsWith(keyPrefix);
-    }
     const options = keyPrefix ?
       {
         numRowsPerChunk: 2,
@@ -69,19 +69,18 @@
         progressCallback
       };
 
+    addInfo('Downloading from ' + dbName);
     const blob = await db.export(options);
     addInfo('Database export complete... starting download...');
-
     var a = document.createElement("a");
     document.body.appendChild(a);
     url = window.URL.createObjectURL(blob);
     a.href = url;
-    a.download = "gingko-writer-db-export.json";
+    a.download = `gingko-writer-db-${dbName}-export.json`;
     a.click();
     window.URL.revokeObjectURL(url);
-
-    addInfo('Download should be complete. Look for "gingko-writer-db-export.json" in you file system');
-  };
+    addInfo(`Download should be complete. Look for "gingko-writer-${dbName}-export.json" in you file system`);
+  }
 
   downloadDb();
 </script>
