@@ -62,6 +62,8 @@ describe('Document Editing', () => {
     cy.get('.card-btn')
       .click()
 
+    cy.contains('Synced')
+
     cy.get('div.card.active')
       .contains('A child')
 
