@@ -203,7 +203,17 @@ function initWebSocket () {
           break
 
         case 'cards':
-          await dexie.cards.bulkPut(data.d.map(c => ({ ...c, synced: true })))
+          if (data.d.length > 0) {
+            await dexie.cards.bulkPut(data.d.map(c => ({ ...c, synced: true })))
+          }
+          break
+
+        case 'cardsConflict':
+          if (data.d.length > 0) {
+            await dexie.cards.bulkPut(data.d.map(c => ({ ...c, synced: true })))
+          } else {
+            Sentry.captureMessage('cardsConflict: no cards ' + TREE_ID)
+          }
           break
 
         case 'pushOk':
