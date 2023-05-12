@@ -452,16 +452,27 @@ success json model =
 conflictToTree : Model -> ConflictSelection -> Maybe Tree
 conflictToTree data selection =
     case data of
-        CardBased _ _ (Just cd) ->
+        CardBased allCards _ (Just cd) ->
+            let
+                toDict : CardData -> Dict String (Card String)
+                toDict d =
+                    d |> List.map (\c -> ( c.id, c )) |> Dict.fromList
+
+                combine : CardData -> CardData
+                combine conf =
+                    Dict.union (toDict conf) (toDict allCards)
+                        |> Dict.toList
+                        |> List.map Tuple.second
+            in
             case selection of
                 Types.Ours ->
-                    cd.ours |> toTree |> Just
+                    combine cd.ours |> toTree |> Just
 
                 Types.Theirs ->
-                    cd.theirs |> toTree |> Just
+                    combine cd.theirs |> toTree |> Just
 
                 Types.Original ->
-                    cd.original |> toTree |> Just
+                    combine cd.original |> toTree |> Just
 
         _ ->
             Nothing
