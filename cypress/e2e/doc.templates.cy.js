@@ -27,6 +27,11 @@ describe('Welcome Tree & Templates', () => {
       .should('exist')
       .should('contain', 'Welcome to Gingko Writer')
 
+    // Has opened video tutorials
+    cy.get('.modal.video-viewer').should('exist')
+    cy.get('.close-button').click()
+    cy.get('.modal.video-viewer').should('not.exist')
+
 
     // Should bring up the Template Selector on clicking "New"
     cy.get('#new-icon').click()

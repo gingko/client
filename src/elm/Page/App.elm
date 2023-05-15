@@ -24,7 +24,7 @@ import Html exposing (Html, br, button, div, h1, h2, h3, li, p, small, strong, u
 import Html.Attributes exposing (class, classList, height, id, style, width)
 import Html.Events exposing (onClick)
 import Html.Extra exposing (viewIf)
-import Html.Lazy exposing (lazy2, lazy3, lazy5)
+import Html.Lazy exposing (lazy2, lazy5)
 import Http
 import Import.Bulk.UI as ImportModal
 import Import.Incoming
@@ -128,7 +128,12 @@ defaultModel nKey session newDocState =
     , sidebarMenuState = NoSidebarMenu
     , headerMenu = NoHeaderMenu
     , exportSettings = ( ExportEverything, DOCX )
-    , modalState = NoModal
+    , modalState =
+        if Session.isFirstRun session then
+            VideoViewer VideoViewer.init
+
+        else
+            NoModal
     , fileSearchField = ""
     , tooltip = Nothing
     , theme = Default
@@ -1561,7 +1566,13 @@ update msg model =
         ModalClosed ->
             case model.modalState of
                 VideoViewer _ ->
-                    ( { model | modalState = HelpScreen }, Cmd.none )
+                    if Session.isFirstRun session then
+                        ( { model | modalState = NoModal } |> updateSession (Session.endFirstRun session)
+                        , Cmd.none
+                        )
+
+                    else
+                        ( { model | modalState = HelpScreen }, Cmd.none )
 
                 ContactForm _ ->
                     ( { model | modalState = HelpScreen }, Cmd.none )

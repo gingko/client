@@ -49,6 +49,11 @@ describe('User Signup Flow', () => {
     cy.url().should('match', /\/[a-zA-Z0-9]{7}$/).as('welcomeUrl')
     cy.contains('Welcome to Gingko Writer')
 
+    // Has opened video tutorials
+    cy.get('.modal.video-viewer').should('exist')
+    cy.get('.close-button').click()
+    cy.get('.modal.video-viewer').should('not.exist')
+
     // Has email verification banner
     cy.get('#email-confirm-banner')
       .contains('Please confirm your email')

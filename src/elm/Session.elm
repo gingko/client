@@ -1,4 +1,4 @@
-port module Session exposing (Guest, LoggedIn, PaymentStatus(..), Session(..), confirmEmail, daysLeft, decode, documents, fileMenuOpen, fromLegacy, getDocName, getMetadata, isNotConfirmed, lastDocId, logout, name, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, setFileOpen, setShortcutTrayOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, toGuest, updateDocuments, updateUpgrade, upgradeModel, userLoggedIn, userLoggedOut, userSettingsChange)
+port module Session exposing (Guest, LoggedIn, PaymentStatus(..), Session(..), UserSource(..), confirmEmail, daysLeft, decode, documents, endFirstRun, fileMenuOpen, fromLegacy, getDocName, getMetadata, isFirstRun, isNotConfirmed, lastDocId, logout, name, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, setFileOpen, setShortcutTrayOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, toGuest, updateDocuments, updateUpgrade, upgradeModel, userLoggedIn, userLoggedOut, userSettingsChange)
 
 import Coders exposing (sortByDecoder)
 import Doc.List as DocList exposing (Model(..))
@@ -37,6 +37,7 @@ type alias SessionData =
     { fileMenuOpen : Bool
     , lastDocId : Maybe String
     , fromLegacy : Bool
+    , firstRun : Bool
     }
 
 
@@ -83,6 +84,16 @@ lastDocId session =
 fromLegacy : Guest -> Bool
 fromLegacy (Guest sessionData) =
     sessionData.fromLegacy
+
+
+isFirstRun : LoggedIn -> Bool
+isFirstRun (LoggedIn sessionData _) =
+    sessionData.firstRun
+
+
+endFirstRun : LoggedIn -> LoggedIn
+endFirstRun (LoggedIn sessionData userData) =
+    LoggedIn { sessionData | firstRun = False } userData
 
 
 fileMenuOpen : LoggedIn -> Bool
@@ -232,6 +243,7 @@ decode json =
                             { fileMenuOpen = False
                             , lastDocId = Nothing
                             , fromLegacy = False
+                            , firstRun = False
                             }
                         )
 
@@ -244,6 +256,7 @@ decoderGuestSession =
                 { fileMenuOpen = side
                 , lastDocId = Nothing
                 , fromLegacy = legacy
+                , firstRun = False
                 }
         )
         |> optional "fromLegacy" Dec.bool False
@@ -271,6 +284,7 @@ decoderLoggedIn =
                 { fileMenuOpen = side
                 , lastDocId = Nothing
                 , fromLegacy = legacy
+                , firstRun = False
                 }
                 (UserData email Upgrade.init newPayStat confirmTime trayOpen sortCriteria DocList.init)
         )
@@ -310,11 +324,24 @@ decodePaymentStatus =
             )
 
 
-responseDecoder : Guest -> Dec.Decoder ( LoggedIn, Language )
-responseDecoder session =
+type UserSource
+    = FromSignup
+    | Other
+
+
+responseDecoder : UserSource -> Guest -> Dec.Decoder ( LoggedIn, Language )
+responseDecoder usrSrc session =
     let
         sessionData =
             guestSessionData session
+                |> (\data ->
+                        case usrSrc of
+                            FromSignup ->
+                                { data | firstRun = True }
+
+                            _ ->
+                                data
+                   )
 
         builder : String -> PaymentStatus -> Maybe Time.Posix -> Language -> List Metadata -> ( LoggedIn, Language )
         builder email payStat confAt lang docs =
@@ -377,7 +404,7 @@ requestSignup toMsg email password didOptIn session =
     Http.post
         { url = "/signup"
         , body = requestBody
-        , expect = Http.expectJson toMsg (responseDecoder session)
+        , expect = Http.expectJson toMsg (responseDecoder FromSignup session)
         }
 
 
@@ -401,7 +428,7 @@ requestLogin toMsg email password session =
         , url = "/login"
         , headers = []
         , body = requestBody
-        , expect = Http.expectJson toMsg (responseDecoder session)
+        , expect = Http.expectJson toMsg (responseDecoder Other session)
         , timeout = Nothing
         , tracker = Nothing
         }
@@ -424,7 +451,7 @@ requestForgotPassword toMsg email session =
     Http.post
         { url = "/forgot-password"
         , body = requestBody
-        , expect = Http.expectJson toMsg (responseDecoder session)
+        , expect = Http.expectJson toMsg (responseDecoder Other session)
         }
 
 
@@ -441,7 +468,7 @@ requestResetPassword toMsg { newPassword, token } session =
     Http.post
         { url = "/reset-password"
         , body = requestBody
-        , expect = Http.expectJson toMsg (responseDecoder session)
+        , expect = Http.expectJson toMsg (responseDecoder Other session)
         }
 
 
