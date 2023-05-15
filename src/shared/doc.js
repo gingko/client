@@ -1107,19 +1107,21 @@ document.ondragover = document.ondrop = (ev) => {
 
   // Autoscroll
   if (ev.type === "dragover") {
+    let path = ev.path || (ev.composedPath && ev.composedPath());
+
     let relX = (ev.clientX - sidebarWidth )/ (viewportWidth - sidebarWidth);
     let relY = (ev.clientY - 40) / (viewportHeight - 40); // 40 for header height
 
     if (relY <= 0.1) {
       //scroll column up
-      let colToScroll = ev.path.filter(x => x.classList && x.classList.contains('column'))[0];
+      let colToScroll = path.filter(x => x.classList && x.classList.contains('column'))[0];
       if(!verticalScrollInterval) {
         verticalScrollInterval = setInterval(()=>{
           colToScroll.scrollBy(0, -1*scrollVerticalAmount);
         }, scrollVerticalInterval);
       }
     } else if (relY >= 0.9) {
-      let colToScroll = ev.path.filter(x => x.classList && x.classList.contains('column'))[0];
+      let colToScroll = path.filter(x => x.classList && x.classList.contains('column'))[0];
       if(!verticalScrollInterval) {
         verticalScrollInterval = setInterval(()=>{
           colToScroll.scrollBy(0, scrollVerticalAmount);
