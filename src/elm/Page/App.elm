@@ -114,8 +114,8 @@ type ModalState
     | UpgradeModal
 
 
-defaultModel : Nav.Key -> GlobalData -> LoggedIn -> DocumentState -> Model
-defaultModel nKey globalData session newDocState =
+defaultModel : Nav.Key -> LoggedIn -> DocumentState -> Model
+defaultModel nKey session newDocState =
     { loading = True
     , documentState = newDocState
     , sidebarState =
@@ -142,7 +142,6 @@ init nKey globalData session dbData_ =
         Just dbData ->
             if dbData.isNew then
                 ( defaultModel nKey
-                    globalData
                     session
                     (Doc
                         { session = session
@@ -163,7 +162,6 @@ init nKey globalData session dbData_ =
 
             else
                 ( defaultModel nKey
-                    globalData
                     session
                     (Doc
                         { session = session
@@ -182,7 +180,7 @@ init nKey globalData session dbData_ =
         Nothing ->
             case Session.lastDocId session of
                 Just docId ->
-                    ( defaultModel nKey globalData session (Empty globalData session), Route.replaceUrl nKey (Route.DocUntitled docId) )
+                    ( defaultModel nKey session (Empty globalData session), Route.replaceUrl nKey (Route.DocUntitled docId) )
 
                 Nothing ->
                     let
@@ -198,7 +196,7 @@ init nKey globalData session dbData_ =
                                     ( True, send <| GetDocumentList )
 
                         newModel =
-                            defaultModel nKey globalData session (Empty globalData session)
+                            defaultModel nKey session (Empty globalData session)
                                 |> (\m -> { m | loading = isLoading })
                     in
                     ( newModel, maybeGetDocs )
@@ -206,7 +204,7 @@ init nKey globalData session dbData_ =
 
 notFound : Nav.Key -> GlobalData -> LoggedIn -> ( Model, Cmd Msg )
 notFound nKey globalData session =
-    ( defaultModel nKey globalData session (DocNotFound globalData session), Cmd.none )
+    ( defaultModel nKey session (DocNotFound globalData session), Cmd.none )
 
 
 isDirty : Model -> Bool
