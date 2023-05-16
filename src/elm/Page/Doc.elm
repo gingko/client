@@ -1155,7 +1155,16 @@ goLeft : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd 
 goLeft id ( model, prevCmd, prevMsgsToParent ) =
     let
         targetId =
-            getParent id model.workingTree.tree |> Maybe.withDefault defaultTree |> .id
+            getParent id model.workingTree.tree
+                |> Maybe.withDefault defaultTree
+                |> .id
+                |> (\pId ->
+                        if pId == "0" then
+                            id
+
+                        else
+                            pId
+                   )
     in
     ( model
     , prevCmd
