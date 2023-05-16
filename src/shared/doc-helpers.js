@@ -344,8 +344,8 @@ const setBottom = (delta, el) => {
   }
 }
 
-const updateFillets = () => {
-  let columns = Array.from(document.getElementsByClassName("column"));
+const updateFillets = (cols) => {
+  let columns = cols || Array.from(document.getElementsByClassName("column"));
   let filletData = getFilletData(columns);
   columns.map((c,i) => {
     setColumnFillets(c,i, filletData);
@@ -466,21 +466,24 @@ var casesShared = (elmData, params) => {
       if (params.localStore.isReady()) {
         params.localStore.set('last-actives', elmData.lastActives);
       }
-      window.requestAnimationFrame(()=>{
-        updateFillets();
-        let columns = Array.from(document.getElementsByClassName("column"));
-        columns.map((c, i) => {
-          c.addEventListener('scroll', () => {
-            if(!params.ticking) {
-              window.requestAnimationFrame(() => {
-                updateFillets();
-                params.ticking = false;
-              })
 
-              params.ticking = true;
-            }
-          })
+      let columns = Array.from(document.getElementsByClassName("column"));
+
+      columns.map((c, i) => {
+        c.addEventListener('scroll', () => {
+          if(!params.ticking) {
+            params.ticking = true;
+            window.requestAnimationFrame(() => {
+              updateFillets(columns);
+              params.ticking = false;
+            })
+          }
         })
+      })
+
+      // Initial fillet update
+      window.requestAnimationFrame(() => {
+        updateFillets(columns);
       })
     },
 
