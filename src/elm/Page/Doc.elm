@@ -347,6 +347,7 @@ update msg ({ workingTree } as model) =
                             in
                             ( { modelDragUpdated | viewState = { vs | draggedTree = Nothing }, dirty = True }, Cmd.batch [ send <| SetDirty True, send <| DragDone ], [] )
                                 |> moveOperation
+                                |> andThen (changeMode { to = Normal draggedTree.id, instant = False, save = True })
 
                         Nothing ->
                             ( modelDragUpdated, Cmd.none, [] )
