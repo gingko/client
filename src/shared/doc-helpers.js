@@ -50,6 +50,7 @@ const getObserver = (toElmFn) => {
         t.onclick = selectionHandler
         t.onfocus = selectionHandler
       })
+      needOverride.push("left", "right");
       if (Object.prototype.hasOwnProperty.call(toElm, 'toMain')) {
         toElm.toMain('edit-mode-changed', true)
       }
@@ -57,6 +58,7 @@ const getObserver = (toElmFn) => {
         document.addEventListener('click', editBlurHandler)
       }
     } else {
+      needOverride = _.without(needOverride, "left", "right");
       if (Object.prototype.hasOwnProperty.call(toElm, 'toMain')) {
         toElm.toMain('edit-mode-changed', false)
       }
