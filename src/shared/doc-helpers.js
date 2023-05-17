@@ -283,7 +283,7 @@ const setColumnFillets = (currColumn, colIdx, filletData) => {
   } else if(filletData[colIdx] != null && filletData[colIdx-1] != null) {
     // Active Descendant
     let topLeftDelta = Math.min(Math.max((filletData[colIdx].top - filletData[colIdx-1].top)*0.5, -16), 16);
-    let bottomLeftDelta = Math.min(Math.max(filletData[colIdx].bottom - filletData[colIdx-1].bottom, -16), 16);
+    let bottomLeftDelta = Math.min(Math.max((filletData[colIdx].bottom - filletData[colIdx-1].bottom)*0.5, -16), 16);
     let allTopLeftFillets = currColumn.getElementsByClassName("fillet top-left");
     let allBottomLeftFillets= currColumn.getElementsByClassName("fillet bottom-left");
     let filletTopLeft = allTopLeftFillets[0];
@@ -308,7 +308,7 @@ const setColumnFillets = (currColumn, colIdx, filletData) => {
         filletTopRight.style.display = "block";
         filletBottomRight.style.display = "block";
         let topRightDelta = Math.min(Math.max((filletData[colIdx].top - filletData[colIdx+1].top)*0.5, -16), 16);
-        let bottomRightDelta = Math.min(Math.max(filletData[colIdx].bottom - filletData[colIdx+1].bottom, -16), 16);
+        let bottomRightDelta = Math.min(Math.max((filletData[colIdx].bottom - filletData[colIdx+1].bottom)*0.5, -16), 16);
 
         setTop(topRightDelta, filletTopRight);
         setBottom(bottomRightDelta, filletBottomRight);
@@ -486,6 +486,10 @@ var casesShared = (elmData, params) => {
           }
         })
       })
+
+      window.requestAnimationFrame(() => {
+        updateFillets(columns);
+      });
     },
 
     CopyCurrentSubtree: () => {
