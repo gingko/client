@@ -469,6 +469,12 @@ var casesShared = (elmData, params) => {
 
       let columns = Array.from(document.getElementsByClassName("column"));
 
+      if (columns.length == 0) {
+        setTimeout(() => {
+          updateFillets();
+        }, 20);
+      }
+
       columns.map((c, i) => {
         c.addEventListener('scroll', () => {
           if(!params.ticking) {
@@ -479,11 +485,6 @@ var casesShared = (elmData, params) => {
             })
           }
         })
-      })
-
-      // Initial fillet update
-      window.requestAnimationFrame(() => {
-        updateFillets(columns);
       })
     },
 
