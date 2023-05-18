@@ -1514,10 +1514,10 @@ deleteCard id ( model, prevCmd, prevMsgsToParent ) =
         , Cmd.batch [ prevCmd, send <| SetDirty True ]
         , prevMsgsToParent
         )
-            |> activate nextToActivate False
             |> localSave (CTRmv id)
             |> addToHistory
             |> preventIfBlocked model
+            |> andThen (changeMode { to = Normal nextToActivate, instant = False, save = False })
 
 
 goToTopOfColumn : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
