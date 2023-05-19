@@ -519,12 +519,12 @@ update msg model =
                 HistoryDataReceived json ->
                     historyReceived json model
 
-                PushOk json ->
+                PushOk chkString ->
                     case model.documentState of
                         Doc { data } ->
                             let
                                 pushOkMsg =
-                                    Data.pushOkHandler json data
+                                    Data.pushOkHandler (Enc.string chkString) data
                             in
                             ( model, pushOkMsg |> Maybe.map send |> Maybe.withDefault Cmd.none )
 
