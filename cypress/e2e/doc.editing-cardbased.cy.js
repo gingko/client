@@ -212,9 +212,10 @@ describe('Document Editing', () => {
     // Copy/Paste tests
     cy.getCard(2,1,1).click()
     cy.shortcut('{ctrl}c')
+    cy.shortcut('{leftArrow}')
     cy.shortcut('{ctrl}v')
     cy.getCard(2,1,1).should('not.have.class','active').should('contain', 'A child')
-    cy.getCard(2,1,2).should('have.class','active').should('contain', 'A child')
+    cy.getCard(1,1,2).should('have.class','active').should('contain', 'A child')
 
     // New card, to test title shortcuts
     cy.getCard(1,1,1).click()
