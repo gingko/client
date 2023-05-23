@@ -1090,7 +1090,6 @@ localSave treeId op model =
                                         else
                                             card
                                     )
-                                |> Debug.log "newCards"
                     in
                     toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = [] }
 
