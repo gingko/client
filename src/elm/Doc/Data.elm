@@ -1074,41 +1074,17 @@ localSave treeId op model =
                 CTMrg aId bId bool ->
                     Enc.null
 
-                CTBlk tree parId posIdx ->
+                CTBlk tree parId_ idx ->
                     let
-                        siblings =
-                            data
-                                |> List.filter (\card -> card.parentId == parId && card.deleted == False)
-                                |> UpdatedAt.sort .updatedAt
-                                |> ListExtra.uniqueBy .id
-                                |> List.sortBy .position
-
-                        prevSib =
-                            ListExtra.getAt (posIdx - 1) siblings |> Maybe.map .position
-
-                        nextSib =
-                            ListExtra.getAt posIdx siblings |> Maybe.map .position
-
                         newPos =
-                            case ( prevSib, nextSib ) of
-                                ( Just prev, Just next ) ->
-                                    (prev + next) / 2
-
-                                ( Just prev, Nothing ) ->
-                                    prev + 1
-
-                                ( Nothing, Just next ) ->
-                                    next / 2
-
-                                ( Nothing, Nothing ) ->
-                                    0
+                            getPosition tree.id parId_ idx data
 
                         toAdd =
-                            fromTree treeId 0 parId (Time.millisToPosix 0) posIdx tree
+                            fromTree treeId 0 parId_ (Time.millisToPosix 0) idx tree
                                 |> List.map asUnsynced
                                 |> List.map
                                     (\card ->
-                                        if card.parentId == parId then
+                                        if card.parentId == parId_ then
                                             { card | position = newPos }
 
                                         else
