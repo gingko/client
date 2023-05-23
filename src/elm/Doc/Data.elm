@@ -1074,13 +1074,8 @@ localSave treeId op model =
                 CTMrg aId bId bool ->
                     Enc.null
 
-                CTBlk tree parId pos ->
+                CTBlk tree parId posIdx ->
                     let
-                        newCards =
-                            fromTree treeId 0 parId (Time.millisToPosix 0) pos tree
-                                |> List.map asUnsynced
-                                |> Debug.log "newCards"
-
                         siblings =
                             data
                                 |> List.filter (\card -> card.parentId == parId && card.deleted == False)
@@ -1088,20 +1083,38 @@ localSave treeId op model =
                                 |> ListExtra.uniqueBy .id
                                 |> List.sortBy .position
 
-                        ( sibLeft_, sibRight_ ) =
-                            case pos of
-                                999999 ->
-                                    ( ListExtra.last siblings |> Maybe.map .position, Nothing )
-                                        |> Debug.log "sibLeft_, sibRight_"
+                        prevSib =
+                            ListExtra.getAt (posIdx - 1) siblings |> Maybe.map .position
 
-                                _ ->
-                                    ( ListExtra.getAt (pos - 1) siblings |> Maybe.map .position
-                                    , ListExtra.getAt pos siblings |> Maybe.map .position
-                                    )
-                                        |> Debug.log "sibLeft_, sibRight_"
+                        nextSib =
+                            ListExtra.getAt posIdx siblings |> Maybe.map .position
+
+                        newPos =
+                            case ( prevSib, nextSib ) of
+                                ( Just prev, Just next ) ->
+                                    (prev + next) / 2
+
+                                ( Just prev, Nothing ) ->
+                                    prev + 1
+
+                                ( Nothing, Just next ) ->
+                                    next / 2
+
+                                ( Nothing, Nothing ) ->
+                                    0
 
                         toAdd =
-                            newCards ++ []
+                            fromTree treeId 0 parId (Time.millisToPosix 0) posIdx tree
+                                |> List.map asUnsynced
+                                |> List.map
+                                    (\card ->
+                                        if card.parentId == parId then
+                                            { card | position = newPos }
+
+                                        else
+                                            card
+                                    )
+                                |> Debug.log "newCards"
                     in
                     toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = [] }
 
