@@ -34,7 +34,7 @@ type CardTreeOp
     | CTRmv String
     | CTMov String (Maybe String) Int
     | CTMrg String String Bool
-    | CTBlk Tree String Int
+    | CTBlk Tree (Maybe String) Int
 
 
 

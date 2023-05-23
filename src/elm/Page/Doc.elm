@@ -1978,7 +1978,13 @@ paste subtree pid pos ( model, prevCmd, prevMsgsToParent ) =
     , prevMsgsToParent
     )
         |> andThen (changeMode { to = Normal subtree.id, instant = True, save = False })
-        |> localSave (CTBlk subtree pid pos)
+        |> localSave
+            (if pid == "0" then
+                CTBlk subtree Nothing pos
+
+             else
+                CTBlk subtree (Just pid) pos
+            )
         |> addToHistory
 
 

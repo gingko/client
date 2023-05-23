@@ -1076,9 +1076,32 @@ localSave treeId op model =
 
                 CTBlk tree parId pos ->
                     let
-                        toAdd =
-                            fromTree treeId 0 (Just parId) (Time.millisToPosix 0) pos tree
+                        newCards =
+                            fromTree treeId 0 parId (Time.millisToPosix 0) pos tree
                                 |> List.map asUnsynced
+                                |> Debug.log "newCards"
+
+                        siblings =
+                            data
+                                |> List.filter (\card -> card.parentId == parId && card.deleted == False)
+                                |> UpdatedAt.sort .updatedAt
+                                |> ListExtra.uniqueBy .id
+                                |> List.sortBy .position
+
+                        ( sibLeft_, sibRight_ ) =
+                            case pos of
+                                999999 ->
+                                    ( ListExtra.last siblings |> Maybe.map .position, Nothing )
+                                        |> Debug.log "sibLeft_, sibRight_"
+
+                                _ ->
+                                    ( ListExtra.getAt (pos - 1) siblings |> Maybe.map .position
+                                    , ListExtra.getAt pos siblings |> Maybe.map .position
+                                    )
+                                        |> Debug.log "sibLeft_, sibRight_"
+
+                        toAdd =
+                            newCards ++ []
                     in
                     toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = [] }
 
