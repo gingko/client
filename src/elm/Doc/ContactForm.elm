@@ -88,7 +88,7 @@ toValue model =
 
 view : Language -> { closeMsg : msg, submitMsg : Model -> msg, tagger : Msg -> msg, copyEmail : Bool -> msg } -> Model -> List (Html msg)
 view lang { closeMsg, submitMsg, tagger, copyEmail } model =
-    [ form [ id "contact-form" ]
+    [ div [ id "contact-form" ]
         [ input
             [ id "contact-from-email"
             , type_ "email"
