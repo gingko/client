@@ -141,7 +141,6 @@ function getFlags() {
 
 async function setUserDbs(eml) {
   email = eml;
-  //console.log("Inside setUserDbs", email, helpers.toHex(email));
   userDbName = `userdb-${helpers.toHex(email)}`;
   let userDbUrl = window.location.origin + "/db/" + userDbName;
   var remoteOpts = { skip_setup: true };
