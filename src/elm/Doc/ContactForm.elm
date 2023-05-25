@@ -1,7 +1,7 @@
 module Doc.ContactForm exposing (Model, Msg, init, send, toValue, update, view)
 
 import Html exposing (Html, a, br, button, div, form, input, label, p, small, span, text, textarea)
-import Html.Attributes exposing (checked, class, for, href, id, name, placeholder, readonly, rows, type_, value)
+import Html.Attributes as A exposing (checked, class, for, href, id, name, placeholder, readonly, rows, style, title, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Http
 import Json.Encode as Enc
@@ -88,7 +88,7 @@ toValue model =
 
 view : Language -> { closeMsg : msg, submitMsg : Model -> msg, tagger : Msg -> msg, copyEmail : Bool -> msg } -> Model -> List (Html msg)
 view lang { closeMsg, submitMsg, tagger, copyEmail } model =
-    [ form [ id "contact-form", onSubmit <| submitMsg model ]
+    [ form [ id "contact-form" ]
         [ input
             [ id "contact-from-email"
             , type_ "email"
@@ -124,7 +124,33 @@ view lang { closeMsg, submitMsg, tagger, copyEmail } model =
             , label [ for "contact-urgency-urgent" ] [ span [] [ text "Urgent Request " ], span [ id "urg-req-info", class "extra-info" ] [ text " (Notification to Developer's Phone)" ] ]
             ]
         , br [] []
-        , button [ id "contact-send", type_ "submit" ] [ text "Send Now" ]
+        , button
+            [ id "contact-send"
+            , onClick <| submitMsg model
+            , A.disabled (model.bodyField == "")
+            , style "opacity"
+                (if model.bodyField == "" then
+                    "0.5"
+
+                 else
+                    "1"
+                )
+            , style "cursor"
+                (if model.bodyField == "" then
+                    "not-allowed"
+
+                 else
+                    "pointer"
+                )
+            , title
+                (if model.bodyField == "" then
+                    "Please enter a message"
+
+                 else
+                    ""
+                )
+            ]
+            [ text "Send Now" ]
         ]
     , p [] [ text "or" ]
     , p []
