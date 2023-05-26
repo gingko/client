@@ -220,6 +220,7 @@ lastSavedTime model =
     case model of
         CardBased data _ _ ->
             data
+                |> List.filter (not << String.isEmpty << .content)
                 |> List.map .updatedAt
                 |> UpdatedAt.sort identity
                 |> List.reverse
