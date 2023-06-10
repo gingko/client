@@ -146,7 +146,7 @@ async function setUserDbs(eml) {
   var remoteOpts = { skip_setup: true };
   remoteDB = new PouchDB(userDbUrl, remoteOpts);
   // Check remoteDB exists and accessible before continuing
-  let remoteDBinfo = await remoteDB.info().catch((e) => e);
+  let remoteDBinfo = await remoteDB.info().catch((e) => {console.error(e)});
   if (remoteDBinfo.error === "unauthorized") {
     await logout();
     return;
@@ -177,7 +177,7 @@ async function setUserDbs(eml) {
 
 
 function initWebSocket () {
-  ws = new PersistentWebSocket(window.location.origin.replace('http', 'ws'))
+  ws = new PersistentWebSocket(window.location.origin.replace('http', 'ws')+'/ws')
 
   ws.onopen = () => {
     console.log('connected')
