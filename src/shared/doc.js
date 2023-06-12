@@ -275,6 +275,10 @@ function initWebSocket () {
       console.log(e)
     }
   }
+
+  ws.onerror = (e) => {
+    console.error('ws error', e);
+  }
 }
 
 
