@@ -212,6 +212,10 @@ function initWebSocket () {
             await dexie.cards.bulkPut(data.d.map(c => ({ ...c, synced: true })))
           } else {
             Sentry.captureMessage('cardsConflict: no cards ' + TREE_ID)
+            let numberUnsynced = await dexie.cards.where('treeId').equals(TREE_ID).and(c => !c.synced).count();
+            window.alert(`Error syncing ${numberUnsynced} card${numberUnsynced == 1 ? "" : "s"}. Try refreshing the page.
+
+If this error persists, please contact support!`)
           }
           break
 
