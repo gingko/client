@@ -173,13 +173,13 @@ restore model historyId =
                     let
                         oldDataDict =
                             oldData
-                                |> UpdatedAt.sort .updatedAt
+                                |> UpdatedAt.sortNewestFirst .updatedAt
                                 |> List.map (\c -> ( c.id, c ))
                                 |> Dict.fromList
 
                         newDataDict =
                             newData
-                                |> UpdatedAt.sort .updatedAt
+                                |> UpdatedAt.sortNewestFirst .updatedAt
                                 |> List.map (\c -> ( c.id, c ))
                                 |> Dict.fromList
 
@@ -222,8 +222,7 @@ lastSavedTime model =
             data
                 |> List.filter (not << String.isEmpty << .content)
                 |> List.map .updatedAt
-                |> UpdatedAt.sort identity
-                |> List.reverse
+                |> UpdatedAt.sortNewestFirst identity
                 |> List.head
                 |> Maybe.map UpdatedAt.getTimestamp
 
@@ -238,8 +237,7 @@ lastSyncedTime model =
             data
                 |> List.filter .synced
                 |> List.map .updatedAt
-                |> UpdatedAt.sort identity
-                |> List.reverse
+                |> UpdatedAt.sortNewestFirst identity
                 |> List.head
                 |> Maybe.map UpdatedAt.getTimestamp
 
@@ -1034,6 +1032,7 @@ localSave treeId op model =
                         toAdd =
                             data
                                 |> List.filter (\card -> card.id == id)
+                                |> UpdatedAt.sortNewestFirst .updatedAt
                                 |> List.head
                                 |> Maybe.map (\card -> [ { card | content = newContent } |> asUnsynced ])
                                 |> Maybe.withDefault []
@@ -1055,7 +1054,7 @@ localSave treeId op model =
                         cardsToMarkAsDeleted =
                             data
                                 |> List.filter (\card -> List.member card.id idsToMarkAsDeleted)
-                                |> UpdatedAt.sort .updatedAt
+                                |> UpdatedAt.sortNewestFirst .updatedAt
                                 |> ListExtra.uniqueBy .id
                                 |> List.map (\card -> { card | deleted = True } |> asUnsynced)
                     in
@@ -1066,6 +1065,7 @@ localSave treeId op model =
                         toAdd =
                             data
                                 |> List.filter (\card -> card.id == id)
+                                |> UpdatedAt.sortNewestFirst .updatedAt
                                 |> List.head
                                 |> Maybe.map (\card -> [ { card | position = getPosition id parId_ idx data, parentId = parId_ } |> asUnsynced ])
                                 |> Maybe.withDefault []
@@ -1104,7 +1104,7 @@ getPosition cardId parId idx data =
         siblings =
             data
                 |> List.filter (\card -> card.parentId == parId && card.deleted == False && card.id /= cardId)
-                |> UpdatedAt.sort .updatedAt
+                |> UpdatedAt.sortNewestFirst .updatedAt
                 |> ListExtra.uniqueBy .id
                 |> List.sortBy .position
 
@@ -1173,8 +1173,7 @@ toTrees allCards =
     let
         cards =
             allCards
-                |> UpdatedAt.sort .updatedAt
-                |> List.reverse
+                |> UpdatedAt.sortNewestFirst .updatedAt
                 |> ListExtra.uniqueBy .id
                 |> List.filter (not << .deleted)
     in
@@ -1228,8 +1227,7 @@ getCardById : List (Card UpdatedAt) -> String -> Maybe (Card UpdatedAt)
 getCardById db id =
     db
         |> List.filter (\card -> card.id == id)
-        |> UpdatedAt.sort .updatedAt
-        |> List.reverse
+        |> UpdatedAt.sortNewestFirst .updatedAt
         |> List.head
 
 
@@ -1361,8 +1359,7 @@ getCardSyncState cardVersions =
             ids =
                 cardVersions
                     |> List.map .updatedAt
-                    |> UpdatedAt.sort identity
-                    |> List.reverse
+                    |> UpdatedAt.sortNewestFirst identity
                     |> List.drop historyLimit
         in
         CanFastForward ids
@@ -1375,7 +1372,8 @@ getOriginals : List (Card UpdatedAt) -> List (Card UpdatedAt)
 getOriginals db =
     db
         |> List.filter .synced
-        |> UpdatedAt.sort .updatedAt
+        |> UpdatedAt.sortNewestFirst .updatedAt
+        |> List.reverse
         |> List.head
         |> Maybe.map List.singleton
         |> Maybe.withDefault []
@@ -1385,8 +1383,7 @@ getOurs : List (Card UpdatedAt) -> List (Card UpdatedAt)
 getOurs db =
     db
         |> List.filter (not << .synced)
-        |> UpdatedAt.sort .updatedAt
-        |> List.reverse
+        |> UpdatedAt.sortNewestFirst .updatedAt
         |> List.head
         |> Maybe.map List.singleton
         |> Maybe.withDefault []
@@ -1396,8 +1393,7 @@ getTheirs : List (Card UpdatedAt) -> List (Card UpdatedAt)
 getTheirs db =
     db
         |> List.filter .synced
-        |> UpdatedAt.sort .updatedAt
-        |> List.reverse
+        |> UpdatedAt.sortNewestFirst .updatedAt
         |> (\l ->
                 if List.length l > historyLimit then
                     [ List.head l ]
@@ -1516,8 +1512,7 @@ pushOkHandler chkValue model =
                         syncedCardsOverLimit c =
                             c
                                 |> List.map .updatedAt
-                                |> UpdatedAt.sort identity
-                                |> List.reverse
+                                |> UpdatedAt.sortNewestFirst identity
                                 |> List.drop historyLimit
 
                         versionsToDelete =
@@ -1586,8 +1581,7 @@ cardDelta treeId allCards cardId =
         cardVersions =
             allCards
                 |> List.filter (\c -> c.id == cardId)
-                |> UpdatedAt.sort .updatedAt
-                |> List.reverse
+                |> UpdatedAt.sortNewestFirst .updatedAt
 
         unsyncedCard_ =
             cardVersions

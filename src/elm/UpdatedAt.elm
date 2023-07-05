@@ -1,4 +1,4 @@
-module UpdatedAt exposing (UpdatedAt, areEqual, decoder, encode, fromParts, getHash, getTimestamp, isLTE, maximum, sort, unique, uniqueBy, zero)
+module UpdatedAt exposing (UpdatedAt, areEqual, decoder, encode, fromParts, getHash, getTimestamp, isLTE, maximum, sortNewestFirst, unique, uniqueBy, zero)
 
 import Json.Decode as Dec exposing (Decoder)
 import Json.Encode as Enc
@@ -45,12 +45,13 @@ zero =
 -- EXPOSED FUNCTIONS
 
 
-sort : (a -> UpdatedAt) -> List a -> List a
-sort f l =
+sortNewestFirst : (a -> UpdatedAt) -> List a -> List a
+sortNewestFirst f l =
     l
         |> List.map (\a -> ( f a, a ))
         |> List.sortWith (\( a, _ ) ( b, _ ) -> compareUpdatedAt a b)
         |> List.map Tuple.second
+        |> List.reverse
 
 
 getTimestamp : UpdatedAt -> Int
@@ -83,8 +84,7 @@ uniqueBy f l =
 maximum : List UpdatedAt -> Maybe UpdatedAt
 maximum l =
     l
-        |> sort identity
-        |> List.reverse
+        |> sortNewestFirst identity
         |> List.head
 
 
