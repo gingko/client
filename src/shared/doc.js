@@ -224,6 +224,10 @@ If this error persists, please contact support!`)
           toElm(data, 'appMsgs', 'PushOk')
           break
 
+        case 'pushError':
+          toElm(data, 'appMsgs', 'PushError')
+          break
+
         case 'doPull':
           // Server says this tree has changes
           if (data.d === TREE_ID) {

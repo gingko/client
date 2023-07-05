@@ -534,6 +534,21 @@ update msg model =
                         DocNotFound _ _ ->
                             ( model, Cmd.none )
 
+                PushError ->
+                    case model.documentState of
+                        Doc { data, docId } ->
+                            let
+                                maybePush =
+                                    Data.triggeredPush data docId
+                            in
+                            ( model, List.map send maybePush |> Cmd.batch )
+
+                        Empty _ _ ->
+                            ( model, Cmd.none )
+
+                        DocNotFound _ _ ->
+                            ( model, Cmd.none )
+
                 GitDataReceived json ->
                     gitDataReceived json model
 
@@ -2323,6 +2338,7 @@ type IncomingAppMsg
     | CardDataReceived Enc.Value
     | HistoryDataReceived Enc.Value
     | PushOk String
+    | PushError
     | GitDataReceived Enc.Value
     | MetadataUpdate Metadata
     | SavedRemotely Time.Posix
@@ -2353,6 +2369,9 @@ subscribe tagger onError =
 
                         Err err ->
                             onError (errorToString err)
+
+                "PushError" ->
+                    tagger PushError
 
                 "GitDataReceived" ->
                     tagger <| GitDataReceived outsideInfo.data
