@@ -173,12 +173,14 @@ restore model historyId =
                         oldDataDict =
                             oldData
                                 |> UpdatedAt.sortNewestFirst .updatedAt
+                                |> List.reverse
                                 |> List.map (\c -> ( c.id, c ))
                                 |> Dict.fromList
 
                         newDataDict =
                             newData
                                 |> UpdatedAt.sortNewestFirst .updatedAt
+                                |> List.reverse
                                 |> List.map (\c -> ( c.id, c ))
                                 |> Dict.fromList
 
