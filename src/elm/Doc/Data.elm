@@ -172,15 +172,13 @@ restore model historyId =
                     let
                         oldDataDict =
                             oldData
-                                |> UpdatedAt.sortNewestFirst .updatedAt
-                                |> List.reverse
+                                |> UpdatedAt.sortOldestFirst .updatedAt
                                 |> List.map (\c -> ( c.id, c ))
                                 |> Dict.fromList
 
                         newDataDict =
                             newData
-                                |> UpdatedAt.sortNewestFirst .updatedAt
-                                |> List.reverse
+                                |> UpdatedAt.sortOldestFirst .updatedAt
                                 |> List.map (\c -> ( c.id, c ))
                                 |> Dict.fromList
 
@@ -1373,8 +1371,7 @@ getOriginals : List (Card UpdatedAt) -> List (Card UpdatedAt)
 getOriginals db =
     db
         |> List.filter .synced
-        |> UpdatedAt.sortNewestFirst .updatedAt
-        |> List.reverse
+        |> UpdatedAt.sortOldestFirst .updatedAt
         |> List.head
         |> Maybe.map List.singleton
         |> Maybe.withDefault []
@@ -1574,8 +1571,7 @@ toDelta treeId cards =
         |> List.map .id
         |> ListExtra.unique
         |> List.concatMap (cardDelta treeId cards)
-        |> UpdatedAt.sortNewestFirst .ts
-        |> List.reverse
+        |> UpdatedAt.sortOldestFirst .ts
 
 
 cardDelta : String -> List (Card UpdatedAt) -> String -> List Delta
