@@ -72,6 +72,7 @@ let email = null;
 let ws;
 let PULL_LOCK = false;
 let DIRTY = false;
+let pushErrorCount = 0;
 let loadingDocs = false;
 let draggingInternal = false;
 let viewportWidth = document.documentElement.clientWidth;
@@ -213,18 +214,23 @@ function initWebSocket () {
           } else {
             Sentry.captureMessage('cardsConflict: no cards ' + TREE_ID)
             let numberUnsynced = await dexie.cards.where('treeId').equals(TREE_ID).and(c => !c.synced).count();
-            window.alert(`Error syncing ${numberUnsynced} card${numberUnsynced == 1 ? "" : "s"}. Try refreshing the page.
-
-If this error persists, please contact support!`)
+            window.alert(`Error syncing ${numberUnsynced} card${numberUnsynced == 1 ? "" : "s"}. Try refreshing the page.\n\nIf this error persists, please contact support!`)
           }
           break
 
         case 'pushOk':
+          pushErrorCount = 0;
           hlc.recv(data.d)
           toElm(data, 'appMsgs', 'PushOk')
           break
 
         case 'pushError':
+          pushErrorCount++;
+          if (pushErrorCount >= 4) {
+            let numberUnsynced = await dexie.cards.where('treeId').equals(TREE_ID).and(c => !c.synced).count();
+            window.alert(`Error syncing ${numberUnsynced} card${numberUnsynced == 1 ? "" : "s"}. Try refreshing the page.\n\nIf this error persists, please contact support!`)
+          }
+          console.log(pushErrorCount)
           toElm(data, 'appMsgs', 'PushError')
           break
 
