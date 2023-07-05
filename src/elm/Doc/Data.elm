@@ -12,7 +12,6 @@ import List.Extra as ListExtra
 import Maybe exposing (andThen)
 import Outgoing exposing (Msg(..))
 import RemoteData exposing (WebData)
-import Set exposing (Set)
 import Time
 import Types exposing (CardTreeOp(..), Children(..), ConflictSelection(..), Tree)
 import UpdatedAt exposing (UpdatedAt)
@@ -1573,6 +1572,8 @@ toDelta treeId cards =
         |> List.map .id
         |> ListExtra.unique
         |> List.concatMap (cardDelta treeId cards)
+        |> UpdatedAt.sortNewestFirst .ts
+        |> List.reverse
 
 
 cardDelta : String -> List (Card UpdatedAt) -> String -> List Delta
