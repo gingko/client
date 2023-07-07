@@ -31,6 +31,7 @@
             "elm-community/list-extra": "8.2.4",
             "elm-community/maybe-extra": "5.2.0",
             "elm-explorations/markdown": "1.0.0",
+            "emilianobovetti/elm-toast": "1.1.0",
             "f0i/debug-to-json": "1.0.6",
             "gingko/time-distance": "2.3.0",
             "hecrj/html-parser": "2.4.0",

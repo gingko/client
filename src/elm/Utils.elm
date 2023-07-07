@@ -1,4 +1,4 @@
-module Utils exposing (emptyText, getFieldErrors, hash, hexEncode, myDebug, onClickStop, text, textNoTr)
+module Utils exposing (delay, emptyText, getFieldErrors, hash, hexEncode, myDebug, onClickStop, text, textNoTr)
 
 {--import DebugToJson exposing (pp)--}
 
@@ -7,6 +7,8 @@ import Html exposing (Html)
 import Html.Events exposing (stopPropagationOn)
 import Json.Decode as Dec
 import Murmur3 exposing (hashString)
+import Process
+import Task
 import Translation exposing (Language, TranslationId, tr)
 
 
@@ -28,6 +30,11 @@ hash : Int -> String -> String
 hash seed str =
     hashString seed str
         |> Hex.toString
+
+
+delay : Int -> msg -> Cmd msg
+delay ms msg =
+    Task.perform (always msg) (Process.sleep <| toFloat ms)
 
 
 

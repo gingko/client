@@ -2231,6 +2231,50 @@ span.collaborators {
   border: none;
   border-left: 4px solid #6aab7e;
 }
+/* === Toasts === */
+
+.toast-tray {
+  position: fixed;
+  top: 50px;
+  right: 1em;
+  z-index: 9;
+}
+.toast {
+  box-sizing: content-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  padding: 0.8em 1em;
+  width: 15em;
+  color: white;
+  background-color: dodgerblue;
+  margin-bottom: 1em;
+  border-radius: 4px;
+  opacity: 1;
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease;
+}
+.toast--active {
+  transform: translateX(-0.3em);
+}
+
+.toast--fade-out {
+  opacity: 0;
+  transform: translateX(20em);
+}
+.toast-frame {
+  min-height: 4em;
+  max-height: 4em;
+  transition:
+          min-height 0.6s linear,
+          min-height 0.6s linear;
+}
+.toast-frame--fade-out {
+  min-height: 0;
+  max-height: 0;
+}
 /* === Tooltips === */
 
 .tooltip {
