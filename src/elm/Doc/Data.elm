@@ -1,4 +1,4 @@
-module Doc.Data exposing (CommitObject, Model, cardDataReceived, conflictList, conflictToTree, convert, empty, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, success, triggeredPush)
+module Doc.Data exposing (CommitObject, Model, cardDataReceived, conflictList, conflictToTree, convert, empty, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, pushOkMultipleHandler, requestCommit, resolve, resolveConflicts, restore, success, triggeredPush)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -12,6 +12,7 @@ import List.Extra as ListExtra
 import Maybe exposing (andThen)
 import Outgoing exposing (Msg(..))
 import RemoteData exposing (WebData)
+import Result.Extra
 import Time
 import Types exposing (CardTreeOp(..), Children(..), ConflictSelection(..), Tree)
 import UpdatedAt exposing (UpdatedAt)
@@ -1523,6 +1524,61 @@ pushOkHandler chkValue model =
                     Just <| SaveCardBased <| toSave { toAdd = [], toMarkSynced = cardsToSync, toMarkDeleted = [], toRemove = versionsToDelete |> UpdatedAt.unique }
 
                 Err err ->
+                    Nothing
+
+        _ ->
+            Nothing
+
+
+pushOkMultipleHandler : List String -> Model -> Maybe Outgoing.Msg
+pushOkMultipleHandler chkValStrings model =
+    case model of
+        CardBased data _ _ ->
+            let
+                _ =
+                    Debug.log "pushOkMultiple" chkValStrings
+
+                chkValsAsUpdatedAt =
+                    chkValStrings
+                        |> List.map (\cv -> UpdatedAt.fromString cv)
+                        |> Result.Extra.combine
+                        |> Debug.log "chkValsAsUpdatedAt decoded"
+            in
+            case chkValsAsUpdatedAt of
+                Ok chkVals ->
+                    let
+                        cardIdsFromUpdatedAt : UpdatedAt -> List String
+                        cardIdsFromUpdatedAt chkVal =
+                            data
+                                |> List.filter (\card -> UpdatedAt.areEqual card.updatedAt chkVal)
+                                |> List.map .id
+
+                        markVersionSynced : UpdatedAt -> List (Card UpdatedAt)
+                        markVersionSynced chkVal =
+                            data
+                                |> List.filter
+                                    (\card ->
+                                        card.synced
+                                            == False
+                                            && List.member card.id (cardIdsFromUpdatedAt chkVal)
+                                            && UpdatedAt.isLTE card.updatedAt chkVal
+                                    )
+                                |> List.map (\card -> { card | synced = True })
+
+                        versionsToMarkSynced : List (Card UpdatedAt)
+                        versionsToMarkSynced =
+                            List.concatMap markVersionSynced chkVals
+                                |> Debug.log "versionsToMarkSynced"
+                    in
+                    Just <|
+                        SaveCardBased <|
+                            toSave { toAdd = [], toMarkSynced = versionsToMarkSynced, toMarkDeleted = [], toRemove = [] }
+
+                Err err ->
+                    let
+                        _ =
+                            Debug.log "pushOkMultiple err" err
+                    in
                     Nothing
 
         _ ->

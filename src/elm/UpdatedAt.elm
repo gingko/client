@@ -1,4 +1,4 @@
-module UpdatedAt exposing (UpdatedAt, areEqual, decoder, encode, fromParts, getHash, getTimestamp, isLTE, maximum, sortNewestFirst, sortOldestFirst, unique, uniqueBy, zero)
+module UpdatedAt exposing (UpdatedAt, areEqual, decoder, encode, fromParts, fromString, getHash, getTimestamp, isLTE, isMember, maximum, sortNewestFirst, sortOldestFirst, unique, uniqueBy, zero)
 
 import Json.Decode as Dec exposing (Decoder)
 import Json.Encode as Enc
@@ -29,6 +29,16 @@ decoder =
                     Nothing ->
                         Dec.fail "Invalid UpdatedAt string"
             )
+
+
+fromString : String -> Result String UpdatedAt
+fromString str =
+    case stringParser str of
+        Just data ->
+            Ok data
+
+        Nothing ->
+            Err "Invalid UpdatedAt string"
 
 
 fromParts : Int -> Int -> String -> UpdatedAt
@@ -92,6 +102,12 @@ maximum l =
     l
         |> sortNewestFirst identity
         |> List.head
+
+
+isMember : UpdatedAt -> List UpdatedAt -> Bool
+isMember ua l =
+    l
+        |> List.any (areEqual ua)
 
 
 isLTE : UpdatedAt -> UpdatedAt -> Bool

@@ -540,6 +540,24 @@ update msg model =
                         DocNotFound _ _ ->
                             ( model, Cmd.none )
 
+                PushOkMultiple chkStrings ->
+                    case model.documentState of
+                        Doc { data } ->
+                            let
+                                pushOkMsgs =
+                                    Data.pushOkMultipleHandler chkStrings data
+                                        |> Maybe.map send
+                                        |> Maybe.withDefault Cmd.none
+                                        |> Debug.log "pushOkMsgs"
+                            in
+                            ( model, pushOkMsgs )
+
+                        Empty _ _ ->
+                            ( model, Cmd.none )
+
+                        DocNotFound _ _ ->
+                            ( model, Cmd.none )
+
                 PushError ->
                     case model.documentState of
                         Doc { data, docId } ->
@@ -1494,17 +1512,21 @@ update msg model =
 
         AddToast persistence toast ->
             let
-                toastUpdater =
+                ( toastUpdater, toastAdder ) =
                     case persistence of
                         Temporary ->
-                            Toast.expireIn 5000
+                            ( Toast.expireIn 5000
+                            , Toast.add model.tray
+                            )
 
                         Persistent ->
-                            Toast.persistent
+                            ( Toast.persistent
+                            , Toast.addUnique model.tray
+                            )
             in
             toastUpdater toast
                 |> Toast.withExitTransition 900
-                |> Toast.add model.tray
+                |> toastAdder
                 |> Toast.tuple ToastMsg model
 
         CloseEmailConfirmBanner ->
@@ -2421,6 +2443,7 @@ type IncomingAppMsg
     | CardDataReceived Enc.Value
     | HistoryDataReceived Enc.Value
     | PushOk String
+    | PushOkMultiple (List String)
     | PushError
     | GitDataReceived Enc.Value
     | MetadataUpdate Metadata
@@ -2450,6 +2473,14 @@ subscribe tagger onError =
                     case decodeValue (Json.at [ "d" ] Json.string) outsideInfo.data of
                         Ok chk ->
                             tagger <| PushOk chk
+
+                        Err err ->
+                            onError (errorToString err)
+
+                "PushOkMultiple" ->
+                    case decodeValue (Json.at [ "d" ] (Json.list Json.string)) outsideInfo.data of
+                        Ok chks ->
+                            tagger <| PushOkMultiple chks
 
                         Err err ->
                             onError (errorToString err)

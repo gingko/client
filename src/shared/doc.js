@@ -182,7 +182,7 @@ function initWebSocket () {
 
   ws.onopen = () => {
     console.log('connected')
-    toElm(null, 'appMsgs', 'SocketConnected')
+    setTimeout(() => toElm(null, 'appMsgs', 'SocketConnected') , 1000)
   }
 
   ws.onmessage = async (e) => {
@@ -221,8 +221,13 @@ function initWebSocket () {
 
         case 'pushOk':
           pushErrorCount = 0;
-          hlc.recv(data.d)
-          toElm(data, 'appMsgs', 'PushOk')
+          if (Array.isArray(data.d)) {
+            hlc.recv(_.max(data.d))
+            toElm(data, 'appMsgs', 'PushOkMultiple')
+          } else {
+            hlc.recv(data.d)
+            toElm(data, 'appMsgs', 'PushOk')
+          }
           break
 
         case 'pushError':
