@@ -68,7 +68,7 @@ type alias Model =
     , headerMenu : HeaderMenuState
     , exportSettings : ( ExportSelection, ExportFormat )
     , modalState : ModalState
-    , toastTray : Toast.Tray String
+    , tray : Toast.Tray Toast
     , tooltip : Maybe ( Element, TooltipPosition, TranslationId )
     , fileSearchField : String -- TODO: not needed if switcher isn't open
     , theme : Theme
@@ -117,6 +117,21 @@ type ModalState
     | UpgradeModal
 
 
+type alias Toast =
+    { message : String
+    , role : ToastRole
+    }
+
+
+type ToastRole
+    = Info
+
+
+type ToastPersistence
+    = Persistent
+    | Temporary
+
+
 defaultModel : Nav.Key -> LoggedIn -> DocumentState -> Model
 defaultModel nKey session newDocState =
     { loading = True
@@ -137,7 +152,7 @@ defaultModel nKey session newDocState =
 
         else
             NoModal
-    , toastTray = Toast.tray
+    , tray = Toast.tray
     , tooltip = Nothing
     , fileSearchField = ""
     , theme = Default
@@ -402,7 +417,7 @@ type Msg
     | FullscreenRequested
       -- Misc UI
     | ToastMsg Toast.Msg
-    | AddToast String
+    | AddToast ToastPersistence Toast
     | CloseEmailConfirmBanner
     | ToggledUpgradeModal Bool
     | UpgradeModalMsg Upgrade.Msg
@@ -982,7 +997,17 @@ update msg model =
                     case titleField of
                         Just editedTitle ->
                             if String.trim editedTitle == "" then
-                                ( model, Cmd.batch [ delay 0 (AddToast "Title cannot be blank"), Task.attempt (always NoOp) (Browser.Dom.focus "title-rename") ] )
+                                ( model
+                                , Cmd.batch
+                                    [ delay 0
+                                        (AddToast Temporary
+                                            { message = "Title cannot be blank"
+                                            , role = Info
+                                            }
+                                        )
+                                    , Task.attempt (always NoOp) (Browser.Dom.focus "title-rename")
+                                    ]
+                                )
 
                             else if Just editedTitle /= Session.getDocName session docId then
                                 ( model, Cmd.batch [ send <| RenameDocument editedTitle, Task.attempt (always NoOp) (Browser.Dom.blur "title-rename") ] )
@@ -1475,16 +1500,24 @@ update msg model =
         ToastMsg toastMsg ->
             let
                 ( newToast, newCmd ) =
-                    Toast.update toastMsg model.toastTray
+                    Toast.update toastMsg model.tray
             in
-            ( { model | toastTray = newToast }, Cmd.map ToastMsg newCmd )
+            ( { model | tray = newToast }, Cmd.map ToastMsg newCmd )
 
-        AddToast toast ->
+        AddToast persistence toast ->
             let
-                ( newToast, newCmd ) =
-                    Toast.add model.toastTray (Toast.persistent toast)
+                toastUpdater =
+                    case persistence of
+                        Temporary ->
+                            Toast.expireIn 5000
+
+                        Persistent ->
+                            Toast.persistent
             in
-            ( { model | toastTray = newToast }, Cmd.map ToastMsg newCmd )
+            toastUpdater toast
+                |> Toast.withExitTransition 900
+                |> Toast.add model.tray
+                |> Toast.tuple ToastMsg model
 
         CloseEmailConfirmBanner ->
             ( model |> updateSession (Session.confirmEmail (GlobalData.currentTime globalData) session), Cmd.none )
@@ -1985,9 +2018,9 @@ view ({ documentState } as model) =
         email =
             Session.name session
 
-        viewToast : List (Html.Attribute Msg) -> Toast.Info String -> Html Msg
+        viewToast : List (Html.Attribute Msg) -> Toast.Info Toast -> Html Msg
         viewToast attrs toast =
-            Html.div attrs [ Html.text toast.content ]
+            Html.div attrs [ Html.text toast.content.message ]
 
         framePhaseAttr : Toast.Phase -> List (Html.Attribute msg)
         framePhaseAttr phase =
@@ -1997,7 +2030,7 @@ view ({ documentState } as model) =
             else
                 [ class "toast-frame--fade-out" ]
 
-        viewToastFrame : List (Html.Attribute Msg) -> Toast.Info String -> Html Msg
+        viewToastFrame : List (Html.Attribute Msg) -> Toast.Info Toast -> Html Msg
         viewToastFrame toastAttrs toast =
             Html.div
                 (class "toast-frame" :: framePhaseAttr toast.phase)
@@ -2117,7 +2150,7 @@ view ({ documentState } as model) =
                         , tooltipClosed = TooltipClosed
                         }
                         docModel
-                        ++ [ Toast.render viewToastFrame model.toastTray toastConfig
+                        ++ [ Toast.render viewToastFrame model.tray toastConfig
                            , viewHeader
                                 { noOp = NoOp
                                 , titleFocused = TitleFocused
