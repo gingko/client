@@ -27,6 +27,7 @@ import Task
 import Time
 import Translation exposing (Language, TranslationId(..), tr)
 import Types exposing (..)
+import Utils exposing (delay)
 
 
 
@@ -121,7 +122,8 @@ type Msg
 
 
 type MsgToParent
-    = CloseTooltip
+    = ParentAddToast ToastPersistence Toast
+    | CloseTooltip
     | LocalSave CardTreeOp
     | Commit
     | ExitFullscreen
@@ -1934,8 +1936,8 @@ cut id ( model, prevCmd, prevMsgsToParent ) =
     in
     if isLastChild then
         ( model
-        , send (Alert "Cannot cut last card")
-        , prevMsgsToParent
+        , prevCmd
+        , ParentAddToast Temporary (Toast Info "Cannot cut last card") :: prevMsgsToParent
         )
 
     else

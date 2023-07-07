@@ -48,7 +48,7 @@ import Task
 import Time
 import Toast
 import Translation exposing (Language, TranslationId(..), langToString, tr)
-import Types exposing (CardTreeOp(..), ConflictSelection(..), OutsideData, SortBy(..), TooltipPosition, Tree, ViewMode(..))
+import Types exposing (CardTreeOp(..), ConflictSelection(..), OutsideData, SortBy(..), Toast, ToastPersistence(..), ToastRole(..), TooltipPosition, Tree, ViewMode(..))
 import UI.Header exposing (HeaderMenuState(..), viewHeader)
 import UI.Sidebar exposing (SidebarMenuState(..), SidebarState(..), viewSidebar)
 import Upgrade exposing (Msg(..))
@@ -115,21 +115,6 @@ type ModalState
     | ImportTextModal ImportText.Model
     | ContactForm ContactForm.Model
     | UpgradeModal
-
-
-type alias Toast =
-    { message : String
-    , role : ToastRole
-    }
-
-
-type ToastRole
-    = Info
-
-
-type ToastPersistence
-    = Persistent
-    | Temporary
 
 
 defaultModel : Nav.Key -> LoggedIn -> DocumentState -> Model
@@ -1805,6 +1790,9 @@ applyParentMsgs parentMsgs ( prevModel, prevCmd ) =
 applyParentMsg : MsgToParent -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 applyParentMsg parentMsg ( prevModel, prevCmd ) =
     case parentMsg of
+        ParentAddToast persistence toast ->
+            ( prevModel, Cmd.batch [ delay 0 (AddToast persistence toast), prevCmd ] )
+
         CloseTooltip ->
             ( { prevModel | tooltip = Nothing }, prevCmd )
 

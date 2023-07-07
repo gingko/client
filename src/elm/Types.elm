@@ -1,4 +1,4 @@
-module Types exposing (CardTreeOp(..), Children(..), CollabState, Column, ConflictSelection(..), CursorPosition(..), DragExternalModel, DropId(..), Group, Mode(..), OutsideData, SortBy(..), TextCursorInfo, TooltipPosition(..), Tree, ViewMode(..), ViewState, VisibleViewMode(..), VisibleViewState, dropIdToValue)
+module Types exposing (CardTreeOp(..), Children(..), CollabState, Column, ConflictSelection(..), CursorPosition(..), DragExternalModel, DropId(..), Group, Mode(..), OutsideData, SortBy(..), TextCursorInfo, Toast, ToastPersistence(..), ToastRole(..), TooltipPosition(..), Tree, ViewMode(..), ViewState, VisibleViewMode(..), VisibleViewState, dropIdToValue)
 
 import Html5.DragDrop as DragDrop
 import Json.Encode as Enc
@@ -80,6 +80,25 @@ dropIdToValue dropId =
 
         Into str ->
             Enc.object [ ( "dropPosition", Enc.string "into" ), ( "dropId", Enc.string str ) ]
+
+
+
+-- Toasts
+
+
+type alias Toast =
+    { role : ToastRole
+    , message : String
+    }
+
+
+type ToastRole
+    = Info
+
+
+type ToastPersistence
+    = Persistent
+    | Temporary
 
 
 
