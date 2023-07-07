@@ -116,6 +116,14 @@ const webConfig = {
   module: {
     rules: [
       {
+        test: /\.css$/,
+        use: [
+          'style-loader',
+          { loader: 'css-loader', options: { importLoaders: 1 } },
+          'postcss-loader'
+        ],
+      },
+      {
         test: /\.elm$/,
         include: path.resolve(__dirname, 'src'),
         exclude: [/elm-stuff/, /node_modules/],
