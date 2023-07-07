@@ -2280,6 +2280,9 @@ span.collaborators {
 .toast--warning {
   background-color: orange;
 }
+.toast--error {
+  background-color: crimson;
+}
 /* === Tooltips === */
 
 .tooltip {

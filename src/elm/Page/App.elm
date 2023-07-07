@@ -611,6 +611,9 @@ update msg model =
                         DocNotFound _ _ ->
                             ( model, Cmd.none )
 
+                ErrorAlert alertMsg ->
+                    ( model, delay 0 (AddToast Persistent (Toast Error alertMsg)) )
+
                 NotFound dbName ->
                     ( model, Route.pushUrl model.navKey (Route.NotFound dbName) )
 
@@ -2016,6 +2019,9 @@ view ({ documentState } as model) =
 
                         Warning ->
                             class "toast--warning"
+
+                        Error ->
+                            class "toast--error"
             in
             Html.div (roleClass :: attrs) [ Html.text toast.content.message ]
 
@@ -2419,6 +2425,7 @@ type IncomingAppMsg
     | GitDataReceived Enc.Value
     | MetadataUpdate Metadata
     | SavedRemotely Time.Posix
+    | ErrorAlert String
     | NotFound String
 
 
@@ -2465,6 +2472,14 @@ subscribe tagger onError =
                     case decodeValue (Json.map Time.millisToPosix Json.int) outsideInfo.data of
                         Ok posix ->
                             tagger (SavedRemotely posix)
+
+                        Err err ->
+                            onError (errorToString err)
+
+                "ErrorAlert" ->
+                    case decodeValue Json.string outsideInfo.data of
+                        Ok msg ->
+                            tagger (ErrorAlert msg)
 
                         Err err ->
                             onError (errorToString err)

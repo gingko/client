@@ -95,6 +95,7 @@ type alias Toast =
 type ToastRole
     = Info
     | Warning
+    | Error
 
 
 type ToastPersistence
