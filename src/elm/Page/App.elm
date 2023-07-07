@@ -2008,7 +2008,16 @@ view ({ documentState } as model) =
 
         viewToast : List (Html.Attribute Msg) -> Toast.Info Toast -> Html Msg
         viewToast attrs toast =
-            Html.div attrs [ Html.text toast.content.message ]
+            let
+                roleClass =
+                    case toast.content.role of
+                        Info ->
+                            class "toast--info"
+
+                        Warning ->
+                            class "toast--warning"
+            in
+            Html.div (roleClass :: attrs) [ Html.text toast.content.message ]
 
         framePhaseAttr : Toast.Phase -> List (Html.Attribute msg)
         framePhaseAttr phase =

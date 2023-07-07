@@ -2248,7 +2248,6 @@ span.collaborators {
   padding: 0.8em 1em;
   width: 15em;
   color: white;
-  background-color: dodgerblue;
   margin-bottom: 1em;
   border-radius: 4px;
   opacity: 1;
@@ -2274,6 +2273,12 @@ span.collaborators {
 .toast-frame--fade-out {
   min-height: 0;
   max-height: 0;
+}
+.toast--info {
+  background-color: dodgerblue;
+}
+.toast--warning {
+  background-color: orange;
 }
 /* === Tooltips === */
 

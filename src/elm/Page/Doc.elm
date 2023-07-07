@@ -1496,15 +1496,15 @@ deleteCard id ( model, prevCmd, prevMsgsToParent ) =
     in
     if isLocked then
         ( model
-        , send (Alert "Card is being edited by someone else.")
-        , prevMsgsToParent
+        , prevCmd
+        , ParentAddToast Temporary (Toast Warning "Card is being edited by someone else.") :: prevMsgsToParent
         )
             |> preventIfBlocked model
 
     else if isLastChild then
         ( model
-        , send (Alert "Cannot delete last card.")
-        , prevMsgsToParent
+        , prevCmd
+        , ParentAddToast Temporary (Toast Warning "Cannot delete last card.") :: prevMsgsToParent
         )
             |> preventIfBlocked model
 
