@@ -1,4 +1,4 @@
-module Doc.Data exposing (CommitObject, Model, cardDataReceived, conflictList, conflictToTree, convert, empty, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, pushOkMultipleHandler, requestCommit, resolve, resolveConflicts, restore, success, triggeredPush)
+module Doc.Data exposing (CommitObject, Model, cardDataReceived, conflictList, conflictToTree, convert, empty, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, success, triggeredPush)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -1491,47 +1491,8 @@ resolveDeleteConflicts allCards versions =
     { toAdd = theirDeletionsLocalVersions, toMarkSynced = [], toMarkDeleted = [], toRemove = ourDeletionTimestamps ++ theirDeletionsToRemove |> UpdatedAt.unique }
 
 
-pushOkHandler : Dec.Value -> Model -> Maybe Outgoing.Msg
-pushOkHandler chkValue model =
-    case model of
-        CardBased data _ _ ->
-            case Dec.decodeValue UpdatedAt.decoder chkValue of
-                Ok chk ->
-                    let
-                        cardsToSync =
-                            data
-                                |> List.filter (\card -> card.synced == False && UpdatedAt.isLTE card.updatedAt chk)
-                                |> List.map (\card -> { card | synced = True })
-
-                        dbAfterSync =
-                            cardsToSync
-                                ++ data
-                                |> UpdatedAt.uniqueBy .updatedAt
-
-                        syncedCardsOverLimit c =
-                            c
-                                |> List.map .updatedAt
-                                |> UpdatedAt.sortNewestFirst identity
-                                |> List.drop historyLimit
-
-                        versionsToDelete =
-                            dbAfterSync
-                                |> List.filter (\card -> card.synced == True)
-                                |> ListExtra.gatherWith (\a b -> a.id == b.id)
-                                |> List.map (\( a, rest ) -> a :: rest)
-                                |> List.concatMap syncedCardsOverLimit
-                    in
-                    Just <| SaveCardBased <| toSave { toAdd = [], toMarkSynced = cardsToSync, toMarkDeleted = [], toRemove = versionsToDelete |> UpdatedAt.unique }
-
-                Err err ->
-                    Nothing
-
-        _ ->
-            Nothing
-
-
-pushOkMultipleHandler : List String -> Model -> Maybe Outgoing.Msg
-pushOkMultipleHandler chkValStrings model =
+pushOkHandler : List String -> Model -> Maybe Outgoing.Msg
+pushOkHandler chkValStrings model =
     case model of
         CardBased data _ _ ->
             let

@@ -223,13 +223,8 @@ function initWebSocket () {
 
         case 'pushOk':
           pushErrorCount = 0;
-          if (Array.isArray(data.d)) {
-            hlc.recv(_.max(data.d))
-            toElm(data, 'appMsgs', 'PushOkMultiple')
-          } else {
-            hlc.recv(data.d)
-            toElm(data, 'appMsgs', 'PushOk')
-          }
+          hlc.recv(_.max(data.d))
+          toElm(data, 'appMsgs', 'PushOk')
           break
 
         case 'pushError':

@@ -525,27 +525,12 @@ update msg model =
                 HistoryDataReceived json ->
                     historyReceived json model
 
-                PushOk chkString ->
-                    case model.documentState of
-                        Doc { data } ->
-                            let
-                                pushOkMsg =
-                                    Data.pushOkHandler (Enc.string chkString) data
-                            in
-                            ( model, pushOkMsg |> Maybe.map send |> Maybe.withDefault Cmd.none )
-
-                        Empty _ _ ->
-                            ( model, Cmd.none )
-
-                        DocNotFound _ _ ->
-                            ( model, Cmd.none )
-
-                PushOkMultiple chkStrings ->
+                PushOk chkStrings ->
                     case model.documentState of
                         Doc { data } ->
                             let
                                 pushOkMsgs =
-                                    Data.pushOkMultipleHandler chkStrings data
+                                    Data.pushOkHandler chkStrings data
                                         |> Maybe.map send
                                         |> Maybe.withDefault Cmd.none
                                         |> Debug.log "pushOkMsgs"
@@ -2404,8 +2389,7 @@ type IncomingAppMsg
     | SocketConnected
     | CardDataReceived Enc.Value
     | HistoryDataReceived Enc.Value
-    | PushOk String
-    | PushOkMultiple (List String)
+    | PushOk (List String)
     | PushError
     | GitDataReceived Enc.Value
     | MetadataUpdate Metadata
@@ -2432,17 +2416,9 @@ subscribe tagger onError =
                     tagger <| HistoryDataReceived outsideInfo.data
 
                 "PushOk" ->
-                    case decodeValue (Json.at [ "d" ] Json.string) outsideInfo.data of
-                        Ok chk ->
-                            tagger <| PushOk chk
-
-                        Err err ->
-                            onError (errorToString err)
-
-                "PushOkMultiple" ->
                     case decodeValue (Json.at [ "d" ] (Json.list Json.string)) outsideInfo.data of
                         Ok chks ->
-                            tagger <| PushOkMultiple chks
+                            tagger <| PushOk chks
 
                         Err err ->
                             onError (errorToString err)
