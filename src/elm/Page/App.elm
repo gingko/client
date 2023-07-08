@@ -2031,44 +2031,6 @@ view ({ documentState } as model) =
         email =
             Session.name session
 
-        viewToast : List (Html.Attribute Msg) -> Toast.Info Toast -> Html Msg
-        viewToast attrs toast =
-            let
-                roleClass =
-                    case toast.content.role of
-                        Info ->
-                            class "toast--info"
-
-                        Warning ->
-                            class "toast--warning"
-
-                        Error ->
-                            class "toast--error"
-            in
-            Html.div (roleClass :: attrs) [ Html.text toast.content.message ]
-
-        framePhaseAttr : Toast.Phase -> List (Html.Attribute msg)
-        framePhaseAttr phase =
-            if phase == Toast.In then
-                []
-
-            else
-                [ class "toast-frame--fade-out" ]
-
-        viewToastFrame : List (Html.Attribute Msg) -> Toast.Info Toast -> Html Msg
-        viewToastFrame toastAttrs toast =
-            Html.div
-                (class "toast-frame" :: framePhaseAttr toast.phase)
-                [ viewToast toastAttrs toast ]
-
-        toastConfig : Toast.Config Msg
-        toastConfig =
-            Toast.config ToastMsg
-                |> Toast.withTrayAttributes [ class "toast-tray" ]
-                |> Toast.withAttributes [ class "toast" ]
-                |> Toast.withTransitionAttributes [ class "toast--fade-out" ]
-                |> Toast.withFocusAttributes [ class "toast--active" ]
-
         viewTooltip =
             case model.tooltip of
                 Just tooltip ->
@@ -2175,7 +2137,7 @@ view ({ documentState } as model) =
                         , tooltipClosed = TooltipClosed
                         }
                         docModel
-                        ++ [ Toast.render viewToastFrame model.tray toastConfig
+                        ++ [ UI.renderToast ToastMsg model.tray
                            , viewHeader
                                 { noOp = NoOp
                                 , titleFocused = TitleFocused

@@ -216,7 +216,7 @@ function initWebSocket () {
           } else {
             Sentry.captureMessage('cardsConflict: no cards ' + TREE_ID)
             const numberUnsynced = await dexie.cards.where('treeId').equals(TREE_ID).and(c => !c.synced).count();
-            const msg = `Error syncing ${numberUnsynced} card${numberUnsynced == 1 ? "" : "s"}. Try refreshing the page.\n\nIf this error persists, please contact support!`;
+            const msg = `Error syncing ${numberUnsynced} change${numberUnsynced == 1 ? "" : "s"}. Try refreshing the page.\n\nIf this error persists, please contact support!`;
             toElm(msg, 'appMsgs', 'ErrorAlert');
           }
           break
@@ -236,7 +236,7 @@ function initWebSocket () {
           pushErrorCount++;
           if (pushErrorCount >= 4) {
             let numberUnsynced = await dexie.cards.where('treeId').equals(TREE_ID).and(c => !c.synced).count();
-            const msg = `Error syncing ${numberUnsynced} card${numberUnsynced == 1 ? "" : "s"}. Try refreshing the page.\n\nIf this error persists, please contact support!`;
+            const msg = `Error syncing ${numberUnsynced} change${numberUnsynced == 1 ? "" : "s"}. Try refreshing the page.\n\nIf this error persists, please contact support!`;
             toElm(msg, 'appMsgs', 'ErrorAlert');
           }
           console.log(pushErrorCount)

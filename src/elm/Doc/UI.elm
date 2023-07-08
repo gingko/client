@@ -1,4 +1,4 @@
-module Doc.UI exposing (countWords, fillet, viewAppLoadingSpinner, viewBreadcrumbs, viewConflict, viewDocumentLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewTemplateSelector, viewTooltip, viewWordCount)
+module Doc.UI exposing (countWords, fillet, renderToast, viewAppLoadingSpinner, viewBreadcrumbs, viewConflict, viewDocumentLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewTemplateSelector, viewTooltip, viewWordCount)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -23,8 +23,9 @@ import SharedUI exposing (ctrlOrCmdText, modalWrapper)
 import Svg exposing (g, svg)
 import Svg.Attributes exposing (d, fill, fontFamily, fontSize, fontWeight, preserveAspectRatio, stroke, strokeDasharray, strokeDashoffset, strokeLinecap, strokeLinejoin, strokeMiterlimit, strokeWidth, textAnchor, version, viewBox)
 import Time exposing (posixToMillis)
+import Toast
 import Translation exposing (Language(..), TranslationId(..), timeDistInWords, tr)
-import Types exposing (Children(..), CursorPosition(..), SortBy(..), TextCursorInfo, TooltipPosition(..), ViewMode(..), ViewState)
+import Types exposing (Children(..), CursorPosition(..), SortBy(..), TextCursorInfo, Toast, ToastRole(..), TooltipPosition(..), ViewMode(..), ViewState)
 import UI.Sidebar exposing (viewSidebarStatic)
 import Utils exposing (emptyText, text, textNoTr)
 
@@ -537,6 +538,47 @@ viewWordcountProgress current session =
             , span [ style "flex" (String.fromFloat sessW), id "wc-progress-bar-session" ] []
             ]
         ]
+
+
+toastConfig : (Toast.Msg -> msg) -> Toast.Config msg
+toastConfig msg =
+    Toast.config msg
+        |> Toast.withTrayAttributes [ class "flex flex-column gap-4 fixed top-14 right-4 z-10" ]
+        |> Toast.withTransitionAttributes [ class "translate-x-96 opacity-0" ]
+
+
+viewToast : List (Html.Attribute msg) -> Toast.Info Toast -> Html msg
+viewToast toastAttr toast =
+    let
+        roleClass =
+            case toast.content.role of
+                Info ->
+                    [ class "bg-blue-400" ]
+
+                Warning ->
+                    [ class "bg-yellow-400" ]
+
+                Error ->
+                    [ class "bg-red-400" ]
+
+        sharedClasses =
+            [ class "rounded-lg max-w-xs p-6 py-4 drop-shadow-lg transition duration-500" ]
+    in
+    div
+        (toastAttr ++ roleClass ++ sharedClasses)
+        [ Html.text toast.content.message ]
+
+
+viewToastFrame : List (Html.Attribute msg) -> Toast.Info Toast -> Html msg
+viewToastFrame toastAttrs toast =
+    div
+        []
+        [ viewToast toastAttrs toast ]
+
+
+renderToast : (Toast.Msg -> msg) -> Toast.Tray Toast -> Html msg
+renderToast msg tray =
+    Toast.render viewToastFrame tray (toastConfig msg)
 
 
 viewTooltip : Language -> ( Element, TooltipPosition, TranslationId ) -> Html msg
