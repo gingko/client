@@ -96,6 +96,7 @@ type ToastRole
     = Info
     | Warning
     | Error
+    | SuccessToast
 
 
 type ToastPersistence

@@ -69,6 +69,7 @@ type alias Model =
     , exportSettings : ( ExportSelection, ExportFormat )
     , modalState : ModalState
     , tray : Toast.Tray Toast
+    , errorState : Bool
     , tooltip : Maybe ( Element, TooltipPosition, TranslationId )
     , fileSearchField : String -- TODO: not needed if switcher isn't open
     , theme : Theme
@@ -138,6 +139,7 @@ defaultModel nKey session newDocState =
         else
             NoModal
     , tray = Toast.tray
+    , errorState = False
     , tooltip = Nothing
     , fileSearchField = ""
     , theme = Default
@@ -534,8 +536,36 @@ update msg model =
                                         |> Maybe.map send
                                         |> Maybe.withDefault Cmd.none
                                         |> Debug.log "pushOkMsgs"
+
+                                ( newToastTray, newToastCmd ) =
+                                    if model.errorState then
+                                        model.tray
+                                            |> Toast.filter
+                                                (\toast ->
+                                                    case toast.role of
+                                                        Error ->
+                                                            False
+
+                                                        _ ->
+                                                            True
+                                                )
+                                            |> (\newTray ->
+                                                    ( newTray
+                                                    , delay 0
+                                                        (AddToast Temporary
+                                                            (Toast SuccessToast "Sync successful")
+                                                        )
+                                                    )
+                                               )
+
+                                    else
+                                        ( model.tray
+                                        , Cmd.none
+                                        )
                             in
-                            ( model, pushOkMsgs )
+                            ( { model | tray = newToastTray, errorState = False }
+                            , Cmd.batch [ pushOkMsgs, newToastCmd ]
+                            )
 
                         Empty _ _ ->
                             ( model, Cmd.none )
@@ -615,7 +645,7 @@ update msg model =
                             ( model, Cmd.none )
 
                 ErrorAlert alertMsg ->
-                    ( model, delay 0 (AddToast Persistent (Toast Error alertMsg)) )
+                    ( { model | errorState = True }, delay 0 (AddToast Persistent (Toast Error alertMsg)) )
 
                 NotFound dbName ->
                     ( model, Route.pushUrl model.navKey (Route.NotFound dbName) )

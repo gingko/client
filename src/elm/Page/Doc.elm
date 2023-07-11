@@ -1936,7 +1936,7 @@ cut id ( model, prevCmd, prevMsgsToParent ) =
     if isLastChild then
         ( model
         , prevCmd
-        , ParentAddToast Temporary (Toast Info "Cannot cut last card") :: prevMsgsToParent
+        , ParentAddToast Temporary (Toast Warning "Cannot cut last card") :: prevMsgsToParent
         )
 
     else

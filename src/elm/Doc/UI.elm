@@ -561,6 +561,9 @@ viewToast toastAttr toast =
                 Error ->
                     [ class "bg-red-400" ]
 
+                SuccessToast ->
+                    [ class "bg-green-400" ]
+
         sharedClasses =
             [ class "rounded-lg max-w-xs p-6 py-4 drop-shadow-lg transition duration-500" ]
     in
