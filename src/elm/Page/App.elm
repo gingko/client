@@ -2379,22 +2379,26 @@ viewConflictSelector cstate =
             emptyText
 
         _ ->
-            h1
-                [ style "background" "red"
-                , style "position" "absolute"
-                , style "left" "50%"
-                , style "z-index" "1000"
-                , style "color" "white"
-                , style "padding" "10px"
-                , style "border-radius" "5px"
-                ]
-                [ textNoTr "Conflicts!"
-                , br [] []
-                , button [ onClick (ConflictVersionSelected Ours) ] [ textNoTr "Ours" ]
-                , button [ onClick (ConflictVersionSelected Theirs) ] [ textNoTr "Theirs" ]
-                , button [ onClick (ConflictVersionSelected Original) ] [ textNoTr "Original" ]
-                , br [] []
-                , button [ onClick ConflictResolved ] [ textNoTr "Choose this Version" ]
+            div [ class "container mx-auto fixed flex z-10 justify-center top-7 drop-shadow-lg" ]
+                [ div
+                    [ class "bg-orange-400"
+                    , style "z-index" "1000"
+                    , style "color" "white"
+                    , style "padding" "10px"
+                    , style "border-radius" "5px"
+                    ]
+                    [ textNoTr "Conflicts detected. Choose a version to resolve the conflict."
+                    , br [] []
+                    , button [ class "mt-4 bg-gray-200 text-black px-2 py-0.5 rounded mr-2", onClick (ConflictVersionSelected Ours) ] [ textNoTr "Ours" ]
+                    , button [ class "bg-gray-200 text-black px-2 py-0.5 rounded mr-2", onClick (ConflictVersionSelected Theirs) ] [ textNoTr "Theirs" ]
+                    , button [ class "bg-gray-200 text-black px-2 py-0.5 rounded", onClick (ConflictVersionSelected Original) ] [ textNoTr "Original" ]
+                    , br [] []
+                    , button
+                        [ class "mt-4 bg-gray-200 text-black px-2 py-0.5 rounded"
+                        , onClick ConflictResolved
+                        ]
+                        [ textNoTr "Choose this Version" ]
+                    ]
                 ]
 
 
