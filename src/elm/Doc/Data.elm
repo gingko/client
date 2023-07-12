@@ -1496,14 +1496,10 @@ pushOkHandler chkValStrings model =
     case model of
         CardBased data _ _ ->
             let
-                _ =
-                    Debug.log "pushOkMultiple" chkValStrings
-
                 chkValsAsUpdatedAt =
                     chkValStrings
                         |> List.map (\cv -> UpdatedAt.fromString cv)
                         |> Result.Extra.combine
-                        |> Debug.log "chkValsAsUpdatedAt decoded"
             in
             case chkValsAsUpdatedAt of
                 Ok chkVals ->
@@ -1529,17 +1525,12 @@ pushOkHandler chkValStrings model =
                         versionsToMarkSynced : List (Card UpdatedAt)
                         versionsToMarkSynced =
                             List.concatMap markVersionSynced chkVals
-                                |> Debug.log "versionsToMarkSynced"
                     in
                     Just <|
                         SaveCardBased <|
                             toSave { toAdd = [], toMarkSynced = versionsToMarkSynced, toMarkDeleted = [], toRemove = [] }
 
                 Err err ->
-                    let
-                        _ =
-                            Debug.log "pushOkMultiple err" err
-                    in
                     Nothing
 
         _ ->

@@ -535,7 +535,6 @@ update msg model =
                                     Data.pushOkHandler chkStrings data
                                         |> Maybe.map send
                                         |> Maybe.withDefault Cmd.none
-                                        |> Debug.log "pushOkMsgs"
 
                                 ( newToastTray, newToastCmd ) =
                                     if model.errorState then
