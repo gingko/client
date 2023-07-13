@@ -4,10 +4,11 @@ import Ant.Icons.Svg as Icons
 import Doc.TreeUtils exposing (getColumnById)
 import Doc.UI exposing (viewSaveIndicator)
 import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html.Attributes as A exposing (..)
 import Html.Events exposing (onClick)
 import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy2, lazy3, lazy4)
+import Json.Encode as Enc
 import Time
 import Translation exposing (Language, TranslationId(..))
 import Types exposing (..)
@@ -32,6 +33,7 @@ type alias Config msg =
     , currentTime : Time.Posix
     , model : Model
     , activeId : String
+    , currentField : String
     , msgs : MsgConfig msg
     }
 
@@ -48,7 +50,7 @@ type alias MsgConfig msg =
 
 
 view : Config msg -> Html msg
-view ({ model, activeId } as config) =
+view ({ model, activeId, currentField } as config) =
     let
         currentColumn =
             getColumnById activeId model.tree
@@ -56,7 +58,7 @@ view ({ model, activeId } as config) =
     in
     div
         [ id "app-fullscreen" ]
-        [ viewColumn activeId currentColumn
+        [ viewColumn activeId currentField currentColumn
         , viewFullscreenButtons config
         ]
 
@@ -91,18 +93,29 @@ viewFullscreenButtons { language, isMac, dirty, lastLocalSave, lastRemoteSave, c
         ]
 
 
-viewColumn : String -> Column -> Html msg
-viewColumn active col =
+viewColumn : String -> String -> Column -> Html msg
+viewColumn active currentField col =
     div
         [ id "fullscreen-main" ]
-        (List.map (lazy2 viewGroup active) col)
+        (List.map (lazy3 viewGroup active currentField) col)
 
 
-viewGroup : String -> Group -> Html msg
-viewGroup active xs =
+viewGroup : String -> String -> Group -> Html msg
+viewGroup active currentField xs =
     let
         viewFunction t =
-            ( t.id, lazy3 viewCard (t.id == active) t.id t.content )
+            let
+                isActive =
+                    t.id == active
+
+                content =
+                    if isActive then
+                        currentField
+
+                    else
+                        t.content
+            in
+            ( t.id, lazy3 viewCard isActive t.id content )
     in
     Keyed.node "div"
         [ class "group-fullscreen" ]
@@ -111,10 +124,6 @@ viewGroup active xs =
 
 viewCard : Bool -> String -> String -> Html msg
 viewCard isActive cardId content =
-    let
-        _ =
-            Debug.log "viewCard Fullscreen" ()
-    in
     div
         [ id ("card-" ++ cardId)
         , dir "auto"
@@ -122,10 +131,9 @@ viewCard isActive cardId content =
             [ ( "card-fullscreen", True )
             , ( "active-fullscreen", isActive )
             ]
-        , attribute "data-cloned-content" content
         ]
         [ node "gw-textarea"
-            [ id ("card-edit-" ++ cardId)
+            [ attribute "card-id" cardId
             , dir "auto"
             , classList
                 [ ( "edit", True )
@@ -133,6 +141,7 @@ viewCard isActive cardId content =
                 ]
             , attribute "data-private" "lipsum"
             , attribute "data-gramm" "false"
+            , A.property "isFullscreen" (Enc.bool True)
             , attribute "start-value" content
             ]
             []

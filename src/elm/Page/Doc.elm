@@ -579,6 +579,23 @@ incoming incomingMsg model =
                 _ ->
                     ( model, Cmd.none, [] )
 
+        FullscreenCardFocused newCardId newCardContent ->
+            case vs.viewMode of
+                FullscreenEditing { cardId } ->
+                    if cardId /= newCardId then
+                        changeMode
+                            { to = FullscreenEditing { cardId = newCardId, field = newCardContent }
+                            , instant = False
+                            , save = True
+                            }
+                            model
+
+                    else
+                        ( model, Cmd.none, [] )
+
+                _ ->
+                    ( model, Cmd.none, [] )
+
         TextCursor textCursorInfo ->
             if model.textCursorInfo /= textCursorInfo then
                 ( { model | textCursorInfo = textCursorInfo }
@@ -1051,7 +1068,7 @@ changeMode { to, instant, save } model =
 
                 saveIfAsked eD =
                     if save then
-                        andThen (saveCard eD)
+                        andThen (saveCard (eD |> Debug.log "saveCard"))
 
                     else
                         identity
@@ -1100,8 +1117,9 @@ changeMode { to, instant, save } model =
                 ( Editing _, FullscreenEditing newEditData ) ->
                     ( newModel to, focus newEditData.cardId, [] )
 
-                ( FullscreenEditing _, FullscreenEditing _ ) ->
+                ( FullscreenEditing oldEditData, FullscreenEditing _ ) ->
                     ( newModel to, Cmd.none, [] )
+                        |> saveIfAsked oldEditData
 
         Nothing ->
             case getFirstCard model.workingTree.tree of
@@ -2086,27 +2104,30 @@ view appMsg (Model model) =
     if model.loading then
         UI.viewDocumentLoadingSpinner
 
-    else if isFullscreen (Model model) then
-        [ Fullscreen.view
-            { language = GlobalData.language model.globalData
-            , isMac = GlobalData.isMac model.globalData
-            , dirty = model.dirty
-            , lastLocalSave = Nothing
-            , lastRemoteSave = Nothing
-            , currentTime = GlobalData.currentTime model.globalData
-            , model = model.workingTree
-            , activeId = getActiveId (Model model)
-            , msgs =
-                { saveChanges = NoOp
-                , exitFullscreenRequested = ExitFullscreenRequested
-                , saveAndExitFullscreen = SaveAndExitFullscreen
-                }
-            }
-            |> Html.map appMsg.docMsg
-        ]
-
     else
-        viewLoaded appMsg model
+        case model.viewState.viewMode of
+            FullscreenEditing { cardId, field } ->
+                [ Fullscreen.view
+                    { language = GlobalData.language model.globalData
+                    , isMac = GlobalData.isMac model.globalData
+                    , dirty = model.dirty
+                    , lastLocalSave = Nothing
+                    , lastRemoteSave = Nothing
+                    , currentTime = GlobalData.currentTime model.globalData
+                    , model = model.workingTree
+                    , activeId = cardId
+                    , currentField = field
+                    , msgs =
+                        { saveChanges = NoOp
+                        , exitFullscreenRequested = ExitFullscreenRequested
+                        , saveAndExitFullscreen = SaveAndExitFullscreen
+                        }
+                    }
+                    |> Html.map appMsg.docMsg
+                ]
+
+            _ ->
+                viewLoaded appMsg model
 
 
 viewLoaded : AppMsgs msg -> ModelData -> List (Html msg)
@@ -2151,9 +2172,6 @@ viewLoaded ({ docMsg } as appMsg) model =
 
                 Nothing ->
                     []
-
-        _ =
-            Debug.log "viewLoaded" ()
     in
     [ lazy4 treeView (GlobalData.language model.globalData) (GlobalData.isMac model.globalData) model.viewState model.workingTree |> Html.map docMsg
     , if (not << List.isEmpty) cardTitles then
@@ -2190,9 +2208,6 @@ viewLoaded ({ docMsg } as appMsg) model =
 treeView : Language -> Bool -> ViewState -> TreeStructure.Model -> Html Msg
 treeView lang isMac vstate model =
     let
-        _ =
-            Debug.log "treeView" ()
-
         activeId =
             getActiveIdFromViewState vstate
 
@@ -2460,10 +2475,6 @@ viewCardActive lang cardId content isParent isLast collabsOnCard collabsEditingC
 
 viewCardEditing : Language -> String -> String -> Bool -> Bool -> Html Msg
 viewCardEditing lang cardId content isParent _ =
-    let
-        _ =
-            Debug.log "viewCardEditing" ()
-    in
     div
         [ id ("card-" ++ cardId)
         , dir "auto"
@@ -2476,7 +2487,7 @@ viewCardEditing lang cardId content isParent _ =
         , attribute "data-cloned-content" content
         ]
         [ node "gw-textarea"
-            [ id ("card-edit-" ++ cardId)
+            [ attribute "card-id" cardId
             , dir "auto"
             , classList
                 [ ( "edit", True )

@@ -1323,8 +1323,8 @@ const cleanBodyHelp = () => {
 };
 
 
-const observer = helpers.getObserver(toElm);
+//const observer = helpers.getObserver(toElm);
 
-const observerConfig = { childList: true, subtree: true };
+//const observerConfig = { childList: true, subtree: true };
 
-observer.observe(document.body, observerConfig);
+//observer.observe(document.body, observerConfig);

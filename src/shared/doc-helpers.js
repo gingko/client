@@ -28,27 +28,34 @@ const defineCustomTextarea = (toElmFn) => {
       this.textarea_.addEventListener('input', this._onInput.bind(this));
       this.textarea_.addEventListener('keyup', this._selectionHandler.bind(this));
       this.textarea_.addEventListener('click', this._selectionHandler.bind(this));
-      this.textarea_.addEventListener('focus', this._selectionHandler.bind(this));
+      this.textarea_.addEventListener('focus', this._focusHandler.bind(this));
+    }
+    set isFullscreen(value) {
+      this._isFullscreen = value;
+    }
+    get isFullscreen() {
+      return this._isFullscreen;
     }
 
     connectedCallback() {
       this.textarea_.value = this.getAttribute('start-value');
-      this.textarea_.setAttribute('id', this.getAttribute('id'));
+      this.textarea_.setAttribute('id', 'card-edit-' + this.getAttribute('card-id'));
+      this.textarea_.setAttribute('card-id', this.getAttribute('card-id'));
       this.textarea_.setAttribute('class', this.getAttribute('class'));
       this.textarea_.setAttribute('dir', this.getAttribute('dir'));
       this.textarea_.setAttribute('data-private', this.getAttribute('data-private'));
       this.textarea_.setAttribute('data-gramm', this.getAttribute('data-gramm'));
       this.appendChild(this.textarea_);
-      this.textarea_.focus();
+      if (!this.isFullscreen) {
+        this.textarea_.focus();
+      }
       this.offset_ = this.textarea_.offsetHeight - this.textarea_.clientHeight;
       this._resize();
-      needOverride.push("left", "right");
     }
 
     disconnectedCallback() {
       this.textarea_.removeEventListener('input', this._onInput.bind(this));
       updateFillets();
-      needOverride = _.without(needOverride, "left", "right");
     }
 
     _onInput(e) {
@@ -63,6 +70,14 @@ const defineCustomTextarea = (toElmFn) => {
 
     _selectionHandler(e) {
       selectionHandler(e)
+    }
+
+    _focusHandler(e) {
+      if (this.isFullscreen) {
+        const cardId = this.textarea_.getAttribute('card-id');
+        const cardContent = this.textarea_.value;
+        toElm([cardId, cardContent], "docMsgs", "FullscreenCardFocused");
+      }
     }
   });
 }

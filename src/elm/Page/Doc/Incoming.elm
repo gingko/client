@@ -19,6 +19,7 @@ type
     | Paste Tree
     | PasteInto Tree
     | FieldChanged String
+    | FullscreenCardFocused String String
     | TextCursor TextCursorInfo
     | ClickedOutsideCard
     | CheckboxClicked String Int
@@ -128,6 +129,14 @@ subscribe tagger onError =
                     case decodeValue Dec.string outsideInfo.data of
                         Ok str ->
                             tagger <| FieldChanged str
+
+                        Err e ->
+                            onError (errorToString e)
+
+                "FullscreenCardFocused" ->
+                    case decodeValue (tupleDecoder Dec.string Dec.string) outsideInfo.data of
+                        Ok ( cardId, fieldId ) ->
+                            tagger <| FullscreenCardFocused cardId fieldId
 
                         Err e ->
                             onError (errorToString e)
