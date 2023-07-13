@@ -2035,7 +2035,7 @@ span.trial-dark {
 .card-fullscreen {
   display: grid;
 }
-.card-fullscreen textarea.edit, .card-fullscreen::before {
+.card-fullscreen gw-textarea textarea.edit {
   grid-area: 1/1/2/2;
   display: block;
   width: 100%;
@@ -2054,12 +2054,7 @@ span.trial-dark {
   overflow-wrap: break-word;
   max-width: 100vw;
 }
-.card-fullscreen::before {
-  content: attr(data-cloned-content) " ";
-  white-space: pre-wrap;
-  visibility: hidden;
-}
-.card-fullscreen.active-fullscreen textarea.edit {
+.card-fullscreen.active-fullscreen gw-textarea textarea.edit {
   color: var(--edit-text-color);
   text-shadow: var(--edit-text-shadow);
 }

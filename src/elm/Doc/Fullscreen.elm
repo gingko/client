@@ -5,9 +5,9 @@ import Doc.TreeUtils exposing (getColumnById)
 import Doc.UI exposing (viewSaveIndicator)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, onFocus, onInput)
+import Html.Events exposing (onClick)
 import Html.Keyed as Keyed
-import Html.Lazy exposing (lazy3, lazy4)
+import Html.Lazy exposing (lazy2, lazy3, lazy4)
 import Time
 import Translation exposing (Language, TranslationId(..))
 import Types exposing (..)
@@ -37,9 +37,7 @@ type alias Config msg =
 
 
 type alias MsgConfig msg =
-    { fieldUpdated : String -> String -> msg
-    , openCard : String -> String -> msg
-    , exitFullscreenRequested : msg
+    { exitFullscreenRequested : msg
     , saveChanges : msg
     , saveAndExitFullscreen : msg
     }
@@ -50,7 +48,7 @@ type alias MsgConfig msg =
 
 
 view : Config msg -> Html msg
-view ({ model, activeId, msgs } as config) =
+view ({ model, activeId } as config) =
     let
         currentColumn =
             getColumnById activeId model.tree
@@ -58,7 +56,7 @@ view ({ model, activeId, msgs } as config) =
     in
     div
         [ id "app-fullscreen" ]
-        [ viewColumn msgs activeId currentColumn
+        [ viewColumn activeId currentColumn
         , viewFullscreenButtons config
         ]
 
@@ -93,26 +91,26 @@ viewFullscreenButtons { language, isMac, dirty, lastLocalSave, lastRemoteSave, c
         ]
 
 
-viewColumn : MsgConfig msg -> String -> Column -> Html msg
-viewColumn msgs active col =
+viewColumn : String -> Column -> Html msg
+viewColumn active col =
     div
         [ id "fullscreen-main" ]
-        (List.map (lazy3 viewGroup msgs active) col)
+        (List.map (lazy2 viewGroup active) col)
 
 
-viewGroup : MsgConfig msg -> String -> Group -> Html msg
-viewGroup msgs active xs =
+viewGroup : String -> Group -> Html msg
+viewGroup active xs =
     let
         viewFunction t =
-            ( t.id, lazy4 viewCard msgs (t.id == active) t.id t.content )
+            ( t.id, lazy3 viewCard (t.id == active) t.id t.content )
     in
     Keyed.node "div"
         [ class "group-fullscreen" ]
         (List.map viewFunction xs)
 
 
-viewCard : { m | openCard : String -> String -> msg, fieldUpdated : String -> String -> msg } -> Bool -> String -> String -> Html msg
-viewCard msgs isActive cardId content =
+viewCard : Bool -> String -> String -> Html msg
+viewCard isActive cardId content =
     let
         _ =
             Debug.log "viewCard Fullscreen" ()
@@ -126,18 +124,16 @@ viewCard msgs isActive cardId content =
             ]
         , attribute "data-cloned-content" content
         ]
-        [ textarea
+        [ node "gw-textarea"
             [ id ("card-edit-" ++ cardId)
             , dir "auto"
             , classList
                 [ ( "edit", True )
                 , ( "mousetrap", True )
                 ]
-            , onFocus <| msgs.openCard cardId content
-            , onInput <| msgs.fieldUpdated cardId
             , attribute "data-private" "lipsum"
             , attribute "data-gramm" "false"
-            , value content
+            , attribute "start-value" content
             ]
             []
         ]

@@ -42,11 +42,13 @@ const defineCustomTextarea = (toElmFn) => {
       this.textarea_.focus();
       this.offset_ = this.textarea_.offsetHeight - this.textarea_.clientHeight;
       this._resize();
+      needOverride.push("left", "right");
     }
 
     disconnectedCallback() {
       this.textarea_.removeEventListener('input', this._onInput.bind(this));
       updateFillets();
+      needOverride = _.without(needOverride, "left", "right");
     }
 
     _onInput(e) {

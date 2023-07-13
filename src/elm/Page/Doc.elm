@@ -567,6 +567,15 @@ incoming incomingMsg model =
                     , []
                     )
 
+                FullscreenEditing { cardId } ->
+                    ( { model
+                        | viewState = { vs | viewMode = FullscreenEditing { cardId = cardId, field = str } }
+                        , dirty = True
+                      }
+                    , Cmd.none
+                    , []
+                    )
+
                 _ ->
                     ( model, Cmd.none, [] )
 
@@ -2088,9 +2097,7 @@ view appMsg (Model model) =
             , model = model.workingTree
             , activeId = getActiveId (Model model)
             , msgs =
-                { fieldUpdated = UpdateEditingField
-                , openCard = OpenCardFullscreen
-                , saveChanges = NoOp
+                { saveChanges = NoOp
                 , exitFullscreenRequested = ExitFullscreenRequested
                 , saveAndExitFullscreen = SaveAndExitFullscreen
                 }
