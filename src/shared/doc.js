@@ -1299,6 +1299,8 @@ Mousetrap.bind(["shift+tab"], function () {
 
 /* === DOM manipulation === */
 
+helpers.defineCustomTextarea(toElm);
+
 window.addEventListener("error", (err) => {
   console.log(err);
   if (

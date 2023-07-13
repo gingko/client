@@ -16,8 +16,57 @@ function toHex(s) {
 /* ===== DOM Manipulation ===== */
 let toElm;
 
+const defineCustomTextarea = (toElmFn) => {
+  if (!toElm) {
+    toElm = toElmFn;
+  }
+
+  customElements.define('gw-textarea', class extends HTMLElement {
+    constructor() {
+      super();
+      this.textarea_ = document.createElement('textarea');
+      this.textarea_.addEventListener('input', this._onInput.bind(this));
+      this.textarea_.addEventListener('keyup', this._selectionHandler.bind(this));
+      this.textarea_.addEventListener('click', this._selectionHandler.bind(this));
+      this.textarea_.addEventListener('focus', this._selectionHandler.bind(this));
+    }
+
+    connectedCallback() {
+      this.textarea_.value = this.getAttribute('start-value');
+      this.textarea_.setAttribute('id', this.getAttribute('id'));
+      this.textarea_.setAttribute('class', this.getAttribute('class'));
+      this.textarea_.setAttribute('dir', this.getAttribute('dir'));
+      this.textarea_.setAttribute('data-private', this.getAttribute('data-private'));
+      this.textarea_.setAttribute('data-gramm', this.getAttribute('data-gramm'));
+      this.appendChild(this.textarea_);
+      this.textarea_.focus();
+      this.offset_ = this.textarea_.offsetHeight - this.textarea_.clientHeight;
+      this._resize();
+    }
+
+    disconnectedCallback() {
+      this.textarea_.removeEventListener('input', this._onInput.bind(this));
+      updateFillets();
+    }
+
+    _onInput(e) {
+      toElm(e.target.value, "docMsgs", "FieldChanged");
+      this._resize();
+    }
+
+    _resize() {
+      this.textarea_.style.height = 'auto';
+      this.textarea_.style.height = this.textarea_.scrollHeight + this.offset_ + 'px';
+    }
+
+    _selectionHandler(e) {
+      selectionHandler(e)
+    }
+  });
+}
+
 const getObserver = (toElmFn) => {
-  toElm = toElmFn;
+  return;
   return new MutationObserver(function (mutations) {
     const isTextarea = function (node) {
       return node.nodeName == "TEXTAREA" && node.className == "edit mousetrap";
@@ -576,6 +625,7 @@ var casesShared = (elmData, params) => {
 /* ===== CommonJS Module exports ===== */
 
 module.exports = {
+  defineCustomTextarea: defineCustomTextarea,
   getObserver: getObserver,
   scrollHorizontal: scrollHorizontal,
   scrollColumns: scrollColumns,

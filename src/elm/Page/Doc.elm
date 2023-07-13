@@ -9,7 +9,7 @@ import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Doc.UI as UI exposing (viewMobileButtons, viewSearchField)
 import GlobalData exposing (GlobalData)
-import Html exposing (Attribute, Html, div, span, text, textarea)
+import Html exposing (Attribute, Html, div, node, span, text, textarea)
 import Html.Attributes as Attributes exposing (attribute, class, classList, dir, id, style, title, value)
 import Html.Events exposing (custom, onClick, onDoubleClick, onInput)
 import Html.Extra exposing (viewIf)
@@ -2468,7 +2468,7 @@ viewCardEditing lang cardId content isParent _ =
             ]
         , attribute "data-cloned-content" content
         ]
-        [ textarea
+        [ node "gw-textarea"
             [ id ("card-edit-" ++ cardId)
             , dir "auto"
             , classList
@@ -2477,8 +2477,7 @@ viewCardEditing lang cardId content isParent _ =
                 ]
             , attribute "data-private" "lipsum"
             , attribute "data-gramm" "false"
-            , onInput <| UpdateEditingField cardId
-            , value content
+            , attribute "start-value" content
             ]
             []
         , div [ class "flex-column card-right-overlay" ]
