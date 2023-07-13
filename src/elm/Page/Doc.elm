@@ -1,9 +1,10 @@
-module Page.Doc exposing (Model, Msg, MsgToParent(..), exitFullscreenExposed, getActiveId, getActiveTree, getField, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isFullscreen, isNormalMode, lastActives, maybeActivate, opaqueIncoming, opaqueUpdate, openCardFullscreenMsg, saveCardIfEditing, setBlock, setDirty, setGlobalData, setLoading, setTree, setWorkingTree, subscriptions, toggleEditing, updateFullscreenField, view)
+module Page.Doc exposing (Model, Msg, MsgToParent(..), exitFullscreenExposed, getActiveId, getActiveTree, getField, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isFullscreen, isNormalMode, lastActives, maybeActivate, opaqueIncoming, opaqueUpdate, openCardFullscreenMsg, setBlock, setDirty, setGlobalData, setLoading, setTree, setWorkingTree, subscriptions, toggleEditing, updateFullscreenField, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
 import Coders exposing (treeToValue)
 import Doc.Fonts as Fonts
+import Doc.Fullscreen as Fullscreen
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Doc.UI as UI exposing (viewMobileButtons, viewSearchField)
@@ -113,9 +114,11 @@ type Msg
       -- === Dragging ===
     | DragDropMsg (DragDrop.Msg String DropId)
     | DragExternal DragExternalMsg
-      -- === UI ===
-      -- Misc UI
+      -- === Fullscreen ===
     | FullscreenRequested
+    | OpenCardFullscreen String String
+    | ExitFullscreenRequested
+    | SaveAndExitFullscreen
       -- === Ports ===
     | LogErr String
 
@@ -125,7 +128,6 @@ type MsgToParent
     | CloseTooltip
     | LocalSave CardTreeOp
     | Commit
-    | ExitFullscreen
 
 
 type DragExternalMsg
@@ -223,32 +225,8 @@ update msg ({ workingTree } as model) =
             model
                 |> openCard id str
 
-        UpdateEditingField id newField ->
-            case vs.viewMode of
-                Editing { cardId, field } ->
-                    if id == cardId && field /= newField then
-                        ( { model
-                            | viewState = { vs | viewMode = Editing { cardId = id, field = newField } }
-                            , dirty = True
-                          }
-                        , Cmd.batch
-                            [ send <| SetDirty True
-                            , send <| SetTextareaClone cardId newField
-                            ]
-                        , []
-                        )
-
-                    else
-                        ( model
-                        , Cmd.none
-                        , []
-                        )
-
-                _ ->
-                    ( model
-                    , Cmd.none
-                    , []
-                    )
+        UpdateEditingField idOfUpdatedCard newField ->
+            updateField { cardToUpdate = idOfUpdatedCard, newField = newField, viewState = vs } model
 
         AutoSave ->
             ( model, Cmd.none, [] ) |> saveCardIfEditing
@@ -379,9 +357,18 @@ update msg ({ workingTree } as model) =
                     else
                         ( model, Cmd.none, [] )
 
-        -- === UI ===
+        -- === Fullscreen ===
         FullscreenRequested ->
-            ( model, send <| RequestFullscreen, [] )
+            ( model, Cmd.none, [] )
+
+        OpenCardFullscreen id startingContent ->
+            ( model, Cmd.none, [] )
+
+        ExitFullscreenRequested ->
+            ( model, Cmd.none, [] )
+
+        SaveAndExitFullscreen ->
+            ( model, Cmd.none, [] )
 
         -- === Ports ===
         LogErr _ ->
@@ -392,6 +379,52 @@ update msg ({ workingTree } as model) =
             , Cmd.none
             , []
             )
+
+
+updateField :
+    { cardToUpdate : String, newField : String, viewState : ViewState }
+    -> ModelData
+    -> ( ModelData, Cmd msg, List a )
+updateField { cardToUpdate, newField, viewState } model =
+    let
+        newViewMode_ =
+            case viewState.viewMode of
+                Editing { cardId, field } ->
+                    if cardId == cardToUpdate && field /= newField then
+                        Editing { cardId = cardId, field = newField }
+                            |> Debug.log "newViewMode"
+                            |> Just
+
+                    else
+                        Nothing
+
+                FullscreenEditing { cardId, field } ->
+                    if cardId == cardToUpdate && field /= newField then
+                        FullscreenEditing { cardId = cardId, field = newField }
+                            |> Debug.log "newViewMode"
+                            |> Just
+
+                    else
+                        Nothing
+
+                _ ->
+                    Nothing
+    in
+    case newViewMode_ of
+        Just newViewMode ->
+            ( { model
+                | viewState = { viewState | viewMode = newViewMode }
+                , dirty = True
+              }
+            , Cmd.batch
+                [ send <| SetDirty True
+                , send <| SetTextareaClone cardToUpdate newField
+                ]
+            , []
+            )
+
+        Nothing ->
+            ( model, Cmd.none, [] )
 
 
 localSave : CardTreeOp -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
@@ -2044,6 +2077,27 @@ view appMsg (Model model) =
     if model.loading then
         UI.viewDocumentLoadingSpinner
 
+    else if isFullscreen (Model model) then
+        [ Fullscreen.view
+            { language = GlobalData.language model.globalData
+            , isMac = GlobalData.isMac model.globalData
+            , dirty = model.dirty
+            , lastLocalSave = Nothing
+            , lastRemoteSave = Nothing
+            , currentTime = GlobalData.currentTime model.globalData
+            , model = model.workingTree
+            , activeId = getActiveId (Model model)
+            , msgs =
+                { fieldUpdated = UpdateEditingField
+                , openCard = OpenCardFullscreen
+                , saveChanges = NoOp
+                , exitFullscreenRequested = ExitFullscreenRequested
+                , saveAndExitFullscreen = SaveAndExitFullscreen
+                }
+            }
+            |> Html.map appMsg.docMsg
+        ]
+
     else
         viewLoaded appMsg model
 
@@ -2090,6 +2144,9 @@ viewLoaded ({ docMsg } as appMsg) model =
 
                 Nothing ->
                     []
+
+        _ =
+            Debug.log "viewLoaded" ()
     in
     [ lazy4 treeView (GlobalData.language model.globalData) (GlobalData.isMac model.globalData) model.viewState model.workingTree |> Html.map docMsg
     , if (not << List.isEmpty) cardTitles then
@@ -2126,6 +2183,9 @@ viewLoaded ({ docMsg } as appMsg) model =
 treeView : Language -> Bool -> ViewState -> TreeStructure.Model -> Html Msg
 treeView lang isMac vstate model =
     let
+        _ =
+            Debug.log "treeView" ()
+
         activeId =
             getActiveIdFromViewState vstate
 
@@ -2393,6 +2453,10 @@ viewCardActive lang cardId content isParent isLast collabsOnCard collabsEditingC
 
 viewCardEditing : Language -> String -> String -> Bool -> Bool -> Html Msg
 viewCardEditing lang cardId content isParent _ =
+    let
+        _ =
+            Debug.log "viewCardEditing" ()
+    in
     div
         [ id ("card-" ++ cardId)
         , dir "auto"

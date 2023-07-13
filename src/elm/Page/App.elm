@@ -7,7 +7,6 @@ import Bytes exposing (Bytes)
 import Coders exposing (sortByEncoder)
 import Doc.ContactForm as ContactForm
 import Doc.Data as Data
-import Doc.Fullscreen as Fullscreen
 import Doc.HelpScreen as HelpScreen
 import Doc.History as History
 import Doc.List as DocList exposing (Model(..))
@@ -20,11 +19,11 @@ import File exposing (File)
 import File.Download as Download
 import File.Select as Select
 import GlobalData exposing (GlobalData)
-import Html exposing (Html, br, button, div, h1, h2, h3, li, p, small, strong, ul)
+import Html exposing (Html, br, button, div, h2, h3, li, p, small, strong, ul)
 import Html.Attributes exposing (class, classList, height, id, style, width)
 import Html.Events exposing (onClick)
 import Html.Extra exposing (viewIf)
-import Html.Lazy exposing (lazy2, lazy5)
+import Html.Lazy exposing (lazy5)
 import Http
 import Import.Bulk.UI as ImportModal
 import Import.Incoming
@@ -321,7 +320,6 @@ updateGlobalData newGlobalData ({ documentState } as model) =
 type Msg
     = NoOp
     | GotDocMsg Page.Doc.Msg
-    | GotFullscreenMsg Fullscreen.Msg
     | TimeUpdate Time.Posix
     | Pull
     | SettingsChanged Json.Value
@@ -441,35 +439,6 @@ update msg model =
                     in
                     ( { model | documentState = Doc { docState | docModel = newDocModel } }, newCmd )
                         |> applyParentMsgs parentMsgs
-
-                Empty _ _ ->
-                    ( model, Cmd.none )
-
-                DocNotFound _ _ ->
-                    ( model, Cmd.none )
-
-        GotFullscreenMsg fullscreenMsg ->
-            case model.documentState of
-                Doc ({ docModel } as docState) ->
-                    case fullscreenMsg of
-                        Fullscreen.OpenCard id field ->
-                            let
-                                ( newDocModel, newCmd ) =
-                                    docModel
-                                        |> Page.Doc.openCardFullscreenMsg id field
-                                        |> (\( m, c ) -> ( m, Cmd.map GotDocMsg c ))
-                            in
-                            ( { model | documentState = Doc { docState | docModel = newDocModel } }, newCmd )
-
-                        Fullscreen.UpdateField id field ->
-                            let
-                                ( newDocModel, newCmd ) =
-                                    docModel
-                                        |> Page.Doc.updateFullscreenField id field
-                                        |> (\( m, c ) -> ( m, Cmd.map GotDocMsg c ))
-                            in
-                            ( { model | documentState = Doc { docState | docModel = newDocModel } }, newCmd )
-                                |> andThen (localSave (CTUpd id field))
 
                 Empty _ _ ->
                     ( model, Cmd.none )
@@ -1843,9 +1812,6 @@ applyParentMsg parentMsg ( prevModel, prevCmd ) =
             ( prevModel, prevCmd )
                 |> andThen addToHistoryDo
 
-        ExitFullscreen ->
-            ( prevModel, prevCmd )
-
 
 localSave : CardTreeOp -> Model -> ( Model, Cmd Msg )
 localSave op model =
@@ -2090,29 +2056,15 @@ view ({ documentState } as model) =
                     Page.Doc.getGlobalData docModel
             in
             if isFullscreen then
-                let
-                    isMac =
-                        GlobalData.isMac (toGlobalData model)
-                in
-                lazy2
-                    (Fullscreen.view
-                        { toSelf = GotFullscreenMsg
-                        , exitFullscreenRequested = ExitFullscreenRequested
-                        , saveChanges = SaveChanges
-                        , saveAndExitFullscreen = SaveAndExitFullscreen
+                div [ id "app-root", classList [ ( "loading", model.loading ) ], applyTheme model.theme ]
+                    (Page.Doc.view
+                        { docMsg = GotDocMsg
+                        , keyboard = \s -> IncomingDocMsg (Keyboard s)
+                        , tooltipRequested = TooltipRequested
+                        , tooltipClosed = TooltipClosed
                         }
+                        docModel
                     )
-                    { language = lang
-                    , isMac = isMac
-                    , dirty = dirty
-                    , model = workingTree
-
-                    -- TODO : This could be made lazier by only passing in the sync state, and not these timestamps.
-                    , lastLocalSave = lastLocalSave
-                    , lastRemoteSave = lastRemoteSave
-                    , currentTime = GlobalData.currentTime (Page.Doc.getGlobalData docModel)
-                    }
-                    (Page.Doc.getActiveId docModel)
 
             else
                 let
