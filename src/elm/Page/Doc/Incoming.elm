@@ -15,7 +15,6 @@ type
     | DragStarted String
     | DragExternalStarted
     | DropExternal String
-    | FullscreenChanged Bool
     | Paste Tree
     | PasteInto Tree
     | FieldChanged String
@@ -97,14 +96,6 @@ subscribe tagger onError =
                     case decodeValue Dec.string outsideInfo.data of
                         Ok dropText ->
                             tagger <| DropExternal dropText
-
-                        Err e ->
-                            onError (errorToString e)
-
-                "FullscreenChanged" ->
-                    case decodeValue Dec.bool outsideInfo.data of
-                        Ok isFullscreen ->
-                            tagger <| FullscreenChanged isFullscreen
 
                         Err e ->
                             onError (errorToString e)

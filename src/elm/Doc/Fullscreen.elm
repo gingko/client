@@ -7,7 +7,7 @@ import Html exposing (..)
 import Html.Attributes as A exposing (..)
 import Html.Events exposing (onClick)
 import Html.Keyed as Keyed
-import Html.Lazy exposing (lazy2, lazy3, lazy4)
+import Html.Lazy exposing (lazy2, lazy3)
 import Json.Encode as Enc
 import Time
 import Translation exposing (Language, TranslationId(..))
@@ -33,7 +33,6 @@ type alias Config msg =
     , currentTime : Time.Posix
     , model : Model
     , activeId : String
-    , currentField : String
     , msgs : MsgConfig msg
     }
 
@@ -50,7 +49,7 @@ type alias MsgConfig msg =
 
 
 view : Config msg -> Html msg
-view ({ model, activeId, currentField } as config) =
+view ({ model, activeId } as config) =
     let
         currentColumn =
             getColumnById activeId model.tree
@@ -58,7 +57,7 @@ view ({ model, activeId, currentField } as config) =
     in
     div
         [ id "app-fullscreen" ]
-        [ viewColumn activeId currentField currentColumn
+        [ viewColumn activeId currentColumn
         , viewFullscreenButtons config
         ]
 
@@ -93,29 +92,22 @@ viewFullscreenButtons { language, isMac, dirty, lastLocalSave, lastRemoteSave, c
         ]
 
 
-viewColumn : String -> String -> Column -> Html msg
-viewColumn active currentField col =
+viewColumn : String -> Column -> Html msg
+viewColumn active col =
     div
         [ id "fullscreen-main" ]
-        (List.map (lazy3 viewGroup active currentField) col)
+        (List.map (lazy2 viewGroup active) col)
 
 
-viewGroup : String -> String -> Group -> Html msg
-viewGroup active currentField xs =
+viewGroup : String -> Group -> Html msg
+viewGroup active xs =
     let
         viewFunction t =
             let
                 isActive =
                     t.id == active
-
-                content =
-                    if isActive then
-                        currentField
-
-                    else
-                        t.content
             in
-            ( t.id, lazy3 viewCard isActive t.id content )
+            ( t.id, lazy3 viewCard isActive t.id t.content )
     in
     Keyed.node "div"
         [ class "group-fullscreen" ]

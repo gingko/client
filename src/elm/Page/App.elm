@@ -395,11 +395,6 @@ type Msg
     | ImportJSONLoaded String String
     | ImportJSONIdGenerated Tree String String
     | ImportSingleCompleted String
-      -- FULLSCREEN mode
-    | SaveChanges
-    | SaveAndExitFullscreen
-    | ExitFullscreenRequested
-    | FullscreenRequested
       -- Misc UI
     | ToastMsg Toast.Msg
     | AddToast ToastPersistence Toast
@@ -1459,32 +1454,6 @@ update msg model =
         ImportSingleCompleted docId ->
             ( model, Route.pushUrl model.navKey (Route.DocUntitled docId) )
 
-        -- FULLSCREEN mode
-        ExitFullscreenRequested ->
-            case model.documentState of
-                Doc ({ docModel } as docState) ->
-                    let
-                        ( newDocModel, newCmd ) =
-                            Page.Doc.exitFullscreenExposed docModel
-                    in
-                    ( { model | documentState = Doc { docState | docModel = newDocModel } }, Cmd.map GotDocMsg newCmd )
-
-                Empty _ _ ->
-                    ( model, Cmd.none )
-
-                DocNotFound _ _ ->
-                    ( model, Cmd.none )
-
-        SaveChanges ->
-            ( model, Cmd.none )
-
-        SaveAndExitFullscreen ->
-            ( model, Cmd.none )
-
-        FullscreenRequested ->
-            -- TODO:
-            ( model, Cmd.none )
-
         -- Misc UI
         ToastMsg toastMsg ->
             let
@@ -2037,7 +2006,6 @@ view ({ documentState } as model) =
             , changeSortBy = SortByChanged
             , contextMenuOpened = SidebarContextClicked
             , languageChanged = LanguageChanged
-            , fullscreenRequested = FullscreenRequested
             }
     in
     case documentState of
@@ -2063,6 +2031,8 @@ view ({ documentState } as model) =
                         , tooltipRequested = TooltipRequested
                         , tooltipClosed = TooltipClosed
                         }
+                        lastLocalSave
+                        lastRemoteSave
                         docModel
                     )
 
@@ -2102,6 +2072,8 @@ view ({ documentState } as model) =
                         , tooltipRequested = TooltipRequested
                         , tooltipClosed = TooltipClosed
                         }
+                        lastLocalSave
+                        lastRemoteSave
                         docModel
                         ++ [ UI.renderToast ToastMsg model.tray
                            , viewHeader

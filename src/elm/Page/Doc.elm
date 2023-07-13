@@ -1,4 +1,4 @@
-module Page.Doc exposing (Model, Msg, MsgToParent(..), exitFullscreenExposed, getActiveId, getActiveTree, getField, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isFullscreen, isNormalMode, lastActives, maybeActivate, opaqueIncoming, opaqueUpdate, openCardFullscreenMsg, setBlock, setDirty, setGlobalData, setLoading, setTree, setWorkingTree, subscriptions, toggleEditing, updateFullscreenField, view)
+module Page.Doc exposing (Model, Msg, MsgToParent(..), getActiveId, getActiveTree, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isFullscreen, isNormalMode, lastActives, maybeActivate, opaqueIncoming, opaqueUpdate, setBlock, setDirty, setGlobalData, setLoading, setTree, setWorkingTree, subscriptions, toggleEditing, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -9,9 +9,9 @@ import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Doc.UI as UI exposing (viewMobileButtons, viewSearchField)
 import GlobalData exposing (GlobalData)
-import Html exposing (Attribute, Html, div, node, span, text, textarea)
-import Html.Attributes as Attributes exposing (attribute, class, classList, dir, id, style, title, value)
-import Html.Events exposing (custom, onClick, onDoubleClick, onInput)
+import Html exposing (Attribute, Html, div, node, span, text)
+import Html.Attributes as Attributes exposing (attribute, class, classList, dir, id, style, title)
+import Html.Events exposing (custom, onClick, onDoubleClick)
 import Html.Extra exposing (viewIf)
 import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy2, lazy4, lazy5, lazy7, lazy8)
@@ -115,9 +115,8 @@ type Msg
     | DragDropMsg (DragDrop.Msg String DropId)
     | DragExternal DragExternalMsg
       -- === Fullscreen ===
-    | FullscreenRequested
-    | OpenCardFullscreen String String
     | ExitFullscreenRequested
+    | SaveFromFullscreen
     | SaveAndExitFullscreen
       -- === Ports ===
     | LogErr String
@@ -242,7 +241,7 @@ update msg ({ workingTree } as model) =
                     changeMode
                         { to = FullscreenEditing { cardId = cardId, field = field }
                         , instant = True
-                        , save = False
+                        , save = True
                         }
                         model
 
@@ -358,17 +357,39 @@ update msg ({ workingTree } as model) =
                         ( model, Cmd.none, [] )
 
         -- === Fullscreen ===
-        FullscreenRequested ->
-            ( model, Cmd.none, [] )
-
-        OpenCardFullscreen id startingContent ->
-            ( model, Cmd.none, [] )
-
         ExitFullscreenRequested ->
-            ( model, Cmd.none, [] )
+            case vs.viewMode of
+                FullscreenEditing { cardId, field } ->
+                    changeMode
+                        { to = Editing { cardId = cardId, field = field }
+                        , instant = True
+                        , save = True
+                        }
+                        model
+
+                _ ->
+                    ( model, Cmd.none, [] )
+
+        SaveFromFullscreen ->
+            case vs.viewMode of
+                FullscreenEditing { cardId, field } ->
+                    saveCard { cardId = cardId, field = field } model
+
+                _ ->
+                    ( model, Cmd.none, [] )
 
         SaveAndExitFullscreen ->
-            ( model, Cmd.none, [] )
+            case vs.viewMode of
+                FullscreenEditing { cardId, field } ->
+                    changeMode
+                        { to = Normal cardId
+                        , instant = True
+                        , save = True
+                        }
+                        model
+
+                _ ->
+                    ( model, Cmd.none, [] )
 
         -- === Ports ===
         LogErr _ ->
@@ -536,18 +557,6 @@ incoming incomingMsg model =
                         |> addToHistory
 
                 Nothing ->
-                    ( model, Cmd.none, [] )
-
-        FullscreenChanged fullscreen ->
-            case vs.viewMode of
-                FullscreenEditing _ ->
-                    if not fullscreen then
-                        exitFullscreen model
-
-                    else
-                        ( model, Cmd.none, [] )
-
-                _ ->
                     ( model, Cmd.none, [] )
 
         Paste tree ->
@@ -1110,12 +1119,14 @@ changeMode { to, instant, save } model =
                     , Cmd.batch [ focus newEditData.cardId, scrollCmd ]
                     , []
                     )
+                        |> saveIfAsked oldEditData
 
                 ( Normal _, FullscreenEditing newEditData ) ->
                     ( newModel to, focus newEditData.cardId, [] )
 
-                ( Editing _, FullscreenEditing newEditData ) ->
+                ( Editing oldEditData, FullscreenEditing newEditData ) ->
                     ( newModel to, focus newEditData.cardId, [] )
+                        |> saveIfAsked oldEditData
 
                 ( FullscreenEditing oldEditData, FullscreenEditing _ ) ->
                     ( newModel to, Cmd.none, [] )
@@ -1443,68 +1454,6 @@ saveCardIfEditing ( model, prevCmd, prevParentMsgs ) =
 openCard : String -> String -> ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
 openCard id str model =
     changeMode { to = Editing { cardId = id, field = str }, instant = False, save = False } model
-
-
-openCardFullscreen : String -> String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
-openCardFullscreen id str ( model, prevCmd, prevMsgsToParent ) =
-    ( model, prevCmd, prevMsgsToParent )
-        |> andThen (openCard id str)
-        |> (\( m, c, p ) ->
-                let
-                    vs =
-                        m.viewState
-                in
-                ( { m | viewState = { vs | viewMode = FullscreenEditing { cardId = id, field = str } } }
-                , Cmd.batch [ c, focus id ]
-                , p
-                )
-           )
-
-
-enterFullscreen : ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
-enterFullscreen model =
-    let
-        vs =
-            model.viewState
-
-        activeId =
-            getActiveId (Model model)
-    in
-    case vs.viewMode of
-        Editing { field } ->
-            ( { model
-                | viewState =
-                    { vs | viewMode = FullscreenEditing { cardId = activeId, field = field } }
-              }
-            , focus activeId
-            , []
-            )
-
-        _ ->
-            ( model, Cmd.none, [] )
-
-
-exitFullscreen : ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
-exitFullscreen model =
-    let
-        vs =
-            model.viewState
-    in
-    case vs.viewMode of
-        FullscreenEditing editData ->
-            changeMode { to = Editing editData, instant = True, save = False } model
-
-        _ ->
-            ( model, Cmd.none, [] )
-
-
-exitFullscreenExposed : Model -> ( Model, Cmd Msg )
-exitFullscreenExposed (Model model) =
-    let
-        ( newModel, cmd, _ ) =
-            model |> exitFullscreen
-    in
-    ( Model newModel, cmd )
 
 
 closeCard : ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
@@ -2099,8 +2048,8 @@ type alias AppMsgs msg =
     }
 
 
-view : AppMsgs msg -> Model -> List (Html msg)
-view appMsg (Model model) =
+view : AppMsgs msg -> Maybe Time.Posix -> Maybe Time.Posix -> Model -> List (Html msg)
+view appMsg lastLocalSave lastRemoteSave (Model model) =
     if model.loading then
         UI.viewDocumentLoadingSpinner
 
@@ -2111,14 +2060,13 @@ view appMsg (Model model) =
                     { language = GlobalData.language model.globalData
                     , isMac = GlobalData.isMac model.globalData
                     , dirty = model.dirty
-                    , lastLocalSave = Nothing
-                    , lastRemoteSave = Nothing
+                    , lastLocalSave = lastLocalSave
+                    , lastRemoteSave = lastRemoteSave
                     , currentTime = GlobalData.currentTime model.globalData
                     , model = model.workingTree
                     , activeId = cardId
-                    , currentField = field
                     , msgs =
-                        { saveChanges = NoOp
+                        { saveChanges = SaveFromFullscreen
                         , exitFullscreenRequested = ExitFullscreenRequested
                         , saveAndExitFullscreen = SaveAndExitFullscreen
                         }
@@ -2824,52 +2772,6 @@ lastActives activesResult (Model prevModel) =
     ( { prevModel | viewState = newViewState }, Cmd.none, [] )
         |> maybeScroll
         |> (\( m, c, _ ) -> ( Model m, c ))
-
-
-getField : Model -> String
-getField (Model model) =
-    case model.viewState.viewMode of
-        FullscreenEditing { field } ->
-            field
-
-        Editing { field } ->
-            field
-
-        Normal _ ->
-            ""
-
-
-openCardFullscreenMsg : String -> String -> Model -> ( Model, Cmd Msg )
-openCardFullscreenMsg cardId str (Model model) =
-    changeMode
-        { to = FullscreenEditing { cardId = cardId, field = str }
-        , instant = False
-        , save = True
-        }
-        model
-        |> (\( m, c, _ ) -> ( Model m, c ))
-
-
-updateFullscreenField : String -> String -> Model -> ( Model, Cmd Msg )
-updateFullscreenField id field (Model model) =
-    let
-        vs =
-            model.viewState
-    in
-    case vs.viewMode of
-        FullscreenEditing _ ->
-            ( { model | dirty = True }, send <| SetDirty True, [] )
-                |> andThen
-                    (changeMode
-                        { to = FullscreenEditing { cardId = id, field = field }
-                        , instant = False
-                        , save = True
-                        }
-                    )
-                |> (\( m, c, _ ) -> ( Model m, c ))
-
-        _ ->
-            ( Model model, Cmd.none )
 
 
 getTextCursorInfo : Model -> TextCursorInfo

@@ -44,7 +44,6 @@ type alias SidebarMsgs msg =
     , changeSortBy : SortBy -> msg
     , contextMenuOpened : String -> ( Float, Float ) -> msg
     , languageChanged : Language -> msg
-    , fullscreenRequested : msg
     }
 
 
