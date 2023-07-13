@@ -1,5 +1,5 @@
 const _ = require("lodash");
-const { TweenMax } = require("gsap");
+const { gsap } = require("gsap");
 
 /* ==== Utility functions ===== */
 
@@ -29,6 +29,7 @@ const defineCustomTextarea = (toElmFn) => {
       this.textarea_.addEventListener('keyup', this._selectionHandler.bind(this));
       this.textarea_.addEventListener('click', this._selectionHandler.bind(this));
       this.textarea_.addEventListener('focus', this._focusHandler.bind(this));
+      this.textarea_.addEventListener('blur', this._blurHandler.bind(this));
     }
     set isFullscreen(value) {
       this._isFullscreen = value;
@@ -55,6 +56,10 @@ const defineCustomTextarea = (toElmFn) => {
 
     disconnectedCallback() {
       this.textarea_.removeEventListener('input', this._onInput.bind(this));
+      this.textarea_.removeEventListener('keyup', this._selectionHandler.bind(this));
+      this.textarea_.removeEventListener('click', this._selectionHandler.bind(this));
+      this.textarea_.removeEventListener('focus', this._focusHandler.bind(this));
+      this.textarea_.removeEventListener('blur', this._blurHandler.bind(this));
       updateFillets();
     }
 
@@ -76,7 +81,14 @@ const defineCustomTextarea = (toElmFn) => {
       if (this.isFullscreen) {
         const cardId = this.textarea_.getAttribute('card-id');
         const cardContent = this.textarea_.value;
+        scrollFullscreen(cardId);
         toElm([cardId, cardContent], "docMsgs", "FullscreenCardFocused");
+      }
+    }
+
+    _blurHandler(e) {
+      if (!this.isFullscreen) {
+        editBlurHandler(e)
       }
     }
   });
@@ -230,16 +242,18 @@ var scrollFullscreen = function (cid) {
 
 var scrollFullscreenTo = function (cid) {
   var card = document.getElementById("card-" + cid.toString());
-  var col = document.getElementById("fullscreen-main");
+  var col = document.getElementById("app-fullscreen");
   if (card == null) {
     console.log("scroll error: not found", cid);
     return;
   }
   var rect = card.getBoundingClientRect();
 
-  TweenMax.to(col,  0.25, {
-    scrollTop:
-      col.scrollTop + (rect.top + rect.height * 0.5 - col.offsetHeight * 0.5),
+  const newScrollTop = col.scrollTop + (rect.top + rect.height * 0.5 - col.offsetHeight * 0.5);
+  console.log("scrollFullscreenTo", newScrollTop);
+
+  gsap.to(col,  0.25, {
+    scrollTop: newScrollTop,
     ease: "power2.easeInOut",
   });
 }
@@ -270,7 +284,7 @@ var scrollTo = function (cid, colIdx, instant, position, errorCount) {
   if (instant) {
     col.scrollTop = newScrollTop;
   } else {
-    TweenMax.to(col, 0.25, {
+    gsap.to(col, 0.25, {
       scrollTop: newScrollTop,
       ease: "power2.easeInOut",
     });
@@ -301,7 +315,7 @@ var scrollHorizTo = function (colIdx, instant, errorCount) {
   if (instant) {
     appEl.scrollLeft = col.offsetLeft + 0.5  * (col.offsetWidth - appEl.offsetWidth);
   } else {
-    TweenMax.to(appEl, 0.3, {
+    gsap.to(appEl, 0.3, {
       scrollLeft: col.offsetLeft + 0.5  * (col.offsetWidth - appEl.offsetWidth),
       ease: "power2.easeInOut",
       onComplete: scrollDoneCallback
