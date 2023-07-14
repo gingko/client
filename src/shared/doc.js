@@ -69,6 +69,9 @@ let remoteDB;
 let db;
 let gingko;
 let TREE_ID;
+let DATA_TYPE;
+const CARD_DATA = Symbol.for("cardbased");
+const GIT_LIKE_DATA = Symbol.for("couchdb");
 let userDbName;
 let email = null;
 let ws;
@@ -88,8 +91,10 @@ let savedObjectIds = new Set();
 let cardDataSubscription = null;
 let historyDataSubscription = null;
 const localStore = container.localStore;
-
 const sessionStorageKey = "gingko-session-storage";
+function getDataType() {
+  return DATA_TYPE;
+}
 
 /* === Initializing App === */
 
@@ -454,6 +459,7 @@ const fromElm = (msg, elmData) => {
 
       const now = Date.now();
       const treeDoc = {...treeDocDefaults, id: TREE_ID, owner: email, createdAt: now, updatedAt: now};
+      DATA_TYPE = GIT_LIKE_DATA;
 
       await dexie.trees.add(treeDoc);
 
@@ -898,6 +904,7 @@ function treeDocToMetadata(tree) {
 }
 
 async function loadCardBasedDocument (treeId) {
+  DATA_TYPE = CARD_DATA;
   if (cardDataSubscription != null) { cardDataSubscription.unsubscribe(); }
   if (historyDataSubscription != null) { historyDataSubscription.unsubscribe(); }
 
@@ -987,6 +994,7 @@ function treeHelper (cards, parentId) {
 }
 
 async function loadGitLikeDocument (treeId) {
+  DATA_TYPE = GIT_LIKE_DATA;
   // Load document-specific settings.
   localStore.db(treeId);
   let store = localStore.load();
@@ -1299,7 +1307,7 @@ Mousetrap.bind(["shift+tab"], function () {
 
 /* === DOM manipulation === */
 
-helpers.defineCustomTextarea(toElm);
+helpers.defineCustomTextarea(toElm, getDataType);
 
 window.addEventListener("error", (err) => {
   console.log(err);

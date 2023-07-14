@@ -15,6 +15,8 @@ function toHex(s) {
 
 /* ===== DOM Manipulation ===== */
 let toElm;
+const CARD_DATA = Symbol.for("cardbased");
+const GIT_LIKE_DATA = Symbol.for("couchdb");
 
 const autoSaveImmediate = function() {
   if (!toElm) {
@@ -22,11 +24,11 @@ const autoSaveImmediate = function() {
   }
   toElm(null, "docMsgs", "AutoSaveRequested");
 }
-const autoSaveSlow = _.debounce(autoSaveImmediate, 27*1000);
-const autoSave = _.debounce(autoSaveImmediate, 7*1000);
+const autoSave = _.debounce(autoSaveImmediate, 1*1000);
+const autoSaveSlow = _.debounce(autoSaveImmediate, 11*1000);
 
 
-const defineCustomTextarea = (toElmFn) => {
+const defineCustomTextarea = (toElmFn, getDataTypeFn) => {
   if (!toElm) {
     toElm = toElmFn;
   }
@@ -71,19 +73,23 @@ const defineCustomTextarea = (toElmFn) => {
       this.textarea_.removeEventListener('click', this._selectionHandler.bind(this));
       this.textarea_.removeEventListener('focus', this._focusHandler.bind(this));
       if (!this.isFullscreen) {
-        autoSaveSlow.cancel();
         document.removeEventListener('click', editBlurHandler);
         updateFillets();
-      } else {
+      }
+      if (getDataTypeFn() == CARD_DATA) {
         autoSave.cancel();
+      } else if (getDataTypeFn() == GIT_LIKE_DATA) {
+        autoSaveSlow.cancel();
       }
     }
 
     _onInput(e) {
       toElm(e.target.value, "docMsgs", "FieldChanged");
-      if (this.isFullscreen) {
+      if (this.isFullscreen && getDataTypeFn() == CARD_DATA) {
+        console.log("autoSave")
         autoSave();
-      } else {
+      } else if (this.isFullscreen && getDataTypeFn() == GIT_LIKE_DATA) {
+        console.log("autoSaveSlow");
         autoSaveSlow();
       }
       this._resize();
