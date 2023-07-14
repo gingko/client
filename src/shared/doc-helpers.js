@@ -16,6 +16,16 @@ function toHex(s) {
 /* ===== DOM Manipulation ===== */
 let toElm;
 
+const autoSaveImmediate = function() {
+  if (!toElm) {
+    return;
+  }
+  toElm(null, "docMsgs", "AutoSaveRequested");
+}
+const autoSaveSlow = _.debounce(autoSaveImmediate, 27*1000);
+const autoSave = _.debounce(autoSaveImmediate, 7*1000);
+
+
 const defineCustomTextarea = (toElmFn) => {
   if (!toElm) {
     toElm = toElmFn;
@@ -61,13 +71,21 @@ const defineCustomTextarea = (toElmFn) => {
       this.textarea_.removeEventListener('click', this._selectionHandler.bind(this));
       this.textarea_.removeEventListener('focus', this._focusHandler.bind(this));
       if (!this.isFullscreen) {
+        autoSaveSlow.cancel();
         document.removeEventListener('click', editBlurHandler);
         updateFillets();
+      } else {
+        autoSave.cancel();
       }
     }
 
     _onInput(e) {
       toElm(e.target.value, "docMsgs", "FieldChanged");
+      if (this.isFullscreen) {
+        autoSave();
+      } else {
+        autoSaveSlow();
+      }
       this._resize();
     }
 
@@ -92,57 +110,6 @@ const defineCustomTextarea = (toElmFn) => {
     _blurHandler(e) {
       if (!this.isFullscreen) {
       }
-    }
-  });
-}
-
-const getObserver = (toElmFn) => {
-  return;
-  return new MutationObserver(function (mutations) {
-    const isTextarea = function (node) {
-      return node.nodeName == "TEXTAREA" && node.className == "edit mousetrap";
-    };
-
-    let textareas = [];
-
-    mutations.map((m) => {
-      [].slice.call(m.addedNodes).map((n) => {
-        if (isTextarea(n)) {
-          textareas.push(n);
-        } else {
-          if (n.querySelectorAll) {
-            let tareas = [].slice.call(n.querySelectorAll("textarea.edit"));
-            textareas = textareas.concat(tareas);
-          }
-        }
-      });
-
-      [].slice.call(m.removedNodes).map((n) => {
-        if ("getElementsByClassName" in n && n.getElementsByClassName("edit mousetrap").length != 0) {
-          updateFillets();
-        }
-      })
-    });
-
-    if (textareas.length !== 0) {
-      textareas.map((t) => {
-        t.onkeyup = selectionHandler
-        t.onclick = selectionHandler
-        t.onfocus = selectionHandler
-      })
-      needOverride.push("left", "right");
-      if (Object.prototype.hasOwnProperty.call(toElm, 'toMain')) {
-        toElm.toMain('edit-mode-changed', true)
-      }
-      if (document.getElementById("app-fullscreen") === null) {
-        document.addEventListener('click', editBlurHandler)
-      }
-    } else {
-      needOverride = _.without(needOverride, "left", "right");
-      if (Object.prototype.hasOwnProperty.call(toElm, 'toMain')) {
-        toElm.toMain('edit-mode-changed', false)
-      }
-      document.removeEventListener('click', editBlurHandler);
     }
   });
 }

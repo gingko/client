@@ -17,7 +17,8 @@ type
     | DropExternal String
     | Paste Tree
     | PasteInto Tree
-    | UpdateEditingField String
+    | FieldChanged String
+    | AutoSaveRequested
     | FullscreenCardFocused String String
     | TextCursor TextCursorInfo
     | ClickedOutsideCard
@@ -119,10 +120,13 @@ subscribe tagger onError =
                 "FieldChanged" ->
                     case decodeValue Dec.string outsideInfo.data of
                         Ok str ->
-                            tagger <| UpdateEditingField str
+                            tagger <| FieldChanged str
 
                         Err e ->
                             onError (errorToString e)
+
+                "AutoSaveRequested" ->
+                    tagger <| AutoSaveRequested
 
                 "FullscreenCardFocused" ->
                     case decodeValue (tupleDecoder Dec.string Dec.string) outsideInfo.data of

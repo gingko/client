@@ -398,47 +398,6 @@ update msg ({ workingTree } as model) =
             )
 
 
-updateField :
-    { cardToUpdate : String, newField : String, viewState : ViewState }
-    -> ModelData
-    -> ( ModelData, Cmd msg, List a )
-updateField { cardToUpdate, newField, viewState } model =
-    let
-        newViewMode_ =
-            case viewState.viewMode of
-                Editing { cardId, field } ->
-                    if cardId == cardToUpdate && field /= newField then
-                        Editing { cardId = cardId, field = newField }
-                            |> Just
-
-                    else
-                        Nothing
-
-                FullscreenEditing { cardId, field } ->
-                    if cardId == cardToUpdate && field /= newField then
-                        FullscreenEditing { cardId = cardId, field = newField }
-                            |> Just
-
-                    else
-                        Nothing
-
-                _ ->
-                    Nothing
-    in
-    case newViewMode_ of
-        Just newViewMode ->
-            ( { model
-                | viewState = { viewState | viewMode = newViewMode }
-                , dirty = True
-              }
-            , send <| SetDirty True
-            , []
-            )
-
-        Nothing ->
-            ( model, Cmd.none, [] )
-
-
 localSave : CardTreeOp -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 localSave op ( model, cmd, prevMsgsToParent ) =
     ( model
@@ -556,7 +515,7 @@ incoming incomingMsg model =
         PasteInto tree ->
             normalMode model (pasteInto activeId tree)
 
-        UpdateEditingField str ->
+        FieldChanged str ->
             case vs.viewMode of
                 Editing { cardId } ->
                     ( { model
@@ -578,6 +537,10 @@ incoming incomingMsg model =
 
                 _ ->
                     ( model, Cmd.none, [] )
+
+        AutoSaveRequested ->
+            ( model, Cmd.none, [] )
+                |> saveCardIfEditing
 
         FullscreenCardFocused newCardId newCardContent ->
             case vs.viewMode of
@@ -1087,7 +1050,7 @@ changeMode { to, instant, save } model =
                     ( newModel to, scrollCmd, [] )
                         |> saveIfAsked oldEditData
 
-                ( FullscreenEditing oldEditData, Normal newId ) ->
+                ( FullscreenEditing oldEditData, Normal _ ) ->
                     ( newModel to, scrollCmd, [] )
                         |> saveIfAsked oldEditData
 
