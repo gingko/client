@@ -10,7 +10,7 @@ import Doc.TreeUtils exposing (..)
 import Doc.UI as UI exposing (viewMobileButtons, viewSearchField)
 import GlobalData exposing (GlobalData)
 import Html exposing (Attribute, Html, div, node, span, text)
-import Html.Attributes as Attributes exposing (attribute, class, classList, dir, id, style, tabindex, title)
+import Html.Attributes as Attributes exposing (attribute, class, classList, dir, id, style, title)
 import Html.Events exposing (custom, onClick, onDoubleClick)
 import Html.Extra exposing (viewIf)
 import Html.Keyed as Keyed
@@ -102,7 +102,6 @@ type Msg
     | SearchFieldUpdated String
       -- === Card Editing  ===
     | OpenCard String String
-    | UpdateEditingField String String
     | AutoSave
     | SaveAndCloseCard
     | EditToFullscreenMode
@@ -223,9 +222,6 @@ update msg ({ workingTree } as model) =
         OpenCard id str ->
             model
                 |> openCard id str
-
-        UpdateEditingField idOfUpdatedCard newField ->
-            updateField { cardToUpdate = idOfUpdatedCard, newField = newField, viewState = vs } model
 
         AutoSave ->
             ( model, Cmd.none, [] ) |> saveCardIfEditing
@@ -435,10 +431,7 @@ updateField { cardToUpdate, newField, viewState } model =
                 | viewState = { viewState | viewMode = newViewMode }
                 , dirty = True
               }
-            , Cmd.batch
-                [ send <| SetDirty True
-                , send <| SetTextareaClone cardToUpdate newField
-                ]
+            , send <| SetDirty True
             , []
             )
 
@@ -563,14 +556,14 @@ incoming incomingMsg model =
         PasteInto tree ->
             normalMode model (pasteInto activeId tree)
 
-        FieldChanged str ->
+        UpdateEditingField str ->
             case vs.viewMode of
                 Editing { cardId } ->
                     ( { model
                         | viewState = { vs | viewMode = Editing { cardId = cardId, field = str } }
                         , dirty = True
                       }
-                    , Cmd.none
+                    , send <| SetDirty True
                     , []
                     )
 
@@ -579,7 +572,7 @@ incoming incomingMsg model =
                         | viewState = { vs | viewMode = FullscreenEditing { cardId = cardId, field = str } }
                         , dirty = True
                       }
-                    , Cmd.none
+                    , send <| SetDirty True
                     , []
                     )
 

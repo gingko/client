@@ -629,16 +629,6 @@ var casesShared = (elmData, params) => {
       requestAnimationFrame(() => document.activeElement.setSelectionRange(pos, pos));
     },
 
-    SetTextareaClone: () => {
-      let id = elmData[0];
-      let card = document.getElementById("card-" + id);
-      if (card === null) {
-        console.error("Card not found for autogrowing textarea");
-      } else {
-        card.dataset.clonedContent = elmData[1];
-      }
-    },
-
     ConfirmCancelCard: () => {
       const tarea = document.getElementById('card-edit-' + elmData[0])
 

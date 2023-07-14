@@ -17,7 +17,7 @@ type
     | DropExternal String
     | Paste Tree
     | PasteInto Tree
-    | FieldChanged String
+    | UpdateEditingField String
     | FullscreenCardFocused String String
     | TextCursor TextCursorInfo
     | ClickedOutsideCard
@@ -119,7 +119,7 @@ subscribe tagger onError =
                 "FieldChanged" ->
                     case decodeValue Dec.string outsideInfo.data of
                         Ok str ->
-                            tagger <| FieldChanged str
+                            tagger <| UpdateEditingField str
 
                         Err e ->
                             onError (errorToString e)
