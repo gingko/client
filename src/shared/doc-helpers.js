@@ -41,7 +41,6 @@ const defineCustomTextarea = (toElmFn, getDataTypeFn) => {
       this.textarea_.addEventListener('keyup', this._selectionHandler.bind(this));
       this.textarea_.addEventListener('click', this._selectionHandler.bind(this));
       this.textarea_.addEventListener('focus', this._focusHandler.bind(this));
-      this.textarea_.addEventListener('blur', this._blurHandler.bind(this));
     }
     set isFullscreen(value) {
       this._isFullscreen = value;
@@ -112,11 +111,6 @@ const defineCustomTextarea = (toElmFn, getDataTypeFn) => {
         toElm([cardId, cardContent], "docMsgs", "FullscreenCardFocused");
       }
     }
-
-    _blurHandler(e) {
-      if (!this.isFullscreen) {
-      }
-    }
   });
 }
 
@@ -162,18 +156,8 @@ const editBlurHandler = (ev) => {
   if (process.env.NODE_ENV === 'development') {
     console.log("editBlurHandler", ev)
   }
-  let targetClasses = ev.target.classList;
-  const parentClasses = ev.target.parentElement.classList;
-  const grandparentClasses = ev.target.parentElement.parentElement.classList;
 
-  const isSaveButton = ev.target.nodeName == "DIV" && targetClasses.contains("card-btn") && targetClasses.contains("save");
-  const isFullscreenButton = ev.target.nodeName == "DIV" && targetClasses.contains("fullscreen-card-btn");
-  const isFullscreenSvg = ev.target.nodeName == "svg" && parentClasses.contains("fullscreen-card-btn");
-  const isFullscrerenPath = ev.target.nodeName == "path" && grandparentClasses.contains("fullscreen-card-btn");
-
-  if (isSaveButton || isFullscreenButton || isFullscreenSvg || isFullscrerenPath || isEditTextarea(ev.target)) {
-    return;
-  } else {
+  if (ev.target.closest("#document") && !ev.target.closest("div.card.active")) {
     toElm(null, "docMsgs", "ClickedOutsideCard");
   }
 };

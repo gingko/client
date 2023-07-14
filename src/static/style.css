@@ -3,6 +3,7 @@
 @import 'tailwindcss/utilities';
 
 @import url('./shared.css');
+@import url('./home.css');
 
 @font-face {
   font-family: 'Glyphicons Halflings';
