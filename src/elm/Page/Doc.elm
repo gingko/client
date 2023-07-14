@@ -10,7 +10,7 @@ import Doc.TreeUtils exposing (..)
 import Doc.UI as UI exposing (viewMobileButtons, viewSearchField)
 import GlobalData exposing (GlobalData)
 import Html exposing (Attribute, Html, div, node, span, text)
-import Html.Attributes as Attributes exposing (attribute, class, classList, dir, id, style, title)
+import Html.Attributes as Attributes exposing (attribute, class, classList, dir, id, style, tabindex, title)
 import Html.Events exposing (custom, onClick, onDoubleClick)
 import Html.Extra exposing (viewIf)
 import Html.Keyed as Keyed
@@ -413,7 +413,6 @@ updateField { cardToUpdate, newField, viewState } model =
                 Editing { cardId, field } ->
                     if cardId == cardToUpdate && field /= newField then
                         Editing { cardId = cardId, field = newField }
-                            |> Debug.log "newViewMode"
                             |> Just
 
                     else
@@ -422,7 +421,6 @@ updateField { cardToUpdate, newField, viewState } model =
                 FullscreenEditing { cardId, field } ->
                     if cardId == cardToUpdate && field /= newField then
                         FullscreenEditing { cardId = cardId, field = newField }
-                            |> Debug.log "newViewMode"
                             |> Just
 
                     else
@@ -1077,7 +1075,7 @@ changeMode { to, instant, save } model =
 
                 saveIfAsked eD =
                     if save then
-                        andThen (saveCard (eD |> Debug.log "saveCard"))
+                        andThen (saveCard eD)
 
                     else
                         identity

@@ -49,6 +49,7 @@ const defineCustomTextarea = (toElmFn) => {
       this.appendChild(this.textarea_);
       if (!this.isFullscreen) {
         this.textarea_.focus();
+        document.addEventListener('click', editBlurHandler);
       }
       this.offset_ = this.textarea_.offsetHeight - this.textarea_.clientHeight;
       this._resize();
@@ -59,8 +60,10 @@ const defineCustomTextarea = (toElmFn) => {
       this.textarea_.removeEventListener('keyup', this._selectionHandler.bind(this));
       this.textarea_.removeEventListener('click', this._selectionHandler.bind(this));
       this.textarea_.removeEventListener('focus', this._focusHandler.bind(this));
-      this.textarea_.removeEventListener('blur', this._blurHandler.bind(this));
-      updateFillets();
+      if (!this.isFullscreen) {
+        document.removeEventListener('click', editBlurHandler);
+        updateFillets();
+      }
     }
 
     _onInput(e) {
@@ -88,7 +91,6 @@ const defineCustomTextarea = (toElmFn) => {
 
     _blurHandler(e) {
       if (!this.isFullscreen) {
-        editBlurHandler(e)
       }
     }
   });
@@ -657,7 +659,6 @@ var casesShared = (elmData, params) => {
 
 module.exports = {
   defineCustomTextarea: defineCustomTextarea,
-  getObserver: getObserver,
   scrollHorizontal: scrollHorizontal,
   scrollColumns: scrollColumns,
   scrollFullscreen: scrollFullscreen,

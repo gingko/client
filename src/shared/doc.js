@@ -1321,10 +1321,3 @@ const cleanBodyHelp = () => {
     )
     .forEach((el) => document.body.after(el));
 };
-
-
-//const observer = helpers.getObserver(toElm);
-
-//const observerConfig = { childList: true, subtree: true };
-
-//observer.observe(document.body, observerConfig);
