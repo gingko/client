@@ -48,6 +48,18 @@ const defineCustomTextarea = (toElmFn, getDataTypeFn) => {
     get isFullscreen() {
       return this._isFullscreen;
     }
+    static get observedAttributes() { return ['start-value']; }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (name === 'start-value' && !this._isActive() && this.textarea_.value !== newValue ) {
+        this.textarea_.value = newValue;
+        this._resize();
+      }
+    }
+
+    _isActive() {
+      return this.textarea_ === document.activeElement;
+    }
 
     connectedCallback() {
       this.textarea_.value = this.getAttribute('start-value');

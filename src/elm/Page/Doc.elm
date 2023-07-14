@@ -669,14 +669,8 @@ incoming incomingMsg model =
                                 ( beforeText, afterText ) =
                                     model.textCursorInfo.text
                             in
-                            ( { model
-                                | viewState =
-                                    { vs | viewMode = FullscreenEditing { cardId = cardId, field = beforeText } }
-                              }
-                            , Cmd.none
-                            , []
-                            )
-                                |> saveCardIfEditing
+                            ( model, Cmd.none, [] )
+                                |> andThen (saveCard { cardId = cardId, field = beforeText })
                                 |> insertBelow activeId afterText
                                 |> setCursorPosition 0
 
@@ -1082,8 +1076,8 @@ changeMode { to, instant, save } model =
                     ( newModel to, focus newEditData.cardId, [] )
                         |> saveIfAsked oldEditData
 
-                ( FullscreenEditing oldEditData, FullscreenEditing _ ) ->
-                    ( newModel to, Cmd.none, [] )
+                ( FullscreenEditing oldEditData, FullscreenEditing newEditData ) ->
+                    ( newModel to, focus newEditData.cardId, [] )
                         |> saveIfAsked oldEditData
 
         Nothing ->
@@ -1622,6 +1616,14 @@ insert pid pos initText ( model, prevCmd, prevMsgsToParent ) =
     let
         ( newIdString, newSeed ) =
             Random.step (stringGenerator 24) (GlobalData.seed model.globalData)
+
+        newViewMode =
+            case model.viewState.viewMode of
+                FullscreenEditing _ ->
+                    FullscreenEditing { cardId = newIdString, field = initText }
+
+                _ ->
+                    Editing { cardId = newIdString, field = initText }
     in
     ( { model
         | workingTree = TreeStructure.update (TreeStructure.Ins newIdString initText pid pos) model.workingTree
@@ -1644,7 +1646,7 @@ insert pid pos initText ( model, prevCmd, prevMsgsToParent ) =
     )
         |> andThen
             (changeMode
-                { to = Editing { cardId = newIdString, field = initText }
+                { to = newViewMode
                 , instant = False
                 , save = False
                 }

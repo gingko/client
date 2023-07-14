@@ -64,7 +64,7 @@ describe('Document Editing', () => {
     cy.get('#card-1').click()
     cy.shortcut('{enter}')
     cy.writeInCard('UVW')
-    cy.get('#save-indicator').click()
+    cy.get('.left-padding-column').click()
     cy.get('#save-indicator').should('not.contain', 'Unsaved Changes...')
     cy.get('#card-1')
       .should('not.have.class', 'editing')
