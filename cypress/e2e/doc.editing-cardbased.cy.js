@@ -286,5 +286,22 @@ describe('Document Editing', () => {
       .should('contain','italic')
     cy.getCard(2,1,4)
       .should('contain','bold')
+
+    // Test card merging
+    cy.getCard(2,1,3).click()
+    cy.shortcut('{ctrl}{shift}{downarrow}')
+    cy.contains('Synced')
+    cy.reload()
+    cy.getCard(2,1,3)
+      .should('contain.html', '<p><em>italic</em></p>\n<p><strong>bold</strong></p>')
+
+
+    /*
+    cy.getCard(1,1,2).click()
+    cy.shortcut('{ctrl}{shift}{uparrow}')
+    cy.getCard(1,1,1)
+      .should('contain.html', '<p>Hello World :</p>\n<p>)XYZ</p>')
+
+     */
   })
 })
