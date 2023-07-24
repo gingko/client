@@ -1091,84 +1091,8 @@ changeMode { to, instant, save } model =
 
 activate : String -> Bool -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 activate tryId instant ( model, prevCmd, prevMsgsToParent ) =
-    let
-        vs =
-            model.viewState
-
-        oldId =
-            getActiveId (Model model)
-    in
-    let
-        activeTree__ =
-            getTree tryId model.workingTree.tree
-
-        activeTree_ =
-            case activeTree__ of
-                Just aTree ->
-                    Just aTree
-
-                Nothing ->
-                    getFirstCard model.workingTree.tree
-    in
-    case activeTree_ of
-        Nothing ->
-            ( model, prevCmd, prevMsgsToParent )
-
-        Just activeTree ->
-            let
-                newPast =
-                    if tryId == oldId then
-                        vs.activePast
-
-                    else
-                        oldId :: vs.activePast |> List.take 40
-
-                id =
-                    activeTree.id
-
-                desc =
-                    activeTree
-                        |> getDescendants
-                        |> List.map .id
-
-                anc =
-                    getAncestors model.workingTree.tree activeTree []
-                        |> List.map .id
-
-                newModel newVm =
-                    { model
-                        | viewState =
-                            { vs
-                                | viewMode = newVm
-                                , activePast = newPast
-                                , descendants = desc
-                                , ancestors = anc
-                            }
-                    }
-            in
-            case vs.viewMode of
-                FullscreenEditing _ ->
-                    ( newModel (Normal "TODO")
-                    , Cmd.batch [ prevCmd, send <| ScrollFullscreenCards id ]
-                    , prevMsgsToParent
-                    )
-
-                _ ->
-                    let
-                        scrollPositions =
-                            getScrollPositions activeTree newPast model.workingTree.tree
-
-                        colIdx =
-                            getDepth 0 model.workingTree.tree activeTree.id
-                    in
-                    ( newModel (Normal oldId)
-                    , Cmd.batch
-                        [ prevCmd
-                        , send
-                            (ScrollCards (id :: newPast) scrollPositions colIdx instant)
-                        ]
-                    , prevMsgsToParent
-                    )
+    changeMode { to = Normal tryId, instant = instant, save = False } model
+        |> andThen (\m -> ( m, prevCmd, prevMsgsToParent ))
 
 
 goLeft : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
