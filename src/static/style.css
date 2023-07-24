@@ -2,6 +2,13 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
+@layer base {
+  ul, ol {
+    list-style: revert;
+    list-style-position: inside;
+  }
+}
+
 @import url('./shared.css');
 @import url('./home.css');
 
