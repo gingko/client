@@ -1643,7 +1643,6 @@ mergeUp id ( model, prevCmd, prevMsgsToParent ) =
             , prevCmd
             , prevMsgsToParent
             )
-                |> activate prevTree.id False
                 |> localSave (CTMrg currentTree.id prevTree.id True)
                 |> addToHistory
 
@@ -1673,7 +1672,6 @@ mergeDown id ( model, prevCmd, prevMsgsToParent ) =
             , prevCmd
             , prevMsgsToParent
             )
-                |> activate nextTree.id False
                 |> localSave (CTMrg currentTree.id nextTree.id False)
                 |> addToHistory
 

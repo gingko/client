@@ -290,6 +290,7 @@ describe('Document Editing', () => {
     // Test card merging
     cy.getCard(2,1,3).click()
     cy.shortcut('{ctrl}{shift}{downarrow}')
+    cy.getCard(2,1,3).should('have.class','active')
     cy.contains('Synced')
     cy.reload()
     cy.getCard(2,1,3)
