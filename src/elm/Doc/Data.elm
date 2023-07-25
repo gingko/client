@@ -1072,8 +1072,26 @@ localSave treeId op model =
                     in
                     toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = [] }
 
-                CTMrg aId bId bool ->
-                    Enc.null
+                CTMrg currTreeId otherTreeId isMergeUp ->
+                    let
+                        currCard_ =
+                            data
+                                |> List.filter (\card -> card.id == currTreeId)
+                                |> UpdatedAt.sortNewestFirst .updatedAt
+                                |> List.head
+
+                        otherCard_ =
+                            data
+                                |> List.filter (\card -> card.id == otherTreeId)
+                                |> UpdatedAt.sortNewestFirst .updatedAt
+                                |> List.head
+                    in
+                    case ( currCard_, otherCard_ ) of
+                        ( Just currCard, Just otherCard ) ->
+                            mergeUp data currCard otherCard
+
+                        _ ->
+                            Enc.null
 
                 CTBlk tree parId_ idx ->
                     let
@@ -1096,6 +1114,61 @@ localSave treeId op model =
 
         GitLike gitData maybeConflictInfo ->
             Enc.null
+
+
+mergeUp : CardData -> Card UpdatedAt -> Card UpdatedAt -> Enc.Value
+mergeUp data currCard otherCard =
+    let
+        modifiedCard =
+            { currCard | content = otherCard.content ++ "\n\n" ++ currCard.content }
+                |> asUnsynced
+
+        childrenOfCurrent =
+            data
+                |> List.filter (\card -> card.parentId == Just currCard.id)
+
+        childrenOfOther =
+            data
+                |> List.filter (\card -> card.parentId == Just otherCard.id)
+
+        lastPosOfOther =
+            childrenOfOther
+                |> List.map .position
+                |> List.maximum
+
+        firstPosOfCurrent =
+            childrenOfCurrent
+                |> List.map .position
+                |> List.minimum
+
+        modifiedChildren =
+            case ( lastPosOfOther, firstPosOfCurrent ) of
+                ( Just lastPos, Just firstPos ) ->
+                    let
+                        offset =
+                            firstPos - lastPos - 1
+                    in
+                    childrenOfOther
+                        |> List.map
+                            (\card -> { card | parentId = Just currCard.id, position = card.position + offset })
+                        |> List.map asUnsynced
+
+                ( Just _, Nothing ) ->
+                    childrenOfOther
+                        |> List.map
+                            (\card -> { card | parentId = Just currCard.id })
+                        |> List.map asUnsynced
+
+                ( Nothing, Just _ ) ->
+                    []
+
+                ( Nothing, Nothing ) ->
+                    []
+
+        toDelete =
+            { otherCard | deleted = True } |> asUnsynced
+    in
+    toSave { toAdd = [ modifiedCard ] ++ modifiedChildren, toMarkSynced = [], toMarkDeleted = [ toDelete ], toRemove = [] }
 
 
 getPosition : String -> Maybe String -> Int -> List (Card UpdatedAt) -> Float
