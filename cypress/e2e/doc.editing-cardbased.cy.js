@@ -295,13 +295,9 @@ describe('Document Editing', () => {
     cy.getCard(2,1,3)
       .should('contain.html', '<p><em>italic</em></p>\n<p><strong>bold</strong></p>')
 
-
-    /*
     cy.getCard(1,1,2).click()
     cy.shortcut('{ctrl}{shift}{uparrow}')
     cy.getCard(1,1,1)
-      .should('contain.html', '<p>Hello World :</p>\n<p>)XYZ</p>')
-
-     */
+      .should('contain.html', '<p>Hello World :</p>\n<p>A child</p>')
   })
 })
