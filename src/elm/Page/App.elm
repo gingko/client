@@ -19,9 +19,9 @@ import File exposing (File)
 import File.Download as Download
 import File.Select as Select
 import GlobalData exposing (GlobalData)
-import Html exposing (Html, br, button, div, h2, h3, li, p, small, strong, ul)
-import Html.Attributes exposing (class, classList, height, id, style, width)
-import Html.Events exposing (onClick)
+import Html exposing (Html, br, button, div, fieldset, h2, h3, input, label, li, p, small, strong, ul)
+import Html.Attributes exposing (checked, class, classList, height, id, style, type_, width)
+import Html.Events exposing (onClick, onInput)
 import Html.Extra exposing (viewIf)
 import Html.Lazy exposing (lazy5)
 import Http
@@ -2301,7 +2301,7 @@ viewConflictSelector cstate =
         NoConflict ->
             emptyText
 
-        _ ->
+        Conflict confSel ->
             div [ class "container mx-auto fixed flex z-10 justify-center top-7 drop-shadow-lg" ]
                 [ div
                     [ class "bg-orange-400"
@@ -2311,11 +2311,11 @@ viewConflictSelector cstate =
                     , style "border-radius" "5px"
                     ]
                     [ textNoTr "Conflicts detected. Choose a version to resolve the conflict."
-                    , br [] []
-                    , button [ class "mt-4 bg-gray-200 text-black px-2 py-0.5 rounded mr-2", onClick (ConflictVersionSelected Ours) ] [ textNoTr "Ours" ]
-                    , button [ class "bg-gray-200 text-black px-2 py-0.5 rounded mr-2", onClick (ConflictVersionSelected Theirs) ] [ textNoTr "Theirs" ]
-                    , button [ class "bg-gray-200 text-black px-2 py-0.5 rounded", onClick (ConflictVersionSelected Original) ] [ textNoTr "Original" ]
-                    , br [] []
+                    , fieldset [ style "border" "none", style "display" "flex", style "flex-direction" "column" ]
+                        [ radio "Local" (confSel == Ours) (ConflictVersionSelected Ours)
+                        , radio "Cloud" (confSel == Theirs) (ConflictVersionSelected Theirs)
+                        , radio "Original" (confSel == Original) (ConflictVersionSelected Original)
+                        ]
                     , button
                         [ class "mt-4 bg-gray-200 text-black px-2 py-0.5 rounded"
                         , onClick ConflictResolved
@@ -2323,6 +2323,14 @@ viewConflictSelector cstate =
                         [ textNoTr "Choose this Version" ]
                     ]
                 ]
+
+
+radio : String -> Bool -> msg -> Html msg
+radio value isChecked msg =
+    label []
+        [ input [ type_ "radio", onInput (always msg), checked isChecked ] []
+        , textNoTr value
+        ]
 
 
 viewConfirmBanner : Language -> msg -> String -> Html msg
