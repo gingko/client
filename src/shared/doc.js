@@ -15,6 +15,7 @@ const platform = require("platform");
 const config = require("../../config.js");
 const mycrypt = require("./encrypt.js");
 const PersistentWebSocket = require("pws");
+const MD5 = require("md5.js");
 
 // Initialize Error Reporting
 import * as Sentry from '@sentry/browser';
@@ -218,6 +219,11 @@ function initWebSocket () {
         case 'cardsConflict':
           if (data.d.length > 0) {
             await dexie.cards.bulkPut(data.d.map(c => ({ ...c, synced: true })))
+
+            // send encrypted unsynced local cards to Sentry
+            const unsyncedCards = await dexie.cards.where('treeId').equals(TREE_ID).and(c => !c.synced).toArray();
+            const encryptedCards = unsyncedCards.map(c => ({ ...c, content: new MD5().update(config.DESKTOP_SERIAL_SALT + c.content).digest('hex') }));
+            Sentry.captureMessage('cardsConflict: cards conflict ' + TREE_ID, { extra: { encryptedCards } })
           } else {
             Sentry.captureMessage('cardsConflict: no cards ' + TREE_ID)
             const numberUnsynced = await dexie.cards.where('treeId').equals(TREE_ID).and(c => !c.synced).count();
