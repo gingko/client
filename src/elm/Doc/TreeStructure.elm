@@ -92,8 +92,8 @@ updateTree msg tree =
                         )
             in
             tree
-                |> pruneSubtree fromTree.id
-                |> modifyTree toTree.id (\t -> { t | content = mergedContent, children = mergedChildren })
+                |> pruneSubtree toTree.id
+                |> modifyTree fromTree.id (\t -> { t | content = mergedContent, children = mergedChildren })
 
         Paste newTree parentId idx ->
             tree
