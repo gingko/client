@@ -159,52 +159,20 @@ conflictList model =
 restore : Model -> String -> List Outgoing.Msg
 restore model historyId =
     case model of
-        CardBased oldData history _ ->
+        CardBased currentData history _ ->
             let
-                newData_ =
+                dataAtRestorePoint_ =
                     history
                         |> List.filter (\( id, _, _ ) -> id == historyId)
                         |> List.head
                         |> Maybe.map (\( _, _, wd ) -> wd)
                         |> Maybe.andThen RemoteData.toMaybe
             in
-            case newData_ of
-                Just newData ->
-                    let
-                        oldDataDict =
-                            oldData
-                                |> UpdatedAt.sortOldestFirst .updatedAt
-                                |> List.map (\c -> ( c.id, c ))
-                                |> Dict.fromList
-
-                        newDataDict =
-                            newData
-                                |> UpdatedAt.sortOldestFirst .updatedAt
-                                |> List.map (\c -> ( c.id, c ))
-                                |> Dict.fromList
-
-                        ( toAdd, toMarkDeleted ) =
-                            Dict.merge
-                                (\_ a ( tA, tD ) -> ( tA, tD ++ [ { a | deleted = True } |> asUnsynced ] ))
-                                (\_ a b ( tA, tD ) ->
-                                    if not (UpdatedAt.areEqual a.updatedAt b.updatedAt) then
-                                        ( tA ++ [ b |> asUnsynced ], tD )
-
-                                    else
-                                        ( tA, tD )
-                                )
-                                (\_ a ( tA, tD ) -> ( tA ++ [ a |> asUnsynced ], tD ))
-                                oldDataDict
-                                newDataDict
-                                ( [], [] )
-                    in
+            case dataAtRestorePoint_ of
+                Just dataAtRestorePoint ->
                     [ SaveCardBased
                         (toSave
-                            { toAdd = toAdd
-                            , toMarkSynced = []
-                            , toMarkDeleted = toMarkDeleted
-                            , toRemove = []
-                            }
+                            (getRestoredData currentData dataAtRestorePoint)
                         )
                     ]
 
@@ -213,6 +181,67 @@ restore model historyId =
 
         GitLike data _ ->
             []
+
+
+getRestoredData : CardData -> CardData -> DBChangeLists
+getRestoredData currentData restoredData =
+    let
+        currentDataByCardId =
+            currentData
+                |> UpdatedAt.sortOldestFirst .updatedAt
+                |> List.map (\c -> ( c.id, c ))
+                |> Dict.fromList
+
+        restoredDataByCardId =
+            restoredData
+                |> UpdatedAt.sortOldestFirst .updatedAt
+                |> List.map (\c -> ( c.id, c ))
+                |> Dict.fromList
+
+        ( toAdd, toMarkDeleted ) =
+            mergeRestoreData currentDataByCardId restoredDataByCardId
+    in
+    { toAdd = toAdd
+    , toMarkSynced = []
+    , toMarkDeleted = toMarkDeleted
+    , toRemove = []
+    }
+
+
+mergeRestoreData : Dict String (Card UpdatedAt) -> Dict String (Card UpdatedAt) -> ( List (Card ()), List (Card ()) )
+mergeRestoreData currentDataByCardId restoredDataByCardId =
+    let
+        onlyInCurrent =
+            \_ currentCard ( toAddSoFar, toDeleteSoFar ) ->
+                ( toAddSoFar
+                , toDeleteSoFar ++ [ { currentCard | deleted = True } |> asUnsynced ]
+                )
+
+        onlyInRestored =
+            \_ restoredCard ( toAddSoFar, toDeleteSoFar ) ->
+                ( toAddSoFar ++ [ restoredCard |> asUnsynced ]
+                , toDeleteSoFar
+                )
+
+        inBoth =
+            \_ currentCard restoredCard ( toAddSoFar, toDeleteSoFar ) ->
+                if not (UpdatedAt.areEqual currentCard.updatedAt restoredCard.updatedAt) then
+                    ( toAddSoFar ++ [ restoredCard |> asUnsynced ]
+                    , toDeleteSoFar
+                    )
+
+                else
+                    ( toAddSoFar
+                    , toDeleteSoFar
+                    )
+    in
+    Dict.merge
+        onlyInCurrent
+        inBoth
+        onlyInRestored
+        currentDataByCardId
+        restoredDataByCardId
+        ( [], [] )
 
 
 lastSavedTime : Model -> Maybe Int
