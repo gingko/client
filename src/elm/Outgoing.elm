@@ -5,7 +5,7 @@ import Doc.Fonts as Fonts
 import Doc.TreeUtils exposing (ScrollPosition, scrollPositionToValue)
 import Json.Encode as Enc exposing (..)
 import Page.Doc.Theme as Theme exposing (Theme)
-import Types exposing (CollabState, CursorPosition(..), DropId, OutsideData, TextCursorInfo, Tree, dropIdToValue)
+import Types exposing (CollabState, CursorPosition(..), DropId, OutsideData, TextCursorInfo, Tree)
 
 
 
@@ -54,7 +54,7 @@ type Msg
     | PositionTourStep Int String
       -- === UI ===
     | UpdateCommits ( Enc.Value, Maybe String )
-    | HistorySlider Int
+    | HistorySlider Bool Int
     | SetSidebarState Bool
     | SaveThemeSetting Theme
     | RequestFullscreen
@@ -214,8 +214,8 @@ send info =
             in
             dataToSend "UpdateCommits" (tupleToValue identity ( objectsValue, headToValue head_ ))
 
-        HistorySlider delta ->
-            dataToSend "HistorySlider" (int delta)
+        HistorySlider firstOpen delta ->
+            dataToSend "HistorySlider" (tupleToValue identity ( bool firstOpen, int delta ))
 
         SetSidebarState isOpen ->
             dataToSend "SetSidebarState" (bool isOpen)

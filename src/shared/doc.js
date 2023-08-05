@@ -765,16 +765,18 @@ const fromElm = (msg, elmData) => {
     UpdateCommits: () => {},
 
     HistorySlider: () => {
-      // History opened
-      // TODO: Check if we're actually in a card-based document
-      wsSend('pullHistory', TREE_ID, false);
+      const firstOpen = elmData[0];
+      const delta = elmData[1];
+      if (firstOpen) {
+        wsSend('pullHistory', TREE_ID, false);
+      }
 
       const timeout = document.getElementById('history-slider') ? 0 : 200;
 
       setTimeout(() => {
         let slider = document.getElementById('history-slider')
         if (slider != null) {
-          slider.stepUp(elmData);
+          slider.stepUp(delta);
           slider.dispatchEvent(new Event('input'));
         }
       }, timeout)

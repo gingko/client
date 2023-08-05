@@ -1015,8 +1015,8 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        HistoryToggled isOpen ->
-            model |> toggleHistory isOpen 0
+        HistoryToggled shouldOpen ->
+            model |> toggleHistory shouldOpen 0
 
         CheckoutVersion versionId ->
             case ( model.headerMenu, model.documentState ) of
@@ -1871,23 +1871,30 @@ closeSwitcher model =
 
 
 toggleHistory : Bool -> Int -> Model -> ( Model, Cmd Msg )
-toggleHistory isOpen delta model =
-    case ( isOpen, model.documentState ) of
+toggleHistory shouldOpen delta model =
+    case ( shouldOpen, model.documentState ) of
         ( True, Doc ({ data, docModel } as docState) ) ->
             let
                 ( newDocModel, newDocCmds ) =
                     Page.Doc.maybeActivate docModel
             in
-            ( { model
-                | headerMenu = HistoryView (History.init (Page.Doc.getWorkingTree docModel).tree data)
-                , documentState = Doc { docState | docModel = newDocModel }
-              }
-            , Cmd.batch
-                [ send <| HistorySlider delta
-                , Cmd.map GotDocMsg newDocCmds
-                ]
-            )
-                |> setBlock (Just "Cannot edit while viewing history.")
+            case model.headerMenu of
+                HistoryView currentHistory ->
+                    -- If we're already viewing history, just update the history
+                    ( model, send <| HistorySlider False delta )
+
+                _ ->
+                    -- Otherwise, open the history
+                    ( { model
+                        | headerMenu = HistoryView (History.init (Page.Doc.getWorkingTree docModel).tree data)
+                        , documentState = Doc { docState | docModel = newDocModel }
+                      }
+                    , Cmd.batch
+                        [ send <| HistorySlider True delta
+                        , Cmd.map GotDocMsg newDocCmds
+                        ]
+                    )
+                        |> setBlock (Just "Cannot edit while viewing history.")
 
         ( False, _ ) ->
             ( { model | headerMenu = NoHeaderMenu }, Cmd.none ) |> setBlock Nothing
