@@ -1,4 +1,4 @@
-module Doc.History exposing (History, checkoutVersion, getCurrentVersionId, init, revert, view)
+module Doc.History exposing (History, checkoutVersion, getCurrentVersionId, init, revert, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Doc.Data as Data
@@ -38,6 +38,26 @@ init tree data =
         |> Zipper.fromList
         |> Maybe.map (History tree)
         |> Maybe.withDefault Empty
+
+
+update : Data.Model -> History -> History
+update data model =
+    case model of
+        History origTree zipper ->
+            let
+                originalFocusId =
+                    Zipper.current zipper |> .id
+            in
+            data
+                |> Data.getHistoryList
+                |> List.map (\( id, timestamp, tree_ ) -> { id = id, timestamp = timestamp, tree = tree_ |> RemoteData.fromMaybe (Http.BadBody "") })
+                |> Zipper.fromList
+                |> Maybe.map (\zv -> Zipper.findFirst (\v -> v.id == originalFocusId) zv |> Maybe.withDefault zv)
+                |> Maybe.map (History origTree)
+                |> Maybe.withDefault Empty
+
+        Empty ->
+            Empty
 
 
 checkoutVersion : String -> History -> Maybe ( History, Tree )

@@ -1694,8 +1694,8 @@ historyReceived dataIn model =
                         }
                 , headerMenu =
                     case model.headerMenu of
-                        HistoryView _ ->
-                            HistoryView (History.init (Page.Doc.getWorkingTree docModel).tree newData)
+                        HistoryView currentHistory ->
+                            HistoryView (History.update newData currentHistory)
 
                         _ ->
                             model.headerMenu
