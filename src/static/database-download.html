@@ -37,9 +37,14 @@
   async function downloadDb () {
     const dbs = await indexedDB.databases();
     const dbNames = dbs.map(x => { if (x.hasOwnProperty('name')) return x.name; });
-    addInfo('Databases: ' + dbNames);
-    for (let dbName of dbNames) {
-      await singleDbDownload(dbName);
+    if (dbNames.length === 0) {
+      addInfo('No databases found.');
+      return;
+    } else {
+      addInfo('Databases: ' + dbNames);
+      for (let dbName of dbNames) {
+        await singleDbDownload(dbName);
+      }
     }
   };
 
@@ -79,7 +84,7 @@
     a.download = `gingko-writer-db-${dbName}-export.json`;
     a.click();
     window.URL.revokeObjectURL(url);
-    addInfo(`Download should be complete. Look for "gingko-writer-${dbName}-export.json" in you file system`);
+    addInfo(`Download should be complete. Look for "gingko-writer-${dbName}-export.json" in your file system`);
   }
 
   downloadDb();
