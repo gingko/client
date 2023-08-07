@@ -1149,11 +1149,21 @@ localSave treeId op model =
             Enc.null
 
 
-mergeUp : CardData -> Card UpdatedAt -> Card UpdatedAt -> Enc.Value
-mergeUp data currCard otherCard =
+mergeCards : Bool -> CardData -> Card UpdatedAt -> Card UpdatedAt -> Enc.Value
+mergeCards isUp data currCard otherCard =
     let
         modifiedCard =
-            { currCard | content = otherCard.content ++ "\n\n" ++ currCard.content }
+            { currCard
+                | content =
+                    [ otherCard.content, currCard.content ]
+                        |> (if not isUp then
+                                List.reverse
+
+                            else
+                                identity
+                           )
+                        |> String.join "\n\n"
+            }
                 |> asUnsynced
 
         childrenOfCurrent =
@@ -1164,99 +1174,81 @@ mergeUp data currCard otherCard =
             data
                 |> List.filter (\card -> card.parentId == Just otherCard.id)
 
-        lastPosOfOther =
-            childrenOfOther
-                |> List.map .position
-                |> List.maximum
+        positionsCurrent =
+            childrenOfCurrent |> List.map .position
 
-        firstPosOfCurrent =
-            childrenOfCurrent
-                |> List.map .position
-                |> List.minimum
+        positionsOther =
+            childrenOfOther |> List.map .position
+
+        ( firstPosOfOther, lastPosOfOther ) =
+            ( List.minimum positionsOther, List.maximum positionsOther )
+
+        ( firstPosOfCurrent, lastPosOfCurrent ) =
+            ( List.minimum positionsCurrent, List.maximum positionsCurrent )
 
         modifiedChildren =
-            case ( lastPosOfOther, firstPosOfCurrent ) of
-                ( Just lastPos, Just firstPos ) ->
-                    let
-                        offset =
-                            firstPos - lastPos - 1
-                    in
-                    childrenOfOther
-                        |> List.map
-                            (\card -> { card | parentId = Just currCard.id, position = card.position + offset })
-                        |> List.map asUnsynced
+            if isUp then
+                case ( lastPosOfOther, firstPosOfCurrent ) of
+                    ( Just lastPos, Just firstPos ) ->
+                        let
+                            offset =
+                                firstPos - lastPos - 1
+                        in
+                        childrenOfOther
+                            |> List.map
+                                (\card -> { card | parentId = Just currCard.id, position = card.position + offset })
+                            |> List.map asUnsynced
 
-                ( Just _, Nothing ) ->
-                    childrenOfOther
-                        |> List.map
-                            (\card -> { card | parentId = Just currCard.id })
-                        |> List.map asUnsynced
+                    ( Just _, Nothing ) ->
+                        childrenOfOther
+                            |> List.map
+                                (\card -> { card | parentId = Just currCard.id })
+                            |> List.map asUnsynced
 
-                ( Nothing, Just _ ) ->
-                    []
+                    ( Nothing, Just _ ) ->
+                        []
 
-                ( Nothing, Nothing ) ->
-                    []
+                    ( Nothing, Nothing ) ->
+                        []
+
+            else
+                case ( lastPosOfCurrent, firstPosOfOther ) of
+                    ( Just lastPos, Just firstPos ) ->
+                        let
+                            offset =
+                                lastPos - firstPos + 1
+                        in
+                        childrenOfOther
+                            |> List.map
+                                (\card -> { card | parentId = Just currCard.id, position = card.position + offset })
+                            |> List.map asUnsynced
+
+                    ( Just _, Nothing ) ->
+                        childrenOfOther
+                            |> List.map
+                                (\card -> { card | parentId = Just currCard.id })
+                            |> List.map asUnsynced
+
+                    ( Nothing, Just _ ) ->
+                        []
+
+                    ( Nothing, Nothing ) ->
+                        []
 
         toDelete =
             { otherCard | deleted = True } |> asUnsynced
     in
     toSave { toAdd = [ modifiedCard ] ++ modifiedChildren, toMarkSynced = [], toMarkDeleted = [ toDelete ], toRemove = [] }
+
+
+mergeUp : CardData -> Card UpdatedAt -> Card UpdatedAt -> Enc.Value
+mergeUp data currCard otherCard =
+    mergeCards True data currCard otherCard
 
 
 mergeDown : CardData -> Card UpdatedAt -> Card UpdatedAt -> Enc.Value
 mergeDown data currCard otherCard =
-    let
-        modifiedCard =
-            { currCard | content = currCard.content ++ "\n\n" ++ otherCard.content }
-                |> asUnsynced
-
-        childrenOfCurrent =
-            data
-                |> List.filter (\card -> card.parentId == Just currCard.id)
-
-        childrenOfOther =
-            data
-                |> List.filter (\card -> card.parentId == Just otherCard.id)
-
-        lastPosOfCurrent =
-            childrenOfCurrent
-                |> List.map .position
-                |> List.maximum
-
-        firstPosOfOther =
-            childrenOfOther
-                |> List.map .position
-                |> List.minimum
-
-        modifiedChildren =
-            case ( lastPosOfCurrent, firstPosOfOther ) of
-                ( Just lastPos, Just firstPos ) ->
-                    let
-                        offset =
-                            firstPos - lastPos - 1
-                    in
-                    childrenOfOther
-                        |> List.map
-                            (\card -> { card | parentId = Just currCard.id, position = card.position + offset })
-                        |> List.map asUnsynced
-
-                ( Just _, Nothing ) ->
-                    childrenOfOther
-                        |> List.map
-                            (\card -> { card | parentId = Just currCard.id })
-                        |> List.map asUnsynced
-
-                ( Nothing, Just _ ) ->
-                    []
-
-                ( Nothing, Nothing ) ->
-                    []
-
-        toDelete =
-            { otherCard | deleted = True } |> asUnsynced
-    in
-    toSave { toAdd = [ modifiedCard ] ++ modifiedChildren, toMarkSynced = [], toMarkDeleted = [ toDelete ], toRemove = [] }
+    mergeCards False data currCard otherCard
 
 
 getPosition : String -> Maybe String -> Int -> List (Card UpdatedAt) -> Float

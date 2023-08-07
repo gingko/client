@@ -1621,21 +1621,25 @@ insertChild id initText ( model, prevCmd, prevMsgsToParent ) =
         |> insert id 999999 initText
 
 
-mergeUp : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
-mergeUp id ( model, prevCmd, prevMsgsToParent ) =
+merge : Bool -> String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
+merge isUp id ( model, prevCmd, prevMsgsToParent ) =
     let
         currentTree_ =
             getTree id model.workingTree.tree
 
-        prevTree_ =
-            getPrevInColumn id model.workingTree.tree
+        otherTree_ =
+            if isUp then
+                getPrevInColumn id model.workingTree.tree
+
+            else
+                getNextInColumn id model.workingTree.tree
     in
-    case ( currentTree_, prevTree_ ) of
+    case ( currentTree_, otherTree_ ) of
         ( Just currentTree, Just prevTree ) ->
             let
                 mergedTree =
                     model.workingTree
-                        |> TreeStructure.update (TreeStructure.Mrg currentTree prevTree True)
+                        |> TreeStructure.update (TreeStructure.Mrg currentTree prevTree isUp)
             in
             ( { model
                 | workingTree = mergedTree
@@ -1643,40 +1647,22 @@ mergeUp id ( model, prevCmd, prevMsgsToParent ) =
             , prevCmd
             , prevMsgsToParent
             )
-                |> localSave (CTMrg currentTree.id prevTree.id True)
+                |> localSave (CTMrg currentTree.id prevTree.id isUp)
                 |> addToHistory
+                |> andThen (changeMode { to = Normal currentTree.id, instant = True, save = False })
 
         _ ->
             ( model, prevCmd, prevMsgsToParent )
+
+
+mergeUp : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
+mergeUp id ( model, prevCmd, prevMsgsToParent ) =
+    merge True id ( model, prevCmd, prevMsgsToParent )
 
 
 mergeDown : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 mergeDown id ( model, prevCmd, prevMsgsToParent ) =
-    let
-        currentTree_ =
-            getTree id model.workingTree.tree
-
-        nextTree_ =
-            getNextInColumn id model.workingTree.tree
-    in
-    case ( currentTree_, nextTree_ ) of
-        ( Just currentTree, Just nextTree ) ->
-            let
-                mergedTree =
-                    model.workingTree
-                        |> TreeStructure.update (TreeStructure.Mrg currentTree nextTree False)
-            in
-            ( { model
-                | workingTree = mergedTree
-              }
-            , prevCmd
-            , prevMsgsToParent
-            )
-                |> localSave (CTMrg currentTree.id nextTree.id False)
-                |> addToHistory
-
-        _ ->
-            ( model, prevCmd, prevMsgsToParent )
+    merge False id ( model, prevCmd, prevMsgsToParent )
 
 
 setCursorPosition : Int -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )

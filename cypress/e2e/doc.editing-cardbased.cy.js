@@ -288,17 +288,61 @@ describe('Document Editing', () => {
       .should('contain','bold')
 
     // Test card merging
-    cy.getCard(2,1,3).click()
-    cy.shortcut('{ctrl}{shift}{downarrow}')
-    cy.getCard(2,1,3).should('have.class','active')
-    cy.contains('Synced')
-    cy.reload()
-    cy.getCard(2,1,3)
-      .should('contain.html', '<p><em>italic</em></p>\n<p><strong>bold</strong></p>')
-
+    // First we create children on 1,1,2 and 1,1,3 and 1,1,4
     cy.getCard(1,1,2).click()
-    cy.shortcut('{ctrl}{shift}{uparrow}')
-    cy.getCard(1,1,1)
-      .should('contain.html', '<p>Hello World :</p>\n<p>A child</p>')
+    cy.shortcut('{ctrl}{rightArrow}')
+    cy.writeInCard('1')
+    cy.shortcut('{ctrl}{j}')
+    cy.writeInCard('2')
+    cy.shortcut('{ctrl}{enter}')
+    cy.getCard(1,1,3).click()
+    cy.shortcut('{ctrl}{rightArrow}')
+    cy.writeInCard('3')
+    cy.shortcut('{ctrl}{j}')
+    cy.writeInCard('4')
+    cy.shortcut('{ctrl}{enter}')
+    cy.getCard(1,1,4).click()
+    cy.shortcut('{ctrl}{rightArrow}')
+    cy.writeInCard('5')
+    cy.shortcut('{ctrl}{j}')
+    cy.writeInCard('6')
+    cy.shortcut('{ctrl}{enter}')
+
+    // Now we merge them
+    // First we merge 1,1,4 up to 1,1,3
+    cy.getCard(1,1,4).invoke('attr', 'id').as('cardId_114')
+    cy.getCard(1,1,3).invoke('attr', 'id').as('cardId_113')
+    cy.get('@cardId_114').then((cardId_114) => {
+      cy.get('@cardId_113').then((cardId_113) => {
+        cy.get(`#${cardId_114}`).click()
+        cy.shortcut('{ctrl}{shift}{uparrow}')
+        cy.get(`#${cardId_113}`).should('not.exist')
+        cy.get(`#${cardId_114}`).should('have.class','active')
+      })
+    })
+    cy.getGroup(2,3).should('have.class','active-descendant')
+    cy.getCard(2,3,1).should('contain.text', '3')
+    cy.getCard(2,3,2).should('contain.text', '4')
+    cy.getCard(2,3,3).should('contain.text', '5')
+    cy.getCard(2,3,4).should('contain.text', '6')
+
+    // Next merge 1,1,2 down to 1,1,3
+    cy.getCard(1,1,2).invoke('attr', 'id').as('cardId_112')
+    cy.getCard(1,1,3).invoke('attr', 'id').as('cardId_new_113')
+    cy.get('@cardId_112').then((cardId_112) => {
+      cy.get('@cardId_new_113').then((cardId_new_113) => {
+        cy.get(`#${cardId_112}`).click()
+        cy.shortcut('{ctrl}{shift}{downarrow}')
+        cy.get(`#${cardId_new_113}`).should('not.exist')
+        cy.get(`#${cardId_112}`).should('have.class','active')
+      })
+    })
+    cy.getGroup(2,2).should('have.class','active-descendant')
+    cy.getCard(2,2,1).should('contain.text', '1')
+    cy.getCard(2,2,2).should('contain.text', '2')
+    cy.getCard(2,2,3).should('contain.text', '3')
+    cy.getCard(2,2,4).should('contain.text', '4')
+    cy.getCard(2,2,5).should('contain.text', '5')
+    cy.getCard(2,2,6).should('contain.text', '6')
   })
 })
