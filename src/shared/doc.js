@@ -223,9 +223,9 @@ function initWebSocket () {
             // send encrypted unsynced local cards to Sentry
             const unsyncedCards = await dexie.cards.where('treeId').equals(TREE_ID).and(c => !c.synced).toArray();
             const encryptedCards = unsyncedCards.map(c => ({ ...c, content: new MD5().update(config.DESKTOP_SERIAL_SALT + c.content).digest('hex') }));
-            Sentry.captureMessage('cardsConflict: cards conflict ' + TREE_ID, { extra: { encryptedCards } })
+            Sentry.captureMessage('cardsConflict: cards conflict ' + TREE_ID, { extra: { encryptedCards , error: data.e} })
           } else {
-            Sentry.captureMessage('cardsConflict: no cards ' + TREE_ID)
+            Sentry.captureMessage('cardsConflict: no cards ' + TREE_ID, { extra: { error: data.e} })
             const numberUnsynced = await dexie.cards.where('treeId').equals(TREE_ID).and(c => !c.synced).count();
             const msg = `Error syncing ${numberUnsynced} change${numberUnsynced == 1 ? "" : "s"}. Try refreshing the page.\n\nIf this error persists, please contact support!`;
             toElm(msg, 'appMsgs', 'ErrorAlert');
