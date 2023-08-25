@@ -923,9 +923,24 @@ a.sidebar-menu-item, a.sidebar-menu-item:visited {
   font-size: 12px;
   font-family: sans-serif;
   color: var(--ui-4-fg);
-  mix-blend-mode: hard-light;
-  margin-left: 6px;
+  display: flex;
+  margin-top: 2px;
+  margin-left: 10px;
+  gap: 5px;
+  align-items: center;
+}
+#save-indicator span {
   margin-top: 4px;
+}
+#save-indicator.synced svg {
+  fill: hsl(86, 54%, 51%);
+}
+#save-indicator.saved-offline svg {
+  transition: fill 1s ease-in-out;
+  fill: hsl(35, 100%, 50%);
+}
+#save-indicator.unsaved svg {
+  fill: hsl(0, 0%, 50%);
 }
 
 #save-indicator.saving {

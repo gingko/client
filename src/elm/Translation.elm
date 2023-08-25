@@ -60,6 +60,7 @@ type TranslationId
     | ChangesSynced
     | DatabaseError
     | LastSaved
+    | LastSynced
     | LastEdit
     | ConfirmBannerStrong
     | ConfirmBannerBody
@@ -1233,6 +1234,28 @@ tr lang trans =
                     , ca = "%ca:LastSaved%"
                     , br = "%br:LastSaved%"
                     , mr = "%mr:LastSaved%"
+                    }
+
+                LastSynced ->
+                    { en = "Last synced"
+                    , zh_hans = "%zh_hans:LastSynced%"
+                    , zh_hant = "%zh_hant:LastSynced%"
+                    , es = "%es:LastSynced%"
+                    , ar = "%ar:LastSynced%"
+                    , fr = "%fr:LastSynced%"
+                    , ru = "%ru:LastSynced%"
+                    , de = "%de:LastSynced%"
+                    , ja = "%ja:LastSynced%"
+                    , pes = "%pes:LastSynced%"
+                    , it = "%it:LastSynced%"
+                    , ro = "%ro:LastSynced%"
+                    , hr = "%hr:LastSynced%"
+                    , nl = "%nl:LastSynced%"
+                    , hu = "%hu:LastSynced%"
+                    , sv = "%sv:LastSynced%"
+                    , ca = "%ca:LastSynced%"
+                    , br = "%br:LastSynced%"
+                    , mr = "%mr:LastSynced%"
                     }
 
                 LastEdit ->

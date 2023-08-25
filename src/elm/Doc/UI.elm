@@ -37,43 +37,74 @@ viewSaveIndicator :
     -> Html msg
 viewSaveIndicator language { dirty, lastLocalSave, lastRemoteSave } currentTime =
     let
+        timeDistPast t1 t2 =
+            if Time.posixToMillis t1 < Time.posixToMillis t2 then
+                timeDistInWords language t1 t2
+
+            else
+                timeDistInWords language t2 t1
+
         lastChangeString =
-            timeDistInWords
-                language
+            timeDistPast
                 (lastLocalSave |> Maybe.withDefault (Time.millisToPosix 0))
                 currentTime
 
-        saveStateSpan =
+        lastSyncString =
+            timeDistPast
+                (lastRemoteSave |> Maybe.withDefault (Time.millisToPosix 0))
+                currentTime
+
+        ( saveStateSpan, saveStateIcon, name ) =
             if dirty then
-                span [ title (tr language LastSaved ++ " " ++ lastChangeString) ] [ text language UnsavedChanges ]
+                ( span [ title (tr language LastSaved ++ " " ++ lastChangeString) ] [ text language UnsavedChanges ]
+                , AntIcons.infoCircleOutlined [ width 16, height 16 ]
+                , "unsaved"
+                )
 
             else
                 case ( lastLocalSave, lastRemoteSave ) of
                     ( Nothing, Nothing ) ->
-                        span [] [ text language NeverSaved ]
+                        ( span [] [ text language NeverSaved ]
+                        , AntIcons.stopOutlined [ width 16, height 16 ]
+                        , "never-saved"
+                        )
 
                     ( Just time, Nothing ) ->
                         if Time.posixToMillis time == 0 then
-                            span [] [ text language NeverSaved ]
+                            ( span [] [ text language NeverSaved ]
+                            , AntIcons.stopOutlined [ width 16, height 16 ]
+                            , "never-saved"
+                            )
 
                         else
-                            span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text language SavedInternally ]
+                            ( span [ title (tr language LastSynced ++ " " ++ lastSyncString) ] [ text language SavedInternally ]
+                            , AntIcons.warningFilled [ width 16, height 16 ]
+                            , "saved-offline"
+                            )
 
                     ( Just commitTime, Just fileTime ) ->
                         if posixToMillis commitTime <= posixToMillis fileTime then
-                            span [ title (tr language LastEdit ++ " " ++ lastChangeString) ]
+                            ( span [ title (tr language LastEdit ++ " " ++ lastChangeString) ]
                                 [ text language ChangesSynced ]
+                            , AntIcons.checkCircleFilled [ width 16, height 16 ]
+                            , "synced"
+                            )
 
                         else
-                            span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text language SavedInternally ]
+                            ( span [ title (tr language LastSynced ++ " " ++ lastSyncString) ] [ text language SavedInternally ]
+                            , AntIcons.warningFilled [ width 16, height 16 ]
+                            , "saved-offline"
+                            )
 
                     ( Nothing, Just _ ) ->
-                        span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text language DatabaseError ]
+                        ( span [ title (tr language LastSynced ++ " " ++ lastSyncString) ] [ text language DatabaseError ]
+                        , AntIcons.closeCircleFilled [ width 16, height 16 ]
+                        , "database-error"
+                        )
     in
     div
-        [ id "save-indicator", classList [ ( "inset", True ), ( "saving", dirty ) ] ]
-        [ saveStateSpan
-        ]
+        [ id "save-indicator", classList [ ( "inset", True ), ( "saving", dirty ), ( name, True ) ] ]
+        [ saveStateIcon, saveStateSpan ]
 
 
 viewBreadcrumbs : (String -> msg) -> List ( String, String ) -> Html msg
