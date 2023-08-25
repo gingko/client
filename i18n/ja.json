@@ -436,14 +436,6 @@
         "comment": ""
     },
     {
-        "term": "Delete Document",
-        "definition": "\u30c9\u30ad\u30e5\u30e1\u30f3\u30c8\u306e\u524a\u9664",
-        "context": "",
-        "term_plural": "",
-        "reference": "Elm:DeleteDocument",
-        "comment": ""
-    },
-    {
         "term": "Saved Offline",
         "definition": "\u30aa\u30d5\u30e9\u30a4\u30f3\u3067\u4fdd\u5b58",
         "context": "",
@@ -489,14 +481,6 @@
         "context": "",
         "term_plural": "",
         "reference": "Elm:QuickDocumentSwitcher",
-        "comment": ""
-    },
-    {
-        "term": "Email Support...",
-        "definition": "\u30e1\u30fc\u30eb\u30b5\u30dd\u30fc\u30c8",
-        "context": "",
-        "term_plural": "",
-        "reference": "Elm:EmailSupport",
         "comment": ""
     },
     {
@@ -641,14 +625,6 @@
         "context": "",
         "term_plural": "",
         "reference": "Elm:ImportOpmlFilesDesc",
-        "comment": ""
-    },
-    {
-        "term": "Timeline 2023",
-        "definition": "\u30bf\u30a4\u30e0\u30e9\u30a4\u30f3 2023\u5e74",
-        "context": "",
-        "term_plural": "",
-        "reference": "Elm:TimelineTemplate",
         "comment": ""
     },
     {
@@ -1454,14 +1430,6 @@
         "comment": ""
     },
     {
-        "term": "Only carsd in the current (vertical) column",
-        "definition": "\u73fe\u5728\u306e\uff08\u7e26\u65b9\u5411\u306e\uff09\u5217\u306b\u3042\u308b\u30ab\u30fc\u30c9\u306e\u307f",
-        "context": "",
-        "term_plural": "",
-        "reference": "Elm:ExportSettingCurrentColumnDesc",
-        "comment": ""
-    },
-    {
         "term": "Word",
         "definition": "\u30ef\u30fc\u30c9",
         "context": "",
@@ -1552,14 +1520,6 @@
         "comment": ""
     },
     {
-        "term": "Duplicate Document",
-        "definition": "\u91cd\u8907\u3059\u308b\u30c9\u30ad\u30e5\u30e1\u30f3\u30c8",
-        "context": "",
-        "term_plural": "",
-        "reference": "Elm:DuplicateDocument",
-        "comment": ""
-    },
-    {
         "term": "Please confirm your email.",
         "definition": "\u30e1\u30fc\u30eb\u3092\u78ba\u8a8d\u3057\u3066\u4e0b\u3055\u3044\u3002",
         "context": "",
@@ -1589,6 +1549,136 @@
         "context": "",
         "term_plural": "",
         "reference": "Elm:WordOfMouthCTA2",
+        "comment": ""
+    },
+    {
+        "term": "Timeline 2023",
+        "definition": "2023 \u5e74\u306e\u30bf\u30a4\u30e0\u30e9\u30a4\u30f3",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:TimelineTemplate",
+        "comment": ""
+    },
+    {
+        "term": "Duplicate Tree",
+        "definition": "\u91cd\u8907\u30c4\u30ea\u30fc",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DuplicateDocument",
+        "comment": ""
+    },
+    {
+        "term": "Delete Tree",
+        "definition": "\u30c4\u30ea\u30fc\u306e\u524a\u9664",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DeleteDocument",
+        "comment": ""
+    },
+    {
+        "term": "Loading...",
+        "definition": "\u8aad\u307f\u8fbc\u307f\u4e2d...",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Loading",
+        "comment": ""
+    },
+    {
+        "term": "Last synced",
+        "definition": "\u6700\u5f8c\u306b\u540c\u671f\u3057\u307e\u3057\u305f",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:LastSynced",
+        "comment": ""
+    },
+    {
+        "term": "Upgrade document to new format",
+        "definition": "\u30c9\u30ad\u30e5\u30e1\u30f3\u30c8\u3092\u65b0\u3057\u3044\u5f62\u5f0f\u306b\u30a2\u30c3\u30d7\u30b0\u30ec\u30fc\u30c9\u3059\u308b",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:MigrateTooltip",
+        "comment": ""
+    },
+    {
+        "term": "Card : %1 character",
+        "definition": {
+            "other": "\u30ab\u30fc\u30c9 : %1 \u6587\u5b57"
+        },
+        "context": "",
+        "term_plural": "Card : %1 characters",
+        "reference": "Elm:CharacterCountCard",
+        "comment": ""
+    },
+    {
+        "term": "Subtree : %1 character",
+        "definition": {
+            "other": "\u30b5\u30d6\u30c4\u30ea\u30fc : %1 \u6587\u5b57"
+        },
+        "context": "",
+        "term_plural": "Subtree : %1 characters",
+        "reference": "Elm:CharacterCountSubtree",
+        "comment": ""
+    },
+    {
+        "term": "Group : %1 character",
+        "definition": {
+            "other": "\u30b0\u30eb\u30fc\u30d7 : %1 \u6587\u5b57"
+        },
+        "context": "",
+        "term_plural": "Group : %1 characters",
+        "reference": "Elm:CharacterCountGroup",
+        "comment": ""
+    },
+    {
+        "term": "Column : %1 character",
+        "definition": {
+            "other": "\u5217 : %1 \u6587\u5b57"
+        },
+        "context": "",
+        "term_plural": "Column : %1 characters",
+        "reference": "Elm:CharacterCountColumn",
+        "comment": ""
+    },
+    {
+        "term": "Total : %1 character",
+        "definition": {
+            "other": "\u5408\u8a08 : %1 \u6587\u5b57"
+        },
+        "context": "",
+        "term_plural": "Total : %1 characters",
+        "reference": "Elm:CharacterCountTotal",
+        "comment": ""
+    },
+    {
+        "term": "Only cards in the current (vertical) column",
+        "definition": "\u73fe\u5728\u306e (\u5782\u76f4) \u5217\u306e\u30ab\u30fc\u30c9\u306e\u307f",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingCurrentColumnDesc",
+        "comment": ""
+    },
+    {
+        "term": "OPML",
+        "definition": "OPML",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingOPML",
+        "comment": ""
+    },
+    {
+        "term": "Close Export View",
+        "definition": "\u30a8\u30af\u30b9\u30dd\u30fc\u30c8\u30d3\u30e5\u30fc\u3092\u9589\u3058\u308b",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:CloseExportView",
+        "comment": ""
+    },
+    {
+        "term": "Download OPML file",
+        "definition": "OPML\u30d5\u30a1\u30a4\u30eb\u3092\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DownloadOPMLFile",
         "comment": ""
     }
 ]

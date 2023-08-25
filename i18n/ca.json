@@ -442,14 +442,6 @@
         "comment": ""
     },
     {
-        "term": "Delete Document",
-        "definition": "Esborra document",
-        "context": "",
-        "term_plural": "",
-        "reference": "Elm:DeleteDocument",
-        "comment": ""
-    },
-    {
         "term": "Saved Offline",
         "definition": "Desat fora de l\u00ednia",
         "context": "",
@@ -496,14 +488,6 @@
         "term_plural": "",
         "reference": "Elm:QuickDocumentSwitcher",
         "comment": "Not quite sure about switcher."
-    },
-    {
-        "term": "Email Support...",
-        "definition": "Suport per mail...",
-        "context": "",
-        "term_plural": "",
-        "reference": "Elm:EmailSupport",
-        "comment": ""
     },
     {
         "term": "Logout",
@@ -647,14 +631,6 @@
         "context": "",
         "term_plural": "",
         "reference": "Elm:ImportOpmlFilesDesc",
-        "comment": ""
-    },
-    {
-        "term": "Timeline 2023",
-        "definition": "Cronologia 2023",
-        "context": "",
-        "term_plural": "",
-        "reference": "Elm:TimelineTemplate",
         "comment": ""
     },
     {
@@ -1461,14 +1437,6 @@
         "comment": ""
     },
     {
-        "term": "Only carsd in the current (vertical) column",
-        "definition": "Nom\u00e9s carsd a la columna actual (vertical).",
-        "context": "",
-        "term_plural": "",
-        "reference": "Elm:ExportSettingCurrentColumnDesc",
-        "comment": ""
-    },
-    {
         "term": "Word",
         "definition": "Paraula",
         "context": "",
@@ -1560,14 +1528,6 @@
         "comment": ""
     },
     {
-        "term": "Duplicate Document",
-        "definition": "Document duplicat",
-        "context": "",
-        "term_plural": "",
-        "reference": "Elm:DuplicateDocument",
-        "comment": ""
-    },
-    {
         "term": "Please confirm your email.",
         "definition": "Si us plau, confirmeu el vostre correu electr\u00f2nic.",
         "context": "",
@@ -1597,6 +1557,141 @@
         "context": "",
         "term_plural": "",
         "reference": "Elm:WordOfMouthCTA2",
+        "comment": ""
+    },
+    {
+        "term": "Timeline 2023",
+        "definition": "Cronologia 2023",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:TimelineTemplate",
+        "comment": ""
+    },
+    {
+        "term": "Duplicate Tree",
+        "definition": "Arbre duplicat",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DuplicateDocument",
+        "comment": ""
+    },
+    {
+        "term": "Delete Tree",
+        "definition": "Suprimeix l'arbre",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DeleteDocument",
+        "comment": ""
+    },
+    {
+        "term": "Loading...",
+        "definition": "Carregant...",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Loading",
+        "comment": ""
+    },
+    {
+        "term": "Last synced",
+        "definition": "\u00daltima sincronitzaci\u00f3",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:LastSynced",
+        "comment": ""
+    },
+    {
+        "term": "Upgrade document to new format",
+        "definition": "Actualitzeu el document a un nou format",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:MigrateTooltip",
+        "comment": ""
+    },
+    {
+        "term": "Card : %1 character",
+        "definition": {
+            "one": "Targeta: %1 car\u00e0cter",
+            "other": ""
+        },
+        "context": "",
+        "term_plural": "Card : %1 characters",
+        "reference": "Elm:CharacterCountCard",
+        "comment": ""
+    },
+    {
+        "term": "Subtree : %1 character",
+        "definition": {
+            "one": "Subarbre: %1 car\u00e0cter",
+            "other": ""
+        },
+        "context": "",
+        "term_plural": "Subtree : %1 characters",
+        "reference": "Elm:CharacterCountSubtree",
+        "comment": ""
+    },
+    {
+        "term": "Group : %1 character",
+        "definition": {
+            "one": "Grup: %1 car\u00e0cter",
+            "other": ""
+        },
+        "context": "",
+        "term_plural": "Group : %1 characters",
+        "reference": "Elm:CharacterCountGroup",
+        "comment": ""
+    },
+    {
+        "term": "Column : %1 character",
+        "definition": {
+            "one": "Columna: %1 car\u00e0cter",
+            "other": ""
+        },
+        "context": "",
+        "term_plural": "Column : %1 characters",
+        "reference": "Elm:CharacterCountColumn",
+        "comment": ""
+    },
+    {
+        "term": "Total : %1 character",
+        "definition": {
+            "one": "Total: %1 car\u00e0cter",
+            "other": ""
+        },
+        "context": "",
+        "term_plural": "Total : %1 characters",
+        "reference": "Elm:CharacterCountTotal",
+        "comment": ""
+    },
+    {
+        "term": "Only cards in the current (vertical) column",
+        "definition": "Nom\u00e9s les targetes de la columna (vertical) actual",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingCurrentColumnDesc",
+        "comment": ""
+    },
+    {
+        "term": "OPML",
+        "definition": "OPML",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingOPML",
+        "comment": ""
+    },
+    {
+        "term": "Close Export View",
+        "definition": "Tanqueu la vista d'exportaci\u00f3",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:CloseExportView",
+        "comment": ""
+    },
+    {
+        "term": "Download OPML file",
+        "definition": "Descarrega el fitxer OPML",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DownloadOPMLFile",
         "comment": ""
     }
 ]

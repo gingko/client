@@ -120,11 +120,11 @@ msgid "Open Other Documents"
 msgstr ""
 
 #: Elm:DuplicateDocument
-msgid "Duplicate Document"
+msgid "Duplicate Tree"
 msgstr ""
 
 #: Elm:DeleteDocument
-msgid "Delete Document"
+msgid "Delete Tree"
 msgstr ""
 
 #: Elm:RemoveFromList
@@ -133,6 +133,10 @@ msgstr ""
 
 #: Elm:NeverSaved
 msgid "New Document..."
+msgstr ""
+
+#: Elm:Loading
+msgid "Loading..."
 msgstr ""
 
 #: Elm:UnsavedChanges
@@ -157,6 +161,10 @@ msgstr ""
 
 #: Elm:LastSaved
 msgid "Last saved"
+msgstr ""
+
+#: Elm:LastSynced
+msgid "Last synced"
 msgstr ""
 
 #: Elm:LastEdit
@@ -627,6 +635,10 @@ msgstr ""
 msgid "Editing/Monospace Font"
 msgstr ""
 
+#: Elm:MigrateTooltip
+msgid "Upgrade document to new format"
+msgstr ""
+
 #: Elm:VersionHistory
 msgid "Version History"
 msgstr ""
@@ -772,7 +784,7 @@ msgid "Current Column"
 msgstr ""
 
 #: Elm:ExportSettingCurrentColumnDesc
-msgid "Only carsd in the current (vertical) column"
+msgid "Only cards in the current (vertical) column"
 msgstr ""
 
 #: Elm:ExportSettingWord
@@ -789,6 +801,10 @@ msgstr ""
 
 #: Elm:ExportSettingOPML
 msgid "OPML"
+msgstr ""
+
+#: Elm:CloseExportView
+msgid "Close Export View"
 msgstr ""
 
 #: Elm:DownloadWordFile

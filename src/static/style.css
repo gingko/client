@@ -939,8 +939,23 @@ a.sidebar-menu-item, a.sidebar-menu-item:visited {
   transition: fill 1s ease-in-out;
   fill: hsl(35, 100%, 50%);
 }
+#save-indicator.never-saved svg {
+  animation-name: ckw;
+  animation-duration: 1s;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
 #save-indicator.unsaved svg {
   fill: hsl(0, 0%, 50%);
+}
+
+@keyframes ckw {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 #save-indicator.saving {

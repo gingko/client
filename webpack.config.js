@@ -20,6 +20,14 @@ const hu = require("./i18n/hu.json");
 const sv = require("./i18n/sv.json");
 const ca = require("./i18n/ca.json");
 const br = require("./i18n/br.json");
+const cs = require("./i18n/cs.json");
+const fa = require("./i18n/fa.json");
+const id = require("./i18n/id.json");
+const ko = require("./i18n/ko.json");
+const pl = require("./i18n/pl.json");
+const uk = require("./i18n/uk.json");
+const nb = require("./i18n/nb.json");
+
 const config = require("./config");
 
 
@@ -73,8 +81,15 @@ const huT = prepTranslation("hu", hu);
 const svT = prepTranslation("sv", sv);
 const caT = prepTranslation("ca", ca);
 const brT = prepTranslation("br", br);
+const csT = prepTranslation("cs", cs);
+const faT = prepTranslation("fa", fa);
+const idT = prepTranslation("id", id);
+const koT = prepTranslation("ko", ko);
+const plT = prepTranslation("pl", pl);
+const ukT = prepTranslation("uk", uk);
+const nbT = prepTranslation("nb", nb);
 
-const allLanguageStrings = [].concat(zhHansT, zhHantT, esT, arT, frT, ruT, deT, jaT,mrT, pesT, itT, roT, hrT, nlT, huT, svT, caT, brT)
+const allLanguageStrings = [].concat(zhHansT, zhHantT, esT, arT, frT, ruT, deT, jaT,mrT, pesT, itT, roT, hrT, nlT, huT, svT, caT, brT, csT, faT, idT, koT, plT, ukT, nbT)
 const otherReplacements = [
   { search: '{%SUPPORT_EMAIL%}', replace: config.SUPPORT_EMAIL, flags: 'g' },
   { search: '{%SUPPORT_URGENT_EMAIL%}', replace: config.SUPPORT_URGENT_EMAIL, flags: 'g' },

@@ -64,15 +64,15 @@ viewSaveIndicator language { dirty, lastLocalSave, lastRemoteSave } currentTime 
             else
                 case ( lastLocalSave, lastRemoteSave ) of
                     ( Nothing, Nothing ) ->
-                        ( span [] [ text language NeverSaved ]
-                        , AntIcons.stopOutlined [ width 16, height 16 ]
+                        ( span [] [ text language Loading ]
+                        , AntIcons.loading3QuartersOutlined [ width 16, height 16 ]
                         , "never-saved"
                         )
 
                     ( Just time, Nothing ) ->
                         if Time.posixToMillis time == 0 then
-                            ( span [] [ text language NeverSaved ]
-                            , AntIcons.stopOutlined [ width 16, height 16 ]
+                            ( span [] [ text language Loading ]
+                            , AntIcons.loading3QuartersOutlined [ width 16, height 16 ]
                             , "never-saved"
                             )
 
