@@ -66,6 +66,9 @@ Cypress.Commands.add('signup_with', (userEmail, seedName) =>{
     .then((response) => {
       localStorage.setItem('gingko-session-storage', JSON.stringify({ email: userEmail, language: 'en' }))
       cy.task('db:sqlite:seed',{seedName: seedName})
+      if (seedName == 'oneEmptyTree') {
+        cy.task('db:seed',{dbName: 'userdb-' + helpers.toHex(userEmail), seedName: 'oneEmptyTree'});
+      }
       cy.visit(config.TEST_SERVER)
       cy.wait(1000)
     })

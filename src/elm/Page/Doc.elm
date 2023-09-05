@@ -442,11 +442,21 @@ incoming incomingMsg model =
                 |> cancelCard
 
         -- === DOM ===
-        InitialActivation ->
+        InitialActivation firstCardId ->
             case vs.viewMode of
                 Normal "" ->
                     ( model, Cmd.none, [] )
                         |> andThen (changeMode { to = Normal activeId, instant = True, save = False })
+
+                Editing _ ->
+                    ( model, Cmd.none, [] )
+                        |> andThen
+                            (changeMode
+                                { to = Editing { cardId = firstCardId, field = "" }
+                                , instant = True
+                                , save = False
+                                }
+                            )
 
                 _ ->
                     ( model, Cmd.none, [] )

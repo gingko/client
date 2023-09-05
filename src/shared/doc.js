@@ -15,7 +15,6 @@ const platform = require("platform");
 const config = require("../../config.js");
 const mycrypt = require("./encrypt.js");
 const PersistentWebSocket = require("pws");
-const MD5 = require("md5.js");
 
 // Initialize Error Reporting
 import * as Sentry from '@sentry/browser';
@@ -463,13 +462,20 @@ const fromElm = (msg, elmData) => {
       TREE_ID = elmData;
 
       const now = Date.now();
-      const treeDoc = {...treeDocDefaults, id: TREE_ID, owner: email, createdAt: now, updatedAt: now};
-      DATA_TYPE = GIT_LIKE_DATA;
+      const treeDoc = {...treeDocDefaults, id: TREE_ID, location: "cardbased", owner: email, createdAt: now, updatedAt: now};
+      const cardDoc = {...cardDefaults, id: my_uuid(24), treeId: TREE_ID, updatedAt: hlc.nxt()};
 
       await dexie.trees.add(treeDoc);
+      await dexie.cards.add(cardDoc);
 
       // Set localStore db
       localStore.db(elmData);
+
+      try {
+        loadCardBasedDocument(TREE_ID);
+      } catch (e) {
+        console.log(e);
+      }
     },
 
     LoadDocument : async () => {
@@ -905,6 +911,7 @@ function wsSend(msgTag, msgData, unbufferedOnly) {
 /* === Database === */
 
 const treeDocDefaults = {name: null, location: "couchdb", inviteUrl: null, collaborators: "[]", deletedAt: null};
+const cardDefaults = {parentId: null, deleted: 0, content: "", position: 0, synced: false};
 
 function treeDocToMetadata(tree) {
   return {docId: tree.id, name: tree.name, createdAt: tree.createdAt, updatedAt: tree.updatedAt, _rev: null}
@@ -937,7 +944,8 @@ async function loadCardBasedDocument (treeId) {
       saveBackupToImmortalDB(treeId, cards);
       if (firstLoad) {
         firstLoad = false;
-        setTimeout(() => {toElm(chk, "docMsgs", "InitialActivation")} , 20);
+        const firstCard = cards.filter(c => c.parentId === null)[0];
+        setTimeout(() => {toElm(firstCard.id, "docMsgs", "InitialActivation")} , 20);
       }
     }
   });
@@ -1055,6 +1063,15 @@ async function loadDocListAndSend() {
 
 
 /* === Helper Functions === */
+
+function my_uuid(length) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
 
 function getSessionData() {
   let sessionStringRaw = localStorage.getItem(sessionStorageKey);

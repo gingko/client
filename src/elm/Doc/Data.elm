@@ -1,4 +1,4 @@
-module Doc.Data exposing (CommitObject, Model, cardDataReceived, conflictList, conflictToTree, convert, empty, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, success, triggeredPush)
+module Doc.Data exposing (CommitObject, Model, cardDataReceived, conflictList, conflictToTree, convert, empty, emptyCardBased, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, success, triggeredPush)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -89,6 +89,11 @@ type alias RefObject =
     , ancestors : List String
     , rev : String
     }
+
+
+emptyCardBased : Model
+emptyCardBased =
+    CardBased [] [] Nothing
 
 
 empty : Model
@@ -248,8 +253,17 @@ lastSavedTime : Model -> Maybe Int
 lastSavedTime model =
     case model of
         CardBased data _ _ ->
+            let
+                shouldFilterEmpty =
+                    List.length data /= 1
+            in
             data
-                |> List.filter (not << String.isEmpty << .content)
+                |> (if shouldFilterEmpty then
+                        List.filter (not << String.isEmpty << .content)
+
+                    else
+                        identity
+                   )
                 |> List.map .updatedAt
                 |> UpdatedAt.sortNewestFirst identity
                 |> List.head
@@ -1387,6 +1401,9 @@ getCardById db id =
 getSyncState : List (Card UpdatedAt) -> SyncState
 getSyncState db =
     let
+        shouldSyncEmptyCards =
+            List.length db == 1
+
         cardSyncStates =
             db
                 |> ListExtra.gatherWith (\a b -> a.id == b.id)
@@ -1395,7 +1412,7 @@ getSyncState db =
                     (\c ->
                         let
                             cardSyncState =
-                                getCardSyncState c
+                                getCardSyncState shouldSyncEmptyCards c
 
                             cardId =
                                 c
@@ -1480,8 +1497,8 @@ getSyncState db =
         Errored
 
 
-getCardSyncState : List (Card UpdatedAt) -> SyncState
-getCardSyncState cardVersions =
+getCardSyncState : Bool -> List (Card UpdatedAt) -> SyncState
+getCardSyncState shouldSyncEmpty cardVersions =
     let
         ( syncedVersions, unsyncedVersions ) =
             cardVersions
@@ -1495,8 +1512,12 @@ getCardSyncState cardVersions =
             }
     in
     if unsyncedVersions == 1 && syncedVersions == 0 && (List.map .content versions.ours == [ "" ]) then
-        -- Brand new card with empty content shouldn't be pushed, so we mark it as "Synced" to prevent that.
-        Synced
+        if shouldSyncEmpty then
+            Unsynced
+
+        else
+            -- Brand new card with empty content shouldn't be pushed, so we mark it as "Synced" to prevent that.
+            Synced
 
     else if unsyncedVersions > 0 && syncedVersions <= historyLimit then
         Unsynced

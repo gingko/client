@@ -157,9 +157,9 @@ init nKey globalData session dbData_ =
                         { session = session
                         , docId = dbData.dbName
                         , docModel = Page.Doc.init True globalData
-                        , data = Data.empty
+                        , data = Data.emptyCardBased
                         , lastRemoteSave = Nothing
-                        , lastLocalSave = Nothing
+                        , lastLocalSave = Just (GlobalData.currentTime globalData)
                         , titleField = Session.getDocName session dbData.dbName
                         }
                     )

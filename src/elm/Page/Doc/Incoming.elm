@@ -11,7 +11,7 @@ type
     -- === Dialogs, Menus, Window State ===
     = CancelCardConfirmed
       -- === DOM ===
-    | InitialActivation
+    | InitialActivation String
     | DragStarted String
     | DragExternalStarted
     | DropExternal String
@@ -80,7 +80,12 @@ subscribe tagger onError =
 
                 -- === DOM ===
                 "InitialActivation" ->
-                    tagger <| InitialActivation
+                    case decodeValue Dec.string outsideInfo.data of
+                        Ok cardId ->
+                            tagger <| InitialActivation cardId
+
+                        Err e ->
+                            onError (errorToString e)
 
                 "DragStarted" ->
                     case decodeValue Dec.string outsideInfo.data of

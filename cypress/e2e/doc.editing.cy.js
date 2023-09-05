@@ -6,38 +6,34 @@ describe('Document Editing', () => {
 
   beforeEach(() => {
     cy.deleteUser(testEmail).then(()=>{
-      cy.signup(testEmail).then(()=>{
+      cy.signup_with(testEmail, 'oneEmptyTree').then(()=>{
         cy.visit(config.TEST_SERVER)
       })
     })
+    cy.fixture('oneTree.ids.json').as('treeIds')
   })
 
-  it('Can edit a git-like document',{retries: {runMode: 2, openMode: 0}}, () => {
-    cy.get('#new-button')
-      .click()
-
-    cy.contains('Blank Tree')
-      .click()
-
-    cy.url().as('testTreeUrl').should('match', /\/[a-zA-Z0-9]{7}$/)
+  it('Can edit a git-like document',{retries: {runMode: 2, openMode: 0}}, function(){
+    cy.url().should('contain', this.treeIds[0] )
 
     cy.contains('Untitled')
-    cy.contains('New Document...')
 
     // Can edit and save card
+    cy.getCard(1,1,1).click()
     cy.wait(250)
+    cy.shortcut('{enter}')
 
     cy.get('textarea').should('have.focus')
       .type('Hello World :)')
 
     cy.shortcut('{ctrl}{enter}')
 
-    cy.get('#card-1 .view').contains('Hello World :)')
+    cy.getCard(1,1,1).get('.view').contains('Hello World :)')
 
     cy.contains('Synced')
 
     // Create a new child on clicking right + button
-    cy.get('#card-1').trigger('mouseover')
+    cy.getCard(1,1,1).trigger('mouseover')
 
     cy.get('.ins-right').click()
 
@@ -53,7 +49,7 @@ describe('Document Editing', () => {
 
     // Clicking on a different card while editing doesn't
     // make them both have the same content (bug)
-    cy.get('#card-1').click()
+    cy.getCard(1,1,1).click()
     cy.shortcut('{enter}')
     cy.writeInCard('XYZ')
     cy.getCard(2,1,1).click()
@@ -61,12 +57,12 @@ describe('Document Editing', () => {
     cy.getCard(1,1,1).should('contain', 'XYZ')
 
     // Clicking outside a card while editing should save that card
-    cy.get('#card-1').click()
+    cy.getCard(1,1,1).click()
     cy.shortcut('{enter}')
     cy.writeInCard('UVW')
     cy.get('.left-padding-column').click()
     cy.get('#save-indicator').should('not.contain', 'Unsaved Changes...')
-    cy.get('#card-1')
+    cy.getCard(1,1,1)
       .should('not.have.class', 'editing')
       .should('contain', 'UVW')
 
@@ -125,15 +121,14 @@ describe('Document Editing', () => {
     cy.get('#title-rename').should('have.value', 'A new doc title here')
 
     cy.wait(400)
-    cy.get('@testTreeUrl').then((url) => {
-      cy.visit(url)
-    })
+    cy.reload()
+
     cy.getCard(2,1,2)
       .contains('Another one below')
 
     // Has saved the activation state
     cy.wait(400)
-    cy.get('#card-1')
+    cy.getCard(1,1,1)
       .should('have.class', 'ancestor')
 
     cy.getGroup(2,1)
@@ -274,5 +269,7 @@ describe('Document Editing', () => {
     cy.shortcut('{ctrl}{shift}{uparrow}')
     cy.getCard(1,1,1)
       .should('contain.html', '<p>Hello World :</p>\n<p>)XYZ</p>')
+
+    cy.contains('Synced')
   })
 })

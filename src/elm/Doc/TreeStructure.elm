@@ -30,7 +30,7 @@ defaultTree : Tree
 defaultTree =
     { id = "0"
     , content = ""
-    , children = Children [ Tree "1" "" (Children []) ]
+    , children = Children []
     }
 
 

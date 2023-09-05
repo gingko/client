@@ -12,11 +12,6 @@ describe('Document Editing', () => {
     })
   })
 
-  afterEach(() => {
-    // Delete file downloaded during test
-    cy.exec('rm cypress/downloads/Untitled-migration-backup.json')
-  })
-
   it('Can edit a card-based document',{retries: {runMode: 2, openMode: 0}}, () => {
     cy.get('#new-button')
       .click()
@@ -27,7 +22,7 @@ describe('Document Editing', () => {
     cy.url().as('testTreeUrl').should('match', /\/[a-zA-Z0-9]{7}$/)
 
     cy.contains('Untitled')
-    cy.contains('New Document...')
+    cy.contains('Synced')
 
     // Can edit and save card
     cy.wait(250)
@@ -37,16 +32,12 @@ describe('Document Editing', () => {
 
     cy.shortcut('{ctrl}{enter}')
 
-    cy.get('#card-1 .view').contains('Hello World :)')
+    cy.getCard(1,1,1).get('.view').contains('Hello World :)')
 
     cy.contains('Synced')
 
-    // Can switch to Card-based document
-    cy.get('#migrate-button').click()
-    cy.get('#migrate-confirm').click()
     cy.contains('Synced')
     cy.wait(250)
-    cy.getCard(1,1,1).click() // TODO: Card not being selected after migration
 
     // Create a new child on clicking right + button
     cy.getCard(1,1,1)
