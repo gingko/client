@@ -222,8 +222,7 @@ function initWebSocket () {
 
             // send encrypted unsynced local cards to Sentry
             const unsyncedCards = await dexie.cards.where('treeId').equals(TREE_ID).and(c => !c.synced).toArray();
-            const encryptedCards = unsyncedCards.map(c => ({ ...c, content: new MD5().update(config.DESKTOP_SERIAL_SALT + c.content).digest('hex') }));
-            Sentry.captureMessage('cardsConflict: cards conflict ' + TREE_ID, { extra: { encryptedCards , error: data.e} })
+            Sentry.captureMessage('cardsConflict: cards conflict ' + TREE_ID, { extra: { unsyncedCards , error: data.e} })
           } else {
             Sentry.captureMessage('cardsConflict: no cards ' + TREE_ID, { extra: { error: data.e} })
             const numberUnsynced = await dexie.cards.where('treeId').equals(TREE_ID).and(c => !c.synced).count();
@@ -898,7 +897,7 @@ function wsSend(msgTag, msgData, unbufferedOnly) {
   if (ws.readyState === ws.OPEN && bufferCheck) {
     ws.send(JSON.stringify({t: msgTag, d: msgData}));
   } else {
-    console.log("WS not ready to send: ", msgTag, msgData);
+    console.log("WS not ready to send: ", ws.readyState, msgTag, msgData);
   }
 }
 
