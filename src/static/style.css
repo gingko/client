@@ -929,11 +929,17 @@ a.sidebar-menu-item, a.sidebar-menu-item:visited {
   gap: 5px;
   align-items: center;
 }
+#save-indicator.synced {
+  opacity: 1;
+}
 #save-indicator span {
   margin-top: 4px;
 }
 #save-indicator.synced svg {
   fill: hsl(86, 54%, 51%);
+}
+#save-indicator.saved-offline {
+  animation: fadeInDelayed 1.3s forwards;
 }
 #save-indicator.saved-offline svg {
   transition: fill 1s ease-in-out;
@@ -955,6 +961,14 @@ a.sidebar-menu-item, a.sidebar-menu-item:visited {
   }
   100% {
     transform: rotate(360deg);
+  }
+}
+@keyframes fadeInDelayed {
+  0%, 30% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
   }
 }
 
