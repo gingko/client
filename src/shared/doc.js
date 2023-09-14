@@ -75,6 +75,7 @@ const GIT_LIKE_DATA = Symbol.for("couchdb");
 let userDbName;
 let email = null;
 let ws;
+let wsQueue = [];
 let PULL_LOCK = false;
 let DIRTY = false;
 let pushErrorCount = 0;
@@ -185,14 +186,26 @@ async function setUserDbs(eml) {
 
 
 function initWebSocket () {
-  ws = new PersistentWebSocket(window.location.origin.replace('http', 'ws')+'/ws')
+  const wsUrl = window.location.origin.replace('http', 'ws')+'/ws'
+  ws = new PersistentWebSocket(wsUrl, {pingTimeout: 30000 + 2000})
 
+  let interval;
   ws.onopen = () => {
-    console.log('connected')
+    // Send each item from wsQueue and clear it
+    wsQueue.forEach(([msgTag, msgData]) => {
+      wsSend(msgTag, msgData)
+    })
+    wsQueue = [];
+
+    interval = setInterval(() => ws.send('ping'), 30000)
     setTimeout(() => toElm(null, 'appMsgs', 'SocketConnected') , 1000)
   }
 
   ws.onmessage = async (e) => {
+    if (e.data == 'pong') {
+      return
+    }
+
     const data = JSON.parse(e.data)
     try {
       switch (data.t) {
@@ -305,6 +318,11 @@ function initWebSocket () {
 
   ws.onerror = (e) => {
     console.error('ws error', e);
+  }
+
+  ws.onclose = (e) => {
+    console.log('ws closed', e);
+    clearInterval(interval)
   }
 }
 
@@ -895,15 +913,11 @@ const fromElm = (msg, elmData) => {
 
 
 function wsSend(msgTag, msgData, unbufferedOnly) {
-  if (unbufferedOnly === undefined) {
-    unbufferedOnly = false;
-  }
-  const bufferCheck = unbufferedOnly ? ws.bufferedAmount === 0 : true;
-
-  if (ws.readyState === ws.OPEN && bufferCheck) {
+  if (ws.readyState === ws.OPEN) {
     ws.send(JSON.stringify({t: msgTag, d: msgData}));
   } else {
     console.log("WS not ready to send: ", ws.readyState, msgTag, msgData);
+    wsQueue.push([msgTag, msgData])
   }
 }
 
