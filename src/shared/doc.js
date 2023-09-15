@@ -176,7 +176,7 @@ async function setUserDbs(eml) {
 
     const unsyncedTrees = trees.filter(t => !t.synced);
     if (unsyncedTrees.length > 0) {
-      wsSend('trees', unsyncedTrees);
+      wsSend('trees', unsyncedTrees, false);
     }
     firstLoad = false;
   });
@@ -193,7 +193,7 @@ function initWebSocket () {
   ws.onopen = () => {
     // Send each item from wsQueue and clear it
     wsQueue.forEach(([msgTag, msgData]) => {
-      wsSend(msgTag, msgData)
+      wsSend(msgTag, msgData, false)
     })
     wsQueue = [];
 
@@ -575,7 +575,7 @@ const fromElm = (msg, elmData) => {
 
     PushDeltas : () => {
       if (elmData.dlts.length > 0) {
-        wsSend('push', elmData, true);
+        wsSend('push', elmData, false);
       }
     },
 
@@ -811,7 +811,7 @@ const fromElm = (msg, elmData) => {
       // Save to remote SQLite
       switch (key) {
         case 'language':
-          wsSend('setLanguage', value);
+          wsSend('setLanguage', value, true);
           break;
 
         default:
@@ -912,10 +912,10 @@ const fromElm = (msg, elmData) => {
 };
 
 
-function wsSend(msgTag, msgData, unbufferedOnly) {
+function wsSend(msgTag, msgData, queueIfNotReady) {
   if (ws.readyState === ws.OPEN) {
     ws.send(JSON.stringify({t: msgTag, d: msgData}));
-  } else {
+  } else if (queueIfNotReady) {
     console.log("WS not ready to send: ", ws.readyState, msgTag, msgData);
     wsQueue.push([msgTag, msgData])
   }
@@ -991,7 +991,7 @@ function getChk(treeId, cards) {
 function pull(treeId, chk) {
   wsSend("pull", [treeId, chk], true);
   setTimeout(() => {
-    wsSend('pullHistoryMeta', treeId, false);
+    wsSend('pullHistoryMeta', treeId, true);
   }, 500)
 }
 

@@ -21,6 +21,8 @@ describe('Document UI', () => {
 
     cy.url().should('match', /\/[a-zA-Z0-9]{7}$/)
 
+    cy.contains('Synced')
+
     cy.get('#app-root')
       .should('not.contain', emailText)
 
