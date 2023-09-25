@@ -45,9 +45,9 @@ async function initImmortalDB() {
 initImmortalDB();
 
 const dexie = new Dexie("db");
-dexie.version(3).stores({
+dexie.version(4).stores({
   trees: "id,updatedAt",
-  cards: "updatedAt,treeId",
+  cards: "updatedAt, treeId, [treeId+deleted]",
   tree_snapshots: "snapshot, treeId"
 });
 
