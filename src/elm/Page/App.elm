@@ -1789,8 +1789,16 @@ localSave op model =
             let
                 dbChangeList =
                     Data.localSave docId op data
+
+                changes =
+                    Data.changes docId op data
             in
-            ( model, send <| SaveCardBased dbChangeList )
+            ( model
+            , Cmd.batch
+                [ send <| SaveCardBased dbChangeList
+                , send <| SaveToChanges changes
+                ]
+            )
 
         Empty _ _ ->
             ( model, Cmd.none )

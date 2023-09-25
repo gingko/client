@@ -1,4 +1,4 @@
-module Doc.Data exposing (CommitObject, Model, cardDataReceived, conflictList, conflictToTree, convert, empty, emptyCardBased, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, success, triggeredPush)
+module Doc.Data exposing (CommitObject, Model, cardDataReceived, changes, conflictList, conflictToTree, convert, empty, emptyCardBased, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, success, triggeredPush)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -1160,6 +1160,73 @@ localSave treeId op model =
                     toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = [] }
 
         GitLike gitData maybeConflictInfo ->
+            Enc.null
+
+
+type alias ChangeObject =
+    { id : String
+    , table : String
+    , column : String
+    , value : Enc.Value
+    }
+
+
+changeObject : String -> String -> Enc.Value -> Enc.Value
+changeObject id column value =
+    Enc.object
+        [ ( "id", Enc.string id )
+        , ( "table", Enc.string "cards" )
+        , ( "column", Enc.string column )
+        , ( "value", value )
+        ]
+
+
+changes : String -> CardTreeOp -> Model -> Enc.Value
+changes treeId op model =
+    case model of
+        CardBased data _ _ ->
+            case op of
+                CTIns id content parId_ idx ->
+                    [ changeObject id "SYS:CREATE" Enc.null
+                    , changeObject id "content" (Enc.string content)
+                    , changeObject id "parentId" (encodeMaybe parId_)
+                    , changeObject id "position" (Enc.float (getPosition id parId_ idx data))
+                    ]
+                        |> Enc.list identity
+
+                CTUpd id content ->
+                    [ changeObject id "content" (Enc.string content) ]
+                        |> Enc.list identity
+
+                CTRmv id ->
+                    [ changeObject id "deleted" (Enc.bool True) ]
+                        |> Enc.list identity
+
+                CTMov id parId_ idx ->
+                    let
+                        oldParent =
+                            data
+                                |> List.filter (\card -> card.id == id)
+                                |> List.head
+                                |> Maybe.map .parentId
+                    in
+                    [ changeObject id "position" (Enc.float (getPosition id parId_ idx data))
+                    ]
+                        ++ (if oldParent /= Just parId_ then
+                                [ changeObject id "parentId" (encodeMaybe parId_) ]
+
+                            else
+                                []
+                           )
+                        |> Enc.list identity
+
+                CTMrg currTreeId otherTreeId isMergeUp ->
+                    Enc.null
+
+                CTBlk tree parId_ idx ->
+                    Enc.null
+
+        GitLike _ _ ->
             Enc.null
 
 

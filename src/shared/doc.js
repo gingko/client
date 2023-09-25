@@ -45,9 +45,10 @@ async function initImmortalDB() {
 initImmortalDB();
 
 const dexie = new Dexie("db");
-dexie.version(4).stores({
+dexie.version(5).stores({
   trees: "id,updatedAt",
   cards: "updatedAt, treeId, [treeId+deleted]",
+  changes: '++,[id+column],ts_local,ts_server',
   tree_snapshots: "snapshot, treeId"
 });
 
@@ -617,6 +618,10 @@ const fromElm = (msg, elmData) => {
       }
     },
 
+    SaveToChanges : async () => {
+      const changesToSend = handleLocalChanges(elmData);
+      wsSend('chgs', changesToSend, false);
+    },
     SaveCardBasedMigration : async () => {
       await dexie.trees.update(TREE_ID, {location: "cardbased", synced: false});
       await dexie.cards.bulkPut(elmData);
@@ -920,6 +925,60 @@ function wsSend(msgTag, msgData, queueIfNotReady) {
     wsQueue.push([msgTag, msgData])
   }
 }
+
+
+/* === CHANGES Database === */
+
+function handleLocalChanges(localChanges) {
+  const changes = localChanges.map((ch) => { return {...ch, ts_local: hlc.nxt(), ts_server: null}});
+  const earliestTs = changes.map(ch => ch.ts_local).filter(isTimestamp).sort(compareTimestamps)[0];
+  dexie.transaction('rw', [dexie.changes,dexie.cards], async () => {
+    await dexie.changes
+      .where('[id+column]').anyOf(changes.map(ch => [ch.id, ch.column]))
+      .and(ch=> isTimestamp(ch.ts_local) && compareTimestamps(ch.ts_local, earliestTs) < 0)
+      .delete();
+
+    await dexie.changes.bulkAdd(changes);
+    //The following needs to be changes to handle card changes
+    //await dexie.objects.bulkAdd(getCreateChanges(changes));
+    //await dexie.objects.bulkUpdate(getUpdateChanges(changes));
+  });
+  return changes;
+}
+
+function isTimestamp(maybeTs) {
+  return maybeTs && maybeTs.split(':').length === 3;
+}
+
+function compareTimestamps(a, b) {
+  const partsA = a.split(':');
+  const partsB = b.split(':');
+
+  // Extract parts
+  const epochA = BigInt(partsA[0]);
+  const epochB = BigInt(partsB[0]);
+  const vectorClockA = Number(partsA[1]);
+  const vectorClockB = Number(partsB[1]);
+  const clientIdA = partsA[2];
+  const clientIdB = partsB[2];
+
+  // Compare epoch
+  if (epochA !== epochB) {
+    return epochA < epochB ? -1 : 1;
+  }
+
+  // Compare vector clock
+  if (vectorClockA !== vectorClockB) {
+    return vectorClockA < vectorClockB ? -1 : 1;
+  }
+
+  // Compare clientIds if needed
+  if (clientIdA < clientIdB) return -1;
+  if (clientIdA > clientIdB) return 1;
+
+  return 0;
+}
+
 
 
 /* === Database === */
