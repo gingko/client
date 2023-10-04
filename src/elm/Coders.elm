@@ -1,4 +1,4 @@
-module Coders exposing (collabStateDecoder, collabStateEncoder, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, normalizeAndParse, normalizeInput, sortByDecoder, sortByEncoder, treeDecoder, treeOrString, treeToJSON, treeToJSONrecurse, treeToMarkdownOutline, treeToMarkdownRecurse, treeToMarkdownString, treeToOPML, treeToValue, treesParser, tupleDecoder, tupleToValue)
+module Coders exposing (collabStateDecoder, collabStateEncoder, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, normalizeAndParse, normalizeInput, sortByDecoder, sortByEncoder, treeDecoder, treeOrString, treeToJSON, treeToJSONrecurse, treeToMarkdownOutline, treeToMarkdownRecurse, treeToMarkdownString, treeToOPML, treeToValue, treesParser, tupleDecoder, tupleToValue)
 
 import Doc.Fonts as Fonts
 import Json.Decode as Json exposing (..)
@@ -51,15 +51,6 @@ treeOrString =
 -- ViewState
 
 
-collabStateEncoder : CollabState -> Enc.Value
-collabStateEncoder collabState =
-    Enc.object
-        [ ( "uid", Enc.string collabState.uid )
-        , ( "mode", modeToValue collabState.mode )
-        , ( "field", Enc.string collabState.field )
-        ]
-
-
 collabStateDecoder : Decoder CollabState
 collabStateDecoder =
     Json.map3 CollabState
@@ -72,8 +63,8 @@ collabStateDecoder =
 -- Mode
 
 
-modeToValue : Mode -> Enc.Value
-modeToValue mode =
+collabStateEncoder : CollabStateMode -> Enc.Value
+collabStateEncoder mode =
     case mode of
         CollabActive id ->
             tupleToValue Enc.string ( "CollabActive", id )
@@ -82,10 +73,10 @@ modeToValue mode =
             tupleToValue Enc.string ( "CollabEditing", id )
 
 
-modeDecoder : Decoder Mode
+modeDecoder : Decoder CollabStateMode
 modeDecoder =
     let
-        modeHelp : ( String, String ) -> Decoder Mode
+        modeHelp : ( String, String ) -> Decoder CollabStateMode
         modeHelp ( tag, idIn ) =
             case ( tag, idIn ) of
                 ( "CollabActive", id ) ->

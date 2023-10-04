@@ -1,4 +1,4 @@
-module Types exposing (CardTreeOp(..), Children(..), CollabState, Column, ConflictSelection(..), CursorPosition(..), DragExternalModel, DropId(..), Group, Mode(..), OutsideData, SortBy(..), TextCursorInfo, Toast, ToastPersistence(..), ToastRole(..), TooltipPosition(..), Tree, ViewMode(..), ViewState, VisibleViewMode(..), VisibleViewState, dropIdToValue)
+module Types exposing (CardTreeOp(..), Children(..), CollabState, CollabStateMode(..), Column, ConflictSelection(..), CursorPosition(..), DragExternalModel, DropId(..), Group, OutsideData, SortBy(..), TextCursorInfo, Toast, ToastPersistence(..), ToastRole(..), TooltipPosition(..), Tree, ViewMode(..), ViewState, VisibleViewMode(..), VisibleViewState, dropIdToValue)
 
 import Html5.DragDrop as DragDrop
 import Json.Encode as Enc
@@ -136,12 +136,12 @@ type TooltipPosition
 
 type alias CollabState =
     { uid : String
-    , mode : Mode
+    , mode : CollabStateMode
     , field : String
     }
 
 
-type Mode
+type CollabStateMode
     = CollabActive String
     | CollabEditing String
 
