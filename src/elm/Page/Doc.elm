@@ -1043,10 +1043,14 @@ changeMode { to, instant, save } model =
                 scrollCmd =
                     send (ScrollCards (id :: newPast) scrollPositions colIdx instant)
 
-                updateCollabState : CollabState -> ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
-                updateCollabState newCollabState prevModel =
+                updateCollabState : Bool -> CollabState -> ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
+                updateCollabState condition newCollabState prevModel =
                     ( prevModel
-                    , send (SendCollabState (collabStateEncoder newCollabState))
+                    , if condition then
+                        send (SendCollabState (collabStateEncoder newCollabState))
+
+                      else
+                        Cmd.none
                     , []
                     )
             in
@@ -1056,21 +1060,26 @@ changeMode { to, instant, save } model =
                     , scrollCmd
                     , []
                     )
-                        |> (\tup ->
-                                if prevId /= newId then
-                                    tup |> andThen (updateCollabState (CollabState model.uid (CollabActive newId) ""))
+                        |> andThen
+                            (updateCollabState (prevId /= newId)
+                                (CollabState model.uid (CollabActive newId) "")
+                            )
 
-                                else
-                                    tup
-                           )
-
-                ( Editing oldEditData, Normal _ ) ->
+                ( Editing oldEditData, Normal newId ) ->
                     ( newModel to, scrollCmd, [] )
                         |> saveIfAsked oldEditData
+                        |> andThen
+                            (updateCollabState True
+                                (CollabState model.uid (CollabActive newId) "")
+                            )
 
-                ( FullscreenEditing oldEditData, Normal _ ) ->
+                ( FullscreenEditing oldEditData, Normal newId ) ->
                     ( newModel to, scrollCmd, [] )
                         |> saveIfAsked oldEditData
+                        |> andThen
+                            (updateCollabState True
+                                (CollabState model.uid (CollabActive newId) "")
+                            )
 
                 ( Normal _, Editing newEditData ) ->
                     ( newModel to
@@ -1078,13 +1087,21 @@ changeMode { to, instant, save } model =
                     , []
                     )
                         |> preventIfBlocked model
+                        |> andThen
+                            (updateCollabState True
+                                (CollabState model.uid (CollabEditing newEditData.cardId) "")
+                            )
 
-                ( Editing _, Editing newEditData ) ->
+                ( Editing oldEditData, Editing newEditData ) ->
                     ( newModel to
                     , Cmd.batch [ focus newEditData.cardId, scrollCmd ]
                     , []
                     )
                         |> preventIfBlocked model
+                        |> andThen
+                            (updateCollabState (oldEditData.cardId /= newEditData.cardId)
+                                (CollabState model.uid (CollabEditing newEditData.cardId) "")
+                            )
 
                 ( FullscreenEditing oldEditData, Editing newEditData ) ->
                     ( newModel to
@@ -1092,17 +1109,33 @@ changeMode { to, instant, save } model =
                     , []
                     )
                         |> saveIfAsked oldEditData
+                        |> andThen
+                            (updateCollabState (oldEditData.cardId /= newEditData.cardId)
+                                (CollabState model.uid (CollabEditing newEditData.cardId) "")
+                            )
 
                 ( Normal _, FullscreenEditing newEditData ) ->
                     ( newModel to, focus newEditData.cardId, [] )
+                        |> andThen
+                            (updateCollabState True
+                                (CollabState model.uid (CollabEditing newEditData.cardId) "")
+                            )
 
                 ( Editing oldEditData, FullscreenEditing newEditData ) ->
                     ( newModel to, focus newEditData.cardId, [] )
                         |> saveIfAsked oldEditData
+                        |> andThen
+                            (updateCollabState (oldEditData.cardId /= newEditData.cardId)
+                                (CollabState model.uid (CollabEditing newEditData.cardId) "")
+                            )
 
                 ( FullscreenEditing oldEditData, FullscreenEditing newEditData ) ->
                     ( newModel to, focus newEditData.cardId, [] )
                         |> saveIfAsked oldEditData
+                        |> andThen
+                            (updateCollabState (oldEditData.cardId /= newEditData.cardId)
+                                (CollabState model.uid (CollabEditing newEditData.cardId) "")
+                            )
 
         Nothing ->
             case getFirstCard model.workingTree.tree of
@@ -1520,13 +1553,8 @@ cancelCard ( model, prevCmd, prevMsgsToParent ) =
         activeId =
             getActiveId (Model model)
     in
-    ( { model
-        | viewState = { vs | viewMode = Normal activeId }
-      }
-    , prevCmd
-    , prevMsgsToParent
-    )
-        |> activate activeId True
+    ( model, prevCmd, prevMsgsToParent )
+        |> andThen (changeMode { to = Normal activeId, instant = True, save = False })
 
 
 intentCancelCard : ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
