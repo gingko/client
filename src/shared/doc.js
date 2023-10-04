@@ -311,6 +311,14 @@ function initWebSocket () {
           currSessionData[d[0]] = d[1]
           setSessionData(currSessionData, 'userSettingOk ws msg')
           break
+
+        case 'chgsOk':
+          dexie.transaction('rw', dexie.changes, async () => {
+            const setTsServerPromises = data.d.map((change) => {
+              return dexie.changes.where({ts_local: change.ts_local}).modify({ts_server: change.ts_server});
+            });
+            await Promise.all(setTsServerPromises);
+          });
       }
     } catch (e) {
       console.log(e)
@@ -575,12 +583,14 @@ const fromElm = (msg, elmData) => {
     },
 
     PushDeltas : () => {
+      return;
       if (elmData.dlts.length > 0) {
         wsSend('push', elmData, false);
       }
     },
 
     SaveCardBased : async () => {
+      return;
       if (elmData !== null) {
         let newData = elmData.toAdd.map((c) => { return { ...c, updatedAt: hlc.nxt() }})
         const toMarkSynced = elmData.toMarkSynced.map((c) => { return { ...c, synced: true }})
@@ -619,7 +629,7 @@ const fromElm = (msg, elmData) => {
     },
 
     SaveToChanges : async () => {
-      const changesToSend = handleLocalChanges(elmData);
+      const changesToSend = handleLocalChanges('cards', elmData);
       wsSend('chgs', changesToSend, false);
     },
     SaveCardBasedMigration : async () => {
@@ -929,21 +939,56 @@ function wsSend(msgTag, msgData, queueIfNotReady) {
 
 /* === CHANGES Database === */
 
-function handleLocalChanges(localChanges) {
+function handleLocalChanges(tableName, localChanges) {
+  const table = getTable(tableName);
   const changes = localChanges.map((ch) => { return {...ch, ts_local: hlc.nxt(), ts_server: null}});
   const earliestTs = changes.map(ch => ch.ts_local).filter(isTimestamp).sort(compareTimestamps)[0];
-  dexie.transaction('rw', [dexie.changes,dexie.cards], async () => {
-    await dexie.changes
-      .where('[id+column]').anyOf(changes.map(ch => [ch.id, ch.column]))
-      .and(ch=> isTimestamp(ch.ts_local) && compareTimestamps(ch.ts_local, earliestTs) < 0)
-      .delete();
+  try {
+    dexie.transaction('rw', [dexie.changes,table], async () => {
+      await dexie.changes
+        .where('[id+column]').anyOf(changes.map(ch => [ch.id, ch.column]))
+        .and(ch=> isTimestamp(ch.ts_local) && compareTimestamps(ch.ts_local, earliestTs) < 0)
+        .delete();
 
-    await dexie.changes.bulkAdd(changes);
-    //The following needs to be changes to handle card changes
-    //await dexie.objects.bulkAdd(getCreateChanges(changes));
-    //await dexie.objects.bulkUpdate(getUpdateChanges(changes));
-  });
+      await dexie.changes.bulkAdd(changes);
+      await table.bulkAdd(getCreateChanges(changes));
+      await table.bulkUpdate(getUpdateChanges(changes));
+    });
+  } catch (e) {
+    console.error('handleLocalChanges', e);
+  }
   return changes;
+}
+
+function getTable(tableName) {
+  switch (tableName) {
+    case 'cards':
+      return dexie.cards;
+    case 'trees':
+      return dexie.trees;
+    default:
+      throw new Error(`Unknown table ${tableName}`);
+  }
+}
+
+function getCreateChanges(changes) {
+  return changes.filter(ch => ch.column === 'SYS:CREATE')
+    .map(ch => { return {id: ch.id, ...newObject}});
+}
+
+function getUpdateChanges(allChanges) {
+  const changes = allChanges.filter(ch => ch.column !== 'SYS:CREATE');
+  const map = {};
+  changes.forEach(change => {
+    if (!map[change.id]) {
+      map[change.id] = {};
+    }
+    map[change.id][change.column] = change.value;
+  });
+
+  const result = Object.entries(map).map(([key, changes]) => ({ key, changes }));
+  console.log('getUpdateChanges', result);
+  return result;
 }
 
 function isTimestamp(maybeTs) {
