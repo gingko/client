@@ -935,18 +935,9 @@ incoming incomingMsg model =
 
                     else
                         collabState :: vs.collaborators
-
-                newTree =
-                    case collabState.mode of
-                        CollabEditing editId ->
-                            TreeStructure.update (TreeStructure.Upd editId collabState.field) model.workingTree
-
-                        _ ->
-                            model.workingTree
             in
             ( { model
-                | workingTree = newTree
-                , viewState = { vs | collaborators = newCollabs }
+                | viewState = { vs | collaborators = newCollabs }
               }
             , Cmd.none
             , []

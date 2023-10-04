@@ -67,10 +67,10 @@ collabStateEncoder : CollabStateMode -> Enc.Value
 collabStateEncoder mode =
     case mode of
         CollabActive id ->
-            tupleToValue Enc.string ( "CollabActive", id )
+            tupleToValue Enc.string ( "a", id )
 
         CollabEditing id ->
-            tupleToValue Enc.string ( "CollabEditing", id )
+            tupleToValue Enc.string ( "e", id )
 
 
 modeDecoder : Decoder CollabStateMode

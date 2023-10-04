@@ -69,6 +69,7 @@ let remoteDB;
 let db;
 let gingko;
 let TREE_ID;
+const CLIENT_ID = uuid(12);
 let DATA_TYPE;
 const CARD_DATA = Symbol.for("cardbased");
 const GIT_LIKE_DATA = Symbol.for("couchdb");
@@ -786,7 +787,7 @@ const fromElm = (msg, elmData) => {
 
     // === UI ===
     SendCollabState: () => {
-
+      wsSend('rt', {uid: CLIENT_ID, tr: TREE_ID, m: elmData[0], cid:elmData[1]}, false);
     },
     UpdateCommits: () => {},
 
