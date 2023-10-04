@@ -53,6 +53,7 @@ type Msg
     | SetFullscreen Bool
     | PositionTourStep Int String
       -- === UI ===
+    | SendCollabState Enc.Value
     | UpdateCommits ( Enc.Value, Maybe String )
     | HistorySlider Bool Int
     | SetSidebarState Bool
@@ -202,6 +203,9 @@ send info =
             dataToSend "PositionTourStep" (tupleToValue identity ( int step, string elId ))
 
         -- === UI ===
+        SendCollabState collabState ->
+            dataToSend "SendCollabState" collabState
+
         UpdateCommits ( objectsValue, head_ ) ->
             let
                 headToValue mbs =

@@ -1,4 +1,4 @@
-module Coders exposing (collabStateDecoder, collabStateToValue, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, normalizeAndParse, normalizeInput, sortByDecoder, sortByEncoder, treeDecoder, treeOrString, treeToJSON, treeToJSONrecurse, treeToMarkdownOutline, treeToMarkdownRecurse, treeToMarkdownString, treeToOPML, treeToValue, treesParser, tupleDecoder, tupleToValue)
+module Coders exposing (collabStateDecoder, collabStateEncoder, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, normalizeAndParse, normalizeInput, sortByDecoder, sortByEncoder, treeDecoder, treeOrString, treeToJSON, treeToJSONrecurse, treeToMarkdownOutline, treeToMarkdownRecurse, treeToMarkdownString, treeToOPML, treeToValue, treesParser, tupleDecoder, tupleToValue)
 
 import Doc.Fonts as Fonts
 import Json.Decode as Json exposing (..)
@@ -51,8 +51,8 @@ treeOrString =
 -- ViewState
 
 
-collabStateToValue : CollabState -> Enc.Value
-collabStateToValue collabState =
+collabStateEncoder : CollabState -> Enc.Value
+collabStateEncoder collabState =
     Enc.object
         [ ( "uid", Enc.string collabState.uid )
         , ( "mode", modeToValue collabState.mode )

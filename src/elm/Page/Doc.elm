@@ -2,7 +2,7 @@ module Page.Doc exposing (Model, Msg, MsgToParent(..), getActiveId, getActiveTre
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
-import Coders exposing (treeToValue)
+import Coders exposing (collabStateEncoder, treeToValue)
 import Doc.Fonts as Fonts
 import Doc.Fullscreen as Fullscreen
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
@@ -1042,13 +1042,27 @@ changeMode { to, instant, save } model =
 
                 scrollCmd =
                     send (ScrollCards (id :: newPast) scrollPositions colIdx instant)
+
+                updateCollabState : CollabState -> ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
+                updateCollabState newCollabState prevModel =
+                    ( prevModel
+                    , send (SendCollabState (collabStateEncoder newCollabState))
+                    , []
+                    )
             in
             case ( vs.viewMode, to ) of
-                ( Normal _, Normal _ ) ->
+                ( Normal prevId, Normal newId ) ->
                     ( newModel to
                     , scrollCmd
                     , []
                     )
+                        |> (\tup ->
+                                if prevId /= newId then
+                                    tup |> andThen (updateCollabState (CollabState model.uid (CollabActive newId) ""))
+
+                                else
+                                    tup
+                           )
 
                 ( Editing oldEditData, Normal _ ) ->
                     ( newModel to, scrollCmd, [] )

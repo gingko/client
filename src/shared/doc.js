@@ -785,6 +785,9 @@ const fromElm = (msg, elmData) => {
     },
 
     // === UI ===
+    SendCollabState: () => {
+
+    },
     UpdateCommits: () => {},
 
     HistorySlider: () => {
