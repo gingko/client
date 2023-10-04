@@ -1,9 +1,11 @@
-module UI.Collaborators exposing (view)
+module UI.Collaborators exposing (viewHeader, viewOnCard)
 
-import Html exposing (Html, div)
-import Html.Attributes exposing (style)
+import Ant.Icons.Svg as AntIcons
+import Html exposing (Html, div, span, text)
+import Html.Attributes exposing (class, style)
 import Random
-import Types exposing (CollabState)
+import Svg.Attributes
+import Types exposing (CollabState, CollabStateMode(..))
 
 
 
@@ -92,8 +94,8 @@ colorToRgbaString a ( r, g, b ) =
     "rgba(" ++ String.fromInt r ++ "," ++ String.fromInt g ++ "," ++ String.fromInt b ++ "," ++ String.fromFloat a ++ ")"
 
 
-view : List CollabState -> Html msg
-view collabs =
+viewHeader : List CollabState -> Html msg
+viewHeader collabs =
     div [ style "display" "flex", style "gap" "5px" ] (List.map viewCollab collabs)
 
 
@@ -117,3 +119,36 @@ viewCollab collab =
         , style "display" "inline-block"
         ]
         []
+
+
+viewOnCard : List CollabState -> Html msg
+viewOnCard collabs =
+    span [ class "collaborators", style "display" "flex", style "gap" "5px" ]
+        (List.map viewCollabSmall collabs)
+
+
+viewCollabSmall : CollabState -> Html msg
+viewCollabSmall collab =
+    let
+        collabColor =
+            getColor collab |> colorToRgbString
+    in
+    div
+        [ style "background-color" collabColor
+        , style "border-radius" "50%"
+        , style "width" "16px"
+        , style "height" "16px"
+        , style "display" "flex"
+        , style "justify-content" "center"
+        , style "align-items" "center"
+        ]
+        [ case collab.mode of
+            CollabEditing _ ->
+                AntIcons.editFilled
+                    [ Svg.Attributes.width "10px"
+                    , Svg.Attributes.height "10px"
+                    ]
+
+            CollabActive _ ->
+                text ""
+        ]

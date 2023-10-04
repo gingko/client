@@ -28,6 +28,7 @@ import Task
 import Time
 import Translation exposing (Language, TranslationId(..), tr)
 import Types exposing (..)
+import UI.Collaborators
 
 
 
@@ -2309,7 +2310,7 @@ viewCardOther cardId content collabsOnCard isEditing isParent isAncestor isLast 
                     , onDoubleClick (OpenCard cardId content)
                     ]
                     [ lazy2 viewContent cardId content ]
-               , collabsSpan collabsOnCard
+               , UI.Collaborators.viewOnCard collabsOnCard
                ]
         )
 
@@ -2381,7 +2382,7 @@ viewCardActive lang cardId content isParent isLast collabsOnCard dragModels =
                     , onDoubleClick (OpenCard cardId content)
                     ]
                     [ lazy2 viewContent cardId content ]
-               , collabsSpan collabsOnCard
+               , UI.Collaborators.viewOnCard collabsOnCard
                ]
         )
 

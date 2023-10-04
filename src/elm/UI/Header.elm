@@ -145,7 +145,7 @@ viewHeader msgs { session, title_, titleField_, headerMenu, isGitLike, exportSet
         , viewIf (not (List.isEmpty collaborators)) <|
             div
                 [ id "header-collaborators" ]
-                [ UI.Collaborators.view collaborators ]
+                [ UI.Collaborators.viewHeader collaborators ]
         , viewIf isGitLike <|
             div
                 [ id "migrate-button"
