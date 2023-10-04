@@ -1467,7 +1467,7 @@ update msg model =
                 ( toastUpdater, toastAdder ) =
                     case persistence of
                         Temporary ->
-                            ( Toast.expireIn 5000
+                            ( Toast.expireIn 3000
                             , Toast.add model.tray
                             )
 

@@ -1288,12 +1288,26 @@ toggleEditing model =
     in
     case vs.viewMode of
         Normal active ->
-            changeMode
-                { to = Editing { cardId = active, field = getContent active model.workingTree.tree }
-                , instant = True
-                , save = True
-                }
-                model
+            let
+                isLocked =
+                    vs.collaborators
+                        |> List.filter (\c -> c.mode == CollabEditing active)
+                        |> (not << List.isEmpty)
+            in
+            if isLocked then
+                ( model
+                , Cmd.none
+                , ParentAddToast Temporary (Toast Warning "Card is being edited by someone else.") :: []
+                )
+                    |> preventIfBlocked model
+
+            else
+                changeMode
+                    { to = Editing { cardId = active, field = getContent active model.workingTree.tree }
+                    , instant = True
+                    , save = True
+                    }
+                    model
 
         Editing { cardId, field } ->
             changeMode
@@ -1373,7 +1387,21 @@ saveCardIfEditing ( model, prevCmd, prevParentMsgs ) =
 
 openCard : String -> String -> ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
 openCard id str model =
-    changeMode { to = Editing { cardId = id, field = str }, instant = False, save = False } model
+    let
+        isLocked =
+            model.viewState.collaborators
+                |> List.filter (\c -> c.mode == CollabEditing id)
+                |> (not << List.isEmpty)
+    in
+    if isLocked then
+        ( model
+        , Cmd.none
+        , ParentAddToast Temporary (Toast Warning "Card is being edited by someone else.") :: []
+        )
+            |> preventIfBlocked model
+
+    else
+        changeMode { to = Editing { cardId = id, field = str }, instant = False, save = False } model
 
 
 closeCard : ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
