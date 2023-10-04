@@ -16,7 +16,8 @@ import Page.Doc.Theme exposing (Theme(..))
 import Session exposing (LoggedIn)
 import Time
 import Translation exposing (Language, TranslationId(..))
-import Types exposing (TooltipPosition(..), Tree)
+import Types exposing (CollabState, TooltipPosition(..), Tree)
+import UI.Collaborators
 import Utils exposing (emptyText, text, textNoTr)
 
 
@@ -70,9 +71,10 @@ viewHeader :
         , lastLocalSave : Maybe Time.Posix
         , lastRemoteSave : Maybe Time.Posix
         , globalData : GlobalData
+        , collaborators : List CollabState
         }
     -> Html msg
-viewHeader msgs { session, title_, titleField_, headerMenu, isGitLike, exportSettings, data, dirty, lastLocalSave, lastRemoteSave, globalData } =
+viewHeader msgs { session, title_, titleField_, headerMenu, isGitLike, exportSettings, data, dirty, lastLocalSave, lastRemoteSave, globalData, collaborators } =
     let
         language =
             GlobalData.language globalData
@@ -140,6 +142,10 @@ viewHeader msgs { session, title_, titleField_, headerMenu, isGitLike, exportSet
     in
     div [ id "document-header" ]
         [ titleArea
+        , viewIf (not (List.isEmpty collaborators)) <|
+            div
+                [ id "header-collaborators" ]
+                [ UI.Collaborators.view collaborators ]
         , viewIf isGitLike <|
             div
                 [ id "migrate-button"

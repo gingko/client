@@ -2021,6 +2021,9 @@ view ({ documentState } as model) =
                 workingTree =
                     Page.Doc.getWorkingTree docModel
 
+                collaborators =
+                    Page.Doc.getCollaborators docModel
+
                 dirty =
                     Page.Doc.isDirty docModel
 
@@ -2110,6 +2113,7 @@ view ({ documentState } as model) =
                                 , title_ = Session.getDocName session docId
                                 , titleField_ = titleField
                                 , headerMenu = model.headerMenu
+                                , collaborators = collaborators
                                 , isGitLike = Data.isGitLike data
                                 , exportSettings = model.exportSettings
                                 , data = data

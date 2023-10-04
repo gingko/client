@@ -873,6 +873,12 @@ a.sidebar-menu-item, a.sidebar-menu-item:visited {
   height: 37px;
   box-shadow: var(--small-shadow);
 }
+#header-collaborators {
+  padding: 10px;
+  cursor: pointer;
+  fill: var(--ui-1-fg);
+  grid-area: migrate-button;
+}
 
 #title {
   grid-area: title;

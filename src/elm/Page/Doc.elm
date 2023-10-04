@@ -1,4 +1,4 @@
-module Page.Doc exposing (Model, Msg, MsgToParent(..), getActiveId, getActiveTree, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isFullscreen, isNormalMode, lastActives, maybeActivate, opaqueIncoming, opaqueUpdate, setBlock, setDirty, setGlobalData, setLoading, setTree, setWorkingTree, subscriptions, toggleEditing, view)
+module Page.Doc exposing (Model, Msg, MsgToParent(..), getActiveId, getActiveTree, getCollaborators, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isFullscreen, isNormalMode, lastActives, maybeActivate, opaqueIncoming, opaqueUpdate, setBlock, setDirty, setGlobalData, setLoading, setTree, setWorkingTree, subscriptions, toggleEditing, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -2792,6 +2792,13 @@ getWorkingTree : Model -> TreeStructure.Model
 getWorkingTree (Model model) =
     model
         |> .workingTree
+
+
+getCollaborators : Model -> List CollabState
+getCollaborators (Model model) =
+    model
+        |> .viewState
+        |> .collaborators
 
 
 getActiveTree : Model -> Maybe Tree
