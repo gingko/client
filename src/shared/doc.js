@@ -311,6 +311,10 @@ function initWebSocket () {
           currSessionData[d[0]] = d[1]
           setSessionData(currSessionData, 'userSettingOk ws msg')
           break
+
+        case 'rt':
+          toElm(data.d, 'docMsgs', 'RecvCollabState');
+          break;
       }
     } catch (e) {
       console.log(e)
@@ -787,7 +791,8 @@ const fromElm = (msg, elmData) => {
 
     // === UI ===
     SendCollabState: () => {
-      wsSend('rt', {uid: CLIENT_ID, tr: TREE_ID, m: elmData[0], cid:elmData[1]}, false);
+      wsSend('rt'
+        , {uid: CLIENT_ID, tr: TREE_ID, m: elmData}, false);
     },
     UpdateCommits: () => {},
 

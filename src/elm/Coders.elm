@@ -53,10 +53,9 @@ treeOrString =
 
 collabStateDecoder : Decoder CollabState
 collabStateDecoder =
-    Json.map3 CollabState
+    Json.map2 CollabState
         (field "uid" string)
-        (field "mode" modeDecoder)
-        (field "field" string)
+        (field "m" modeDecoder)
 
 
 
@@ -79,10 +78,10 @@ modeDecoder =
         modeHelp : ( String, String ) -> Decoder CollabStateMode
         modeHelp ( tag, idIn ) =
             case ( tag, idIn ) of
-                ( "CollabActive", id ) ->
+                ( "a", id ) ->
                     succeed (CollabActive id)
 
-                ( "CollabEditing", id ) ->
+                ( "e", id ) ->
                     succeed (CollabEditing id)
 
                 _ ->

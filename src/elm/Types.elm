@@ -137,7 +137,6 @@ type TooltipPosition
 type alias CollabState =
     { uid : String
     , mode : CollabStateMode
-    , field : String
     }
 
 
