@@ -2219,24 +2219,44 @@ viewGroup vstate xs =
                 isLast =
                     t.id == lastChild
 
-                collabsEditingCard =
-                    vstate.collaborators
-                        |> List.filter (\c -> c.mode == CollabEditing t.id)
-                        |> List.map .uid
-
                 collabsOnCard =
                     vstate.collaborators
                         |> List.filter (\c -> c.mode == CollabActive t.id || c.mode == CollabEditing t.id)
-                        |> List.map .uid
             in
             if isActive && not isEditing then
-                ( t.id, lazy8 viewCardActive vstate.language t.id t.content (hasChildren t) isLast collabsOnCard collabsEditingCard vstate.dragModel )
+                ( t.id
+                , lazy7 viewCardActive
+                    vstate.language
+                    t.id
+                    t.content
+                    (hasChildren t)
+                    isLast
+                    collabsOnCard
+                    vstate.dragModel
+                )
 
             else if isEditing then
-                ( t.id, lazy5 viewCardEditing vstate.language t.id t.content (hasChildren t) vstate.isMac )
+                ( t.id
+                , lazy5 viewCardEditing
+                    vstate.language
+                    t.id
+                    t.content
+                    (hasChildren t)
+                    vstate.isMac
+                )
 
             else
-                ( t.id, lazy7 viewCardOther t.id t.content isEditing (hasChildren t) isAncestor isLast vstate.dragModel )
+                ( t.id
+                , lazy8 viewCardOther
+                    t.id
+                    t.content
+                    collabsOnCard
+                    isEditing
+                    (hasChildren t)
+                    isAncestor
+                    isLast
+                    vstate.dragModel
+                )
     in
     Keyed.node "div"
         [ classList
@@ -2259,8 +2279,12 @@ viewGroup vstate xs =
         )
 
 
-viewCardOther : String -> String -> Bool -> Bool -> Bool -> Bool -> ( DragDrop.Model String DropId, DragExternalModel ) -> Html Msg
-viewCardOther cardId content isEditing isParent isAncestor isLast dragModels =
+viewCardOther : String -> String -> List CollabState -> Bool -> Bool -> Bool -> Bool -> ( DragDrop.Model String DropId, DragExternalModel ) -> Html Msg
+viewCardOther cardId content collabsOnCard isEditing isParent isAncestor isLast dragModels =
+    let
+        collabsEditingCard =
+            collabsOnCard |> List.filter (\c -> c.mode == CollabEditing cardId)
+    in
     div
         [ id ("card-" ++ cardId)
         , dir "auto"
@@ -2268,6 +2292,8 @@ viewCardOther cardId content isEditing isParent isAncestor isLast dragModels =
             [ ( "card", True )
             , ( "ancestor", isAncestor )
             , ( "has-children", isParent )
+            , ( "collab-active", not (List.isEmpty collabsOnCard) )
+            , ( "collab-editing", not (List.isEmpty collabsEditingCard) )
             ]
         ]
         ((if not isEditing then
@@ -2283,13 +2309,17 @@ viewCardOther cardId content isEditing isParent isAncestor isLast dragModels =
                     , onDoubleClick (OpenCard cardId content)
                     ]
                     [ lazy2 viewContent cardId content ]
+               , collabsSpan collabsOnCard
                ]
         )
 
 
-viewCardActive : Language -> String -> String -> Bool -> Bool -> List String -> List String -> ( DragDrop.Model String DropId, DragExternalModel ) -> Html Msg
-viewCardActive lang cardId content isParent isLast collabsOnCard collabsEditingCard dragModels =
+viewCardActive : Language -> String -> String -> Bool -> Bool -> List CollabState -> ( DragDrop.Model String DropId, DragExternalModel ) -> Html Msg
+viewCardActive lang cardId content isParent isLast collabsOnCard dragModels =
     let
+        collabsEditingCard =
+            collabsOnCard |> List.filter (\c -> c.mode == CollabEditing cardId)
+
         buttons =
             [ div [ class "flex-row card-top-overlay" ]
                 [ span
@@ -2351,7 +2381,7 @@ viewCardActive lang cardId content isParent isLast collabsOnCard collabsEditingC
                     , onDoubleClick (OpenCard cardId content)
                     ]
                     [ lazy2 viewContent cardId content ]
-               , collabsSpan collabsOnCard collabsEditingCard
+               , collabsSpan collabsOnCard
                ]
         )
 
@@ -2538,18 +2568,19 @@ viewContent cardId content =
         processedContent
 
 
-collabsSpan : List String -> List String -> Html Msg
-collabsSpan collabsOnCard collabsEditingCard =
+collabsSpan : List CollabState -> Html Msg
+collabsSpan collabs =
     let
         collabsString =
-            collabsOnCard
+            collabs
                 |> List.map
                     (\c ->
-                        if List.member c collabsEditingCard then
-                            c ++ " is editing"
+                        case c.mode of
+                            CollabActive _ ->
+                                c.uid
 
-                        else
-                            c
+                            CollabEditing _ ->
+                                c.uid ++ " (editing)"
                     )
                 |> String.join ", "
     in
