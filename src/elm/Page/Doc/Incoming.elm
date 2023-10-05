@@ -3,7 +3,7 @@ port module Page.Doc.Incoming exposing (Msg(..), subscribe)
 import Coders exposing (..)
 import File exposing (File)
 import Json.Decode as Dec exposing (Decoder, decodeValue, errorToString, field)
-import Types exposing (Children(..), CollabState, CursorPosition(..), OutsideData, TextCursorInfo, Tree)
+import Types exposing (Children(..), Collaborator, CursorPosition(..), OutsideData, TextCursorInfo, Tree)
 
 
 type
@@ -27,7 +27,7 @@ type
     | Keyboard String
       -- === Misc ===
     | WillPrint
-    | RecvCollabState CollabState
+    | RecvCollabState Collaborator
     | CollaboratorDisconnected String
       -- === TESTING ===
     | TestTextImportLoaded (List File)

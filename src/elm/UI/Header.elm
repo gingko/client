@@ -16,7 +16,7 @@ import Page.Doc.Theme exposing (Theme(..))
 import Session exposing (LoggedIn)
 import Time
 import Translation exposing (Language, TranslationId(..))
-import Types exposing (CollabState, TooltipPosition(..), Tree)
+import Types exposing (Collaborator, TooltipPosition(..), Tree)
 import UI.Collaborators
 import Utils exposing (emptyText, text, textNoTr)
 
@@ -71,7 +71,7 @@ viewHeader :
         , lastLocalSave : Maybe Time.Posix
         , lastRemoteSave : Maybe Time.Posix
         , globalData : GlobalData
-        , collaborators : List CollabState
+        , collaborators : List Collaborator
         }
     -> Html msg
 viewHeader msgs { session, title_, titleField_, headerMenu, isGitLike, exportSettings, data, dirty, lastLocalSave, lastRemoteSave, globalData, collaborators } =

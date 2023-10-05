@@ -3,7 +3,7 @@ module Coders exposing (collabStateDecoder, collabStateEncoder, fontSettingsEnco
 import Doc.Fonts as Fonts
 import Json.Decode as Json exposing (..)
 import Json.Encode as Enc
-import Parser exposing ((|.), (|=), DeadEnd, Parser, Step(..), Trailing(..), chompUntil, getChompedString, keyword, loop, spaces, symbol)
+import Parser exposing ((|.), (|=), DeadEnd, Parser, Step(..), Trailing(..), chompUntil, getChompedString, loop, symbol)
 import Regex
 import Types exposing (..)
 
@@ -51,10 +51,11 @@ treeOrString =
 -- ViewState
 
 
-collabStateDecoder : Decoder CollabState
+collabStateDecoder : Decoder Collaborator
 collabStateDecoder =
-    Json.map2 CollabState
+    Json.map3 Collaborator
         (field "uid" string)
+        (field "u" string)
         (field "m" modeDecoder)
 
 

@@ -2280,7 +2280,7 @@ viewGroup vstate xs =
         )
 
 
-viewCardOther : String -> String -> List CollabState -> Bool -> Bool -> Bool -> Bool -> ( DragDrop.Model String DropId, DragExternalModel ) -> Html Msg
+viewCardOther : String -> String -> List Collaborator -> Bool -> Bool -> Bool -> Bool -> ( DragDrop.Model String DropId, DragExternalModel ) -> Html Msg
 viewCardOther cardId content collabsOnCard isEditing isParent isAncestor isLast dragModels =
     let
         collabsEditingCard =
@@ -2315,7 +2315,7 @@ viewCardOther cardId content collabsOnCard isEditing isParent isAncestor isLast 
         )
 
 
-viewCardActive : Language -> String -> String -> Bool -> Bool -> List CollabState -> ( DragDrop.Model String DropId, DragExternalModel ) -> Html Msg
+viewCardActive : Language -> String -> String -> Bool -> Bool -> List Collaborator -> ( DragDrop.Model String DropId, DragExternalModel ) -> Html Msg
 viewCardActive lang cardId content isParent isLast collabsOnCard dragModels =
     let
         collabsEditingCard =
@@ -2569,7 +2569,7 @@ viewContent cardId content =
         processedContent
 
 
-collabsSpan : List CollabState -> Html Msg
+collabsSpan : List Collaborator -> Html Msg
 collabsSpan collabs =
     let
         collabsString =
@@ -2795,7 +2795,7 @@ getWorkingTree (Model model) =
         |> .workingTree
 
 
-getCollaborators : Model -> List CollabState
+getCollaborators : Model -> List Collaborator
 getCollaborators (Model model) =
     model
         |> .viewState

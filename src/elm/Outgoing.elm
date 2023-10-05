@@ -5,7 +5,7 @@ import Doc.Fonts as Fonts
 import Doc.TreeUtils exposing (ScrollPosition, scrollPositionToValue)
 import Json.Encode as Enc exposing (..)
 import Page.Doc.Theme as Theme exposing (Theme)
-import Types exposing (CollabState, CursorPosition(..), DropId, OutsideData, TextCursorInfo, Tree)
+import Types exposing (Collaborator, CursorPosition(..), DropId, OutsideData, TextCursorInfo, Tree)
 
 
 

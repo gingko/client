@@ -2256,10 +2256,11 @@ span.trial-dark {
 
 span.collaborators {
   position: absolute;
-  top: 5px;
-  right: 5px;
+  bottom: 4px;
+  right: 15px;
+  z-index: 9999;
   color: hsl(208, 56%, 30%);
-  font-size: 80%;
+  font-size: 50%;
 }
 
 .card.collab-active {

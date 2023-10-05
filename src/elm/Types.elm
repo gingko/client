@@ -1,4 +1,4 @@
-module Types exposing (CardTreeOp(..), Children(..), CollabState, CollabStateMode(..), Column, ConflictSelection(..), CursorPosition(..), DragExternalModel, DropId(..), Group, OutsideData, SortBy(..), TextCursorInfo, Toast, ToastPersistence(..), ToastRole(..), TooltipPosition(..), Tree, ViewMode(..), ViewState, VisibleViewMode(..), VisibleViewState, dropIdToValue)
+module Types exposing (CardTreeOp(..), Children(..), CollabStateMode(..), Collaborator, Column, ConflictSelection(..), CursorPosition(..), DragExternalModel, DropId(..), Group, OutsideData, SortBy(..), TextCursorInfo, Toast, ToastPersistence(..), ToastRole(..), TooltipPosition(..), Tree, ViewMode(..), ViewState, VisibleViewMode(..), VisibleViewState, dropIdToValue)
 
 import Html5.DragDrop as DragDrop
 import Json.Encode as Enc
@@ -134,8 +134,9 @@ type TooltipPosition
     | BelowLeftTooltip
 
 
-type alias CollabState =
+type alias Collaborator =
     { uid : String
+    , name : String
     , mode : CollabStateMode
     }
 
@@ -155,7 +156,7 @@ type alias ViewState =
     , draggedTree : Maybe ( Tree, String, Int )
     , copiedTree : Maybe Tree
     , clipboardTree : Maybe Tree
-    , collaborators : List CollabState
+    , collaborators : List Collaborator
     }
 
 
@@ -165,7 +166,7 @@ type alias VisibleViewState =
     , descendants : List String
     , ancestors : List String
     , dragModel : ( DragDrop.Model String DropId, DragExternalModel )
-    , collaborators : List CollabState
+    , collaborators : List Collaborator
     , language : Translation.Language
     , isMac : Bool
     }
