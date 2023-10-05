@@ -53,10 +53,11 @@ treeOrString =
 
 collabStateDecoder : Decoder Collaborator
 collabStateDecoder =
-    Json.map3 Collaborator
+    Json.map4 Collaborator
         (field "uid" string)
         (field "u" string)
         (field "m" modeDecoder)
+        (succeed 0)
 
 
 

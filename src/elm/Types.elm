@@ -138,6 +138,7 @@ type alias Collaborator =
     { uid : String
     , name : String
     , mode : CollabStateMode
+    , int : Int
     }
 
 

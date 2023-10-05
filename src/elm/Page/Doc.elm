@@ -922,23 +922,33 @@ incoming incomingMsg model =
         -- === Misc ===
         RecvCollabState collabState ->
             let
+                assignedInts =
+                    List.map .int vs.collaborators
+
+                nextAvailableInt =
+                    List.range 0 (List.length vs.collaborators + 1)
+                        |> List.filter (\i -> not (List.member i assignedInts))
+                        |> List.head
+                        |> Maybe.withDefault 0
+                        |> Debug.log "nextAvailableInt"
+
                 newCollabs =
                     if List.member collabState.uid (vs.collaborators |> List.map .uid) then
                         vs.collaborators
                             |> List.map
                                 (\c ->
                                     if c.uid == collabState.uid then
-                                        collabState
+                                        { collabState | int = c.int }
 
                                     else
                                         c
                                 )
 
                     else
-                        collabState :: vs.collaborators
+                        { collabState | int = nextAvailableInt } :: vs.collaborators
             in
             ( { model
-                | viewState = { vs | collaborators = newCollabs }
+                | viewState = { vs | collaborators = newCollabs |> Debug.log "newCollabs" }
               }
             , Cmd.none
             , []
