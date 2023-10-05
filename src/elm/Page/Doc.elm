@@ -444,8 +444,8 @@ incoming incomingMsg model =
 
         -- === DOM ===
         InitialActivation firstCardId ->
-            case vs.viewMode of
-                Normal "" ->
+            case vs.viewMode |> Debug.log "InitialActivation viewMode" of
+                Normal currId ->
                     ( model, Cmd.none, [] )
                         |> andThen (changeMode { to = Normal activeId, instant = True, save = False })
 
@@ -1038,7 +1038,7 @@ changeMode { to, instant, save } model =
                 updateCollabState : Bool -> CollabStateMode -> ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
                 updateCollabState condition newCollabState prevModel =
                     ( prevModel
-                    , if condition then
+                    , if instant || condition then
                         send (SendCollabState (collabStateEncoder newCollabState))
 
                       else

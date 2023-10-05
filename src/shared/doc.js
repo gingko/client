@@ -313,7 +313,11 @@ function initWebSocket () {
           break
 
         case 'rt':
-          toElm(data.d, 'docMsgs', 'RecvCollabState');
+          if (Array.isArray(data.d.m) && data.d.m[0] == "d") {
+            toElm(data.d.uid, 'docMsgs', 'CollaboratorDisconnected')
+          } else {
+            toElm(data.d, 'docMsgs', 'RecvCollabState');
+          }
           break;
       }
     } catch (e) {
@@ -792,7 +796,7 @@ const fromElm = (msg, elmData) => {
     // === UI ===
     SendCollabState: () => {
       wsSend('rt'
-        , {uid: CLIENT_ID, tr: TREE_ID, m: elmData}, false);
+        , {uid: CLIENT_ID, tr: TREE_ID, m: elmData}, true);
     },
     UpdateCommits: () => {},
 
