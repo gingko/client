@@ -2261,7 +2261,43 @@ span.collaborators {
   z-index: 9999;
   border-radius: 4px 0 0 4px;
 }
-
+.collab-editing .view {
+  filter: blur(1.5px);
+}
+.typing-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  will-change: transform;
+  width: auto;
+  height: min-content;
+  border-radius: 0.25rem;
+  padding: 5px;
+}
+.typing-indicator span {
+  height: 7px;
+  width: 7px;
+  float: left;
+  margin: 0 1px;
+  background-color: #9E9EA1;
+  display: block;
+  border-radius: 50%;
+  opacity: 0.4;
+}
+.typing-indicator span:nth-of-type(1) {
+  -webkit-animation: 1s blink infinite 0.3333s;
+  animation: 1s blink infinite 0.3333s;
+}
+.typing-indicator span:nth-of-type(2) {
+  -webkit-animation: 1s blink infinite 0.6666s;
+  animation: 1s blink infinite 0.6666s;
+}
+.typing-indicator span:nth-of-type(3) {
+  -webkit-animation: 1s blink infinite 1s;
+  animation: 1s blink infinite 1s;
+}
+@keyframes blink { 50% { opacity: 1; }  }
 
 .card.collab-active.collab-editing::after {
   content: '\A';

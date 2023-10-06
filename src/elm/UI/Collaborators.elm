@@ -120,10 +120,22 @@ viewOnCard collabs =
          ]
             ++ editingBorder
         )
-        (List.map viewCollabSmall collabs)
+        (List.map viewCollabSmall collabs
+            ++ (case editor_ of
+                    Just editor ->
+                        let
+                            bgColor =
+                                getColorFromIdx editor.int |> colorToRgbString
+                        in
+                        [ viewEditingMarker bgColor ]
+
+                    Nothing ->
+                        []
+               )
+        )
 
 
-viewCollabSmall : Collaborator -> Html msg
+viewCollabSmall : { a | int : Int, mode : CollabStateMode } -> Html msg
 viewCollabSmall collab =
     let
         collabColor =
@@ -133,5 +145,17 @@ viewCollabSmall collab =
         [ style "background-color" collabColor
         , style "width" "4px"
         , style "height" "100%"
+        , style "display" "flex"
+        , style "justify-content" "center"
+        , style "align-items" "center"
         ]
         []
+
+
+viewEditingMarker : String -> Html msg
+viewEditingMarker bgColor =
+    div
+        [ class "typing-indicator"
+        , style "background-color" "white"
+        ]
+        (List.repeat 3 (span [ style "background-color" bgColor ] []))
