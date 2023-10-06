@@ -2,11 +2,13 @@ module UI.Collaborators exposing (viewHeader, viewOnCard)
 
 import Ant.Icons.Svg as AntIcons
 import Html exposing (Html, div, img, span, text)
-import Html.Attributes exposing (class, src, style, title)
+import Html.Attributes exposing (class, id, src, style, title)
+import Html.Events exposing (onMouseEnter, onMouseLeave)
 import List.Extra as ListExtra
 import Random
 import Svg.Attributes
-import Types exposing (CollabStateMode(..), Collaborator)
+import Translation exposing (TranslationId(..))
+import Types exposing (CollabStateMode(..), Collaborator, TooltipPosition(..))
 import Utils
 
 
@@ -57,13 +59,20 @@ whiteOrBlack ( r, g, b ) =
         "white"
 
 
-viewHeader : List Collaborator -> Html msg
-viewHeader collabs =
-    div [ style "display" "flex", style "gap" "5px", style "justify-content" "center" ] (List.map viewCollabInHeader collabs)
+type alias Messages msg =
+    { tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
+    , tooltipClosed : msg
+    }
 
 
-viewCollabInHeader : Collaborator -> Html msg
-viewCollabInHeader collab =
+viewHeader : Messages msg -> List Collaborator -> Html msg
+viewHeader msgs collabs =
+    div [ style "display" "flex", style "gap" "5px", style "justify-content" "center" ]
+        (List.map (viewCollabInHeader msgs) collabs)
+
+
+viewCollabInHeader : Messages msg -> Collaborator -> Html msg
+viewCollabInHeader msgs collab =
     let
         collabColor =
             getColorFromIdx collab.int
@@ -73,20 +82,25 @@ viewCollabInHeader collab =
 
         collabColorRgba =
             colorToRgbaString 0.6 collabColor
+
+        idString =
+            "collab-" ++ collab.uid
     in
     div
-        [ style "background-color" collabColorRgba
+        [ id idString
+        , style "background-color" collabColorRgba
         , style "border" ("2px solid " ++ collabColorRgb)
         , style "border-radius" "50%"
-        , style "width" "20px"
-        , style "height" "20px"
+        , style "width" "24px"
+        , style "height" "24px"
         , style "display" "flex"
         , style "justify-content" "center"
         , style "align-items" "center"
-        , title collab.name
+        , onMouseEnter <| msgs.tooltipRequested idString BelowLeftTooltip (NoTr collab.name)
+        , onMouseLeave msgs.tooltipClosed
         ]
         [ img
-            [ src (Utils.gravatar 16 collab.name)
+            [ src (Utils.gravatar 22 collab.name)
             , style "mix-blend-mode" "luminosity"
             , style "border-radius" "50%"
             ]
