@@ -2256,17 +2256,12 @@ span.trial-dark {
 
 span.collaborators {
   position: absolute;
-  bottom: 4px;
-  right: 15px;
+  bottom: 0;
+  top: 0;
   z-index: 9999;
-  color: hsl(208, 56%, 30%);
-  font-size: 50%;
+  border-radius: 4px 0 0 4px;
 }
 
-.card.collab-active {
-  border: none;
-  border-left: 4px solid #428bca;
-}
 
 .card.collab-active.collab-editing::after {
   content: '\A';
@@ -2275,13 +2270,8 @@ span.collaborators {
   height: 100%;
   top: 0;
   left: 0;
-  background: hsla(208, 56%, 53%, 0.4);
+  background: hsla(0, 0%, 70%, 0.4);
   pointer-events: none;
-}
-
-.card.active.collab-active {
-  border: none;
-  border-left: 4px solid #6aab7e;
 }
 /* === Toasts === */
 

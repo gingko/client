@@ -58,40 +58,11 @@ whiteOrBlack ( r, g, b ) =
 
 viewHeader : List Collaborator -> Html msg
 viewHeader collabs =
-    div [ style "display" "flex", style "gap" "5px" ] (List.map viewCollabInHeader collabs)
+    div [ style "display" "flex", style "gap" "5px", style "justify-content" "center" ] (List.map viewCollabInHeader collabs)
 
 
 viewCollabInHeader : Collaborator -> Html msg
 viewCollabInHeader collab =
-    let
-        collabColor =
-            getColorFromIdx collab.int |> colorToRgbString
-
-        collabColorAlpha =
-            getColorFromIdx collab.int |> colorToRgbaString 0.75
-    in
-    div
-        [ style "background-color" collabColorAlpha
-        , style "border-color" collabColor
-        , style "border-radius" "50%"
-        , style "border-width" "3px"
-        , style "border-style" "solid"
-        , style "width" "20px"
-        , style "height" "20px"
-        , style "display" "inline-block"
-        , title collab.name
-        ]
-        []
-
-
-viewOnCard : List Collaborator -> Html msg
-viewOnCard collabs =
-    span [ class "collaborators", style "display" "flex", style "gap" "5px" ]
-        (List.map viewCollabSmall collabs)
-
-
-viewCollabSmall : Collaborator -> Html msg
-viewCollabSmall collab =
     let
         collabColor =
             getColorFromIdx collab.int |> colorToRgbString
@@ -102,27 +73,65 @@ viewCollabSmall collab =
     div
         [ style "background-color" collabColor
         , style "border-radius" "500px"
-        , style "border" ("2px solid " ++ collabColor)
-        , style "padding" "2px 5px"
         , style "color" collabTextColor
-        , title collab.name
+        , style "padding" "2px 5px"
+        , style "display" "inline-block"
+        , style "font-size" "80%"
         ]
-        [ case collab.mode of
-            CollabEditing _ ->
-                span
-                    [ style "display" "flex"
-                    , style "justify-content" "center"
-                    , style "align-items" "center"
-                    , style "gap" "4px"
-                    ]
-                    [ text collab.name
-                    , AntIcons.editFilled
-                        [ Svg.Attributes.width "10px"
-                        , Svg.Attributes.height "10px"
-                        , Svg.Attributes.fill collabTextColor
-                        ]
+        [ text collab.name ]
+
+
+viewOnCard : List Collaborator -> Html msg
+viewOnCard collabs =
+    let
+        editor_ =
+            collabs
+                |> List.filter
+                    (\c ->
+                        case c.mode of
+                            CollabEditing _ ->
+                                True
+
+                            _ ->
+                                False
+                    )
+                |> List.head
+
+        editingBorder =
+            case editor_ of
+                Just editor ->
+                    let
+                        collabColor =
+                            getColorFromIdx editor.int |> colorToRgbaString 0.5
+                    in
+                    [ style "border" ("2px solid " ++ collabColor)
+                    , style "border-left" "none"
+                    , style "width" "100%"
+                    , style "height" "100%"
+                    , style "border-radius" "0 4px 4px 0"
                     ]
 
-            CollabActive _ ->
-                span [] [ text collab.name ]
+                Nothing ->
+                    []
+    in
+    span
+        ([ class "collaborators"
+         , style "display" "flex"
+         ]
+            ++ editingBorder
+        )
+        (List.map viewCollabSmall collabs)
+
+
+viewCollabSmall : Collaborator -> Html msg
+viewCollabSmall collab =
+    let
+        collabColor =
+            getColorFromIdx collab.int |> colorToRgbString
+    in
+    div
+        [ style "background-color" collabColor
+        , style "width" "4px"
+        , style "height" "100%"
         ]
+        []
