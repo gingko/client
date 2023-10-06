@@ -1,12 +1,13 @@
 module UI.Collaborators exposing (viewHeader, viewOnCard)
 
 import Ant.Icons.Svg as AntIcons
-import Html exposing (Html, div, span, text)
-import Html.Attributes exposing (class, style, title)
+import Html exposing (Html, div, img, span, text)
+import Html.Attributes exposing (class, src, style, title)
 import List.Extra as ListExtra
 import Random
 import Svg.Attributes
 import Types exposing (CollabStateMode(..), Collaborator)
+import Utils
 
 
 getColorFromIdx : Int -> ( Int, Int, Int )
@@ -65,20 +66,32 @@ viewCollabInHeader : Collaborator -> Html msg
 viewCollabInHeader collab =
     let
         collabColor =
-            getColorFromIdx collab.int |> colorToRgbString
+            getColorFromIdx collab.int
 
-        collabTextColor =
-            getColorFromIdx collab.int |> whiteOrBlack
+        collabColorRgb =
+            colorToRgbString collabColor
+
+        collabColorRgba =
+            colorToRgbaString 0.6 collabColor
     in
     div
-        [ style "background-color" collabColor
-        , style "border-radius" "500px"
-        , style "color" collabTextColor
-        , style "padding" "2px 5px"
-        , style "display" "inline-block"
-        , style "font-size" "80%"
+        [ style "background-color" collabColorRgba
+        , style "border" ("2px solid " ++ collabColorRgb)
+        , style "border-radius" "50%"
+        , style "width" "20px"
+        , style "height" "20px"
+        , style "display" "flex"
+        , style "justify-content" "center"
+        , style "align-items" "center"
+        , title collab.name
         ]
-        [ text collab.name ]
+        [ img
+            [ src (Utils.gravatar 16 collab.name)
+            , style "mix-blend-mode" "luminosity"
+            , style "border-radius" "50%"
+            ]
+            []
+        ]
 
 
 viewOnCard : List Collaborator -> Html msg

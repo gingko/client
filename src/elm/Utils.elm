@@ -1,4 +1,4 @@
-module Utils exposing (delay, emptyText, getFieldErrors, hash, hexEncode, myDebug, onClickStop, text, textNoTr)
+module Utils exposing (delay, emptyText, getFieldErrors, gravatar, hash, hexEncode, myDebug, onClickStop, text, textNoTr)
 
 {--import DebugToJson exposing (pp)--}
 
@@ -8,6 +8,7 @@ import Html.Events exposing (stopPropagationOn)
 import Json.Decode as Dec
 import Murmur3 exposing (hashString)
 import Process
+import SHA256
 import Task
 import Translation exposing (Language, TranslationId, tr)
 
@@ -35,6 +36,20 @@ hash seed str =
 delay : Int -> msg -> Cmd msg
 delay ms msg =
     Task.perform (always msg) (Process.sleep <| toFloat ms)
+
+
+gravatar : Int -> String -> String
+gravatar size rawEmail =
+    let
+        email =
+            rawEmail |> String.trim |> String.toLower
+
+        emailHash =
+            email
+                |> SHA256.fromString
+                |> SHA256.toHex
+    in
+    "https://www.gravatar.com/avatar/" ++ emailHash ++ "?s=" ++ String.fromInt size ++ "&d=identicon"
 
 
 
