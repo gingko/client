@@ -176,7 +176,7 @@ async function setUserDbs(eml) {
       toElm(docMetadatas, "documentListChanged");
     }
 
-    const unsyncedTrees = trees.filter(t => !t.synced);
+    const unsyncedTrees = trees.filter(t => !t.synced).map(t => _.omit(t, ['synced', 'collaborators']));
     if (unsyncedTrees.length > 0) {
       wsSend('trees', unsyncedTrees, false);
     }
@@ -731,6 +731,10 @@ const fromElm = (msg, elmData) => {
     // === Collaboration ===
     AddCollabRequest: () => {
       wsSend('rt:addCollab', { tr: elmData[0], c: elmData[1] }, true);
+    },
+
+    RemoveCollabRequest: () => {
+      wsSend('rt:removeCollab', { tr: elmData[0], c: elmData[1] }, true);
     },
 
     SendCollabState: () => {

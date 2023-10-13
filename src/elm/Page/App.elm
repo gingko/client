@@ -353,6 +353,7 @@ type Msg
     | CollabBtnClicked
     | CollabModalMsg UI.Collaborators.Modal.Msg
     | AddCollabRequested String
+    | RemoveCollabRequested String
       -- HEADER: Settings
     | DocSettingsToggled Bool
     | ThemeChanged Theme
@@ -1062,6 +1063,14 @@ update msg model =
             case model.documentState of
                 Doc { docId } ->
                     ( model, send <| AddCollabRequest docId collabEmail )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        RemoveCollabRequested collabEmail ->
+            case model.documentState of
+                Doc { docId } ->
+                    ( model, send <| RemoveCollabRequest docId collabEmail )
 
                 _ ->
                     ( model, Cmd.none )
@@ -2263,7 +2272,11 @@ viewModal globalData session modalState =
             Doc.Switcher.view SwitcherClosed FileSearchChanged switcherModel
 
         CollabModal collabModel ->
-            UI.Collaborators.Modal.view { toSelf = CollabModalMsg, addCollab = AddCollabRequested }
+            UI.Collaborators.Modal.view
+                { toSelf = CollabModalMsg
+                , addCollab = AddCollabRequested
+                , removeCollab = RemoveCollabRequested
+                }
                 language
                 collabModel
                 |> SharedUI.modalWrapper ModalClosed (Just "collab-modal") Nothing "Collaborators"

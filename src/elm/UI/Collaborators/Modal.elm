@@ -3,8 +3,8 @@ module UI.Collaborators.Modal exposing (..)
 -- MODEL
 
 import Ant.Icons.Svg as AntIcon
-import Html exposing (Html, br, div, hr, img, input, label, span, strong, text)
-import Html.Attributes exposing (autofocus, class, for, id, placeholder, src, type_)
+import Html exposing (Html, br, div, hr, img, input, span, strong, text)
+import Html.Attributes exposing (autofocus, class, id, placeholder, src, type_)
 import Html.Events exposing (onClick, onInput)
 import Svg.Attributes as SA exposing (height, width)
 import Translation
@@ -45,10 +45,10 @@ update msg model =
 -- VIEW
 
 
-view : { toSelf : Msg -> msg, addCollab : String -> msg } -> Translation.Language -> Model -> List (Html msg)
+view : { toSelf : Msg -> msg, addCollab : String -> msg, removeCollab : String -> msg } -> Translation.Language -> Model -> List (Html msg)
 view msgs lang model =
     if model.isOwner then
-        [ div [] (List.map viewCollab model.collabs)
+        [ div [] (List.map (viewCollab msgs.removeCollab) model.collabs)
         , div [ class "flex-row", class "gap-2", class "mt-3" ]
             [ input
                 [ id "add-collab-input"
@@ -88,12 +88,17 @@ view msgs lang model =
         ]
 
 
-viewCollab : String -> Html msg
-viewCollab email =
+viewCollab : (String -> msg) -> String -> Html msg
+viewCollab removeMsg email =
     div [ class "flex", class "items-center", class "gap-2", class "mb-2" ]
         [ img [ src (Utils.gravatar 22 email) ] []
         , span [ class "cursor-default" ] [ text email ]
-        , AntIcon.closeCircleFilled [ width "16px", height "16px", SA.class "cursor-pointer" ]
+        , AntIcon.closeCircleFilled
+            [ width "16px"
+            , height "16px"
+            , SA.class "cursor-pointer"
+            , onClick (removeMsg email)
+            ]
         ]
 
 
