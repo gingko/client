@@ -1,12 +1,9 @@
 module UI.Collaborators exposing (viewHeader, viewOnCard)
 
-import Ant.Icons.Svg as AntIcons
 import Html exposing (Html, div, img, span, text)
 import Html.Attributes exposing (class, id, src, style, title)
 import Html.Events exposing (onMouseEnter, onMouseLeave)
 import List.Extra as ListExtra
-import Random
-import Svg.Attributes
 import Translation exposing (TranslationId(..))
 import Types exposing (CollabStateMode(..), Collaborator, TooltipPosition(..))
 import Utils
@@ -30,7 +27,6 @@ getColorFromIdx idx =
 
         boundedIdx =
             modBy (List.length allColors) idx
-                |> Debug.log "boundedIdx"
     in
     ListExtra.getAt boundedIdx allColors
         |> Maybe.withDefault ( 211, 78, 51 )

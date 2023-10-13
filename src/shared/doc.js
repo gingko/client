@@ -70,6 +70,7 @@ let db;
 let gingko;
 let TREE_ID;
 const CLIENT_ID = uuid(12);
+let COLLAB_STATE;
 let DATA_TYPE;
 const CARD_DATA = Symbol.for("cardbased");
 const GIT_LIKE_DATA = Symbol.for("couchdb");
@@ -198,6 +199,10 @@ function initWebSocket () {
     })
     wsQueue = [];
 
+    if (TREE_ID) {
+      wsSend('rt:join', { tr: TREE_ID, uid: CLIENT_ID, m: COLLAB_STATE || null }, false);
+    }
+
     interval = setInterval(() => ws.send('ping'), 30000)
     setTimeout(() => toElm(null, 'appMsgs', 'SocketConnected') , 1000)
   }
@@ -209,6 +214,7 @@ function initWebSocket () {
 
     const data = JSON.parse(e.data)
     try {
+      console.log('ws:⋁', data.t, data.d);
       switch (data.t) {
         case 'user':
           console.log('user', JSON.stringify(data.d))
@@ -319,6 +325,10 @@ function initWebSocket () {
             toElm(data.d, 'docMsgs', 'RecvCollabState');
           }
           break;
+
+        case 'rt:users':
+          toElm(data.d, 'docMsgs', 'RecvCollabUsers');
+          break;
       }
     } catch (e) {
       console.log(e)
@@ -330,7 +340,11 @@ function initWebSocket () {
   }
 
   ws.onclose = (e) => {
-    console.log('ws closed', e);
+    console.log('ws:closed', e);
+
+    // Clear list of collaborators
+    toElm([], 'docMsgs', 'RecvCollabUsers');
+
     clearInterval(interval)
   }
 }
@@ -508,6 +522,7 @@ const fromElm = (msg, elmData) => {
     LoadDocument : async () => {
       TREE_ID = elmData;
 
+      wsSend('rt:join', { tr: TREE_ID, uid: CLIENT_ID, m: COLLAB_STATE }, true);
       // Load title
       const treeDoc = await dexie.trees.get(elmData);
       if (treeDoc) {
@@ -795,6 +810,7 @@ const fromElm = (msg, elmData) => {
 
     // === UI ===
     SendCollabState: () => {
+      COLLAB_STATE = elmData;
       wsSend('rt'
         , {uid: CLIENT_ID, tr: TREE_ID, m: elmData}, true);
     },
@@ -926,10 +942,11 @@ const fromElm = (msg, elmData) => {
 
 
 function wsSend(msgTag, msgData, queueIfNotReady) {
+  console.log("ws:⋀", msgTag, msgData, queueIfNotReady)
   if (ws.readyState === ws.OPEN) {
     ws.send(JSON.stringify({t: msgTag, d: msgData}));
   } else if (queueIfNotReady) {
-    console.log("WS not ready to send: ", ws.readyState, msgTag, msgData);
+    console.log("ws:not ready to send", ws.readyState, msgTag, msgData);
     wsQueue.push([msgTag, msgData])
   }
 }

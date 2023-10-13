@@ -28,6 +28,7 @@ type
       -- === Misc ===
     | WillPrint
     | RecvCollabState Collaborator
+    | RecvCollabUsers (List Collaborator)
     | CollaboratorDisconnected String
       -- === TESTING ===
     | TestTextImportLoaded (List File)
@@ -177,6 +178,14 @@ subscribe tagger onError =
                     case decodeValue collabStateDecoder outsideInfo.data of
                         Ok collabState ->
                             tagger <| RecvCollabState collabState
+
+                        Err e ->
+                            onError (errorToString e)
+
+                "RecvCollabUsers" ->
+                    case decodeValue (Dec.list collabStateDecoder) outsideInfo.data of
+                        Ok collabStates ->
+                            tagger <| RecvCollabUsers collabStates
 
                         Err e ->
                             onError (errorToString e)

@@ -954,6 +954,14 @@ incoming incomingMsg model =
             , []
             )
 
+        RecvCollabUsers users ->
+            ( { model
+                | viewState = { vs | collaborators = users }
+              }
+            , Cmd.none
+            , []
+            )
+
         CollaboratorDisconnected uid ->
             ( { model
                 | viewState =
