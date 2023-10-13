@@ -728,6 +728,16 @@ const fromElm = (msg, elmData) => {
 
       toElm(null, "importComplete");
     },
+    // === Collaboration ===
+    AddCollabRequest: () => {
+      wsSend('rt:addCollab', { tr: elmData[0], c: elmData[1] }, true);
+    },
+
+    SendCollabState: () => {
+      COLLAB_STATE = elmData;
+      wsSend('rt'
+        , {uid: CLIENT_ID, tr: TREE_ID, m: elmData}, true);
+    },
 
 
     // === DOM ===
@@ -809,11 +819,6 @@ const fromElm = (msg, elmData) => {
     },
 
     // === UI ===
-    SendCollabState: () => {
-      COLLAB_STATE = elmData;
-      wsSend('rt'
-        , {uid: CLIENT_ID, tr: TREE_ID, m: elmData}, true);
-    },
     UpdateCommits: () => {},
 
     HistorySlider: () => {

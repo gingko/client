@@ -349,8 +349,10 @@ type Msg
     | TitleFieldChanged String
     | TitleEdited
     | TitleEditCanceled
-      -- HEADER: Collab
+      -- Collab
     | CollabBtnClicked
+    | CollabModalMsg UI.Collaborators.Modal.Msg
+    | AddCollabRequested String
       -- HEADER: Settings
     | DocSettingsToggled Bool
     | ThemeChanged Theme
@@ -1020,9 +1022,46 @@ update msg model =
                     ( model, Cmd.none )
 
         CollabBtnClicked ->
+            case model.documentState of
+                Doc ({ docId } as docState) ->
+                    let
+                        currCollaborators_ : Maybe (List String)
+                        currCollaborators_ =
+                            Session.getMetadata session docId
+                                |> Maybe.map Metadata.getCollaborators
+                    in
+                    case currCollaborators_ of
+                        Just currCollaborators ->
+                            ( { model
+                                | modalState =
+                                    CollabModal
+                                        (UI.Collaborators.Modal.init (Session.name session) currCollaborators)
+                              }
+                            , Cmd.none
+                            )
+
+                        Nothing ->
+                            ( model, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        CollabModalMsg collabModalMsg ->
             case model.modalState of
-                NoModal ->
-                    ( { model | modalState = CollabModal UI.Collaborators.Modal.init }, Cmd.none )
+                CollabModal modalState ->
+                    let
+                        newModalState =
+                            UI.Collaborators.Modal.update collabModalMsg modalState
+                    in
+                    ( { model | modalState = CollabModal newModalState }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        AddCollabRequested collabEmail ->
+            case model.documentState of
+                Doc { docId } ->
+                    ( model, send <| AddCollabRequest docId collabEmail )
 
                 _ ->
                     ( model, Cmd.none )
@@ -2224,9 +2263,10 @@ viewModal globalData session modalState =
             Doc.Switcher.view SwitcherClosed FileSearchChanged switcherModel
 
         CollabModal collabModel ->
-            UI.Collaborators.Modal.view language
+            UI.Collaborators.Modal.view { toSelf = CollabModalMsg, addCollab = AddCollabRequested }
+                language
                 collabModel
-                |> SharedUI.modalWrapper ModalClosed (Just "collab-modal") Nothing "Collaboration"
+                |> SharedUI.modalWrapper ModalClosed (Just "collab-modal") Nothing "Collaborators"
 
         MigrateModal ->
             [ div [ class "top" ] [ h2 [] [ textNoTr "We've made major improvements to how documents are stored.", br [] [], textNoTr "Upgrade this document to make it :" ] ]

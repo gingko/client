@@ -36,6 +36,9 @@ type Msg
     | PullData
     | SaveImportedData Enc.Value
     | SaveBulkImportedData Enc.Value
+      -- === Collaboration ===
+    | AddCollabRequest String String
+    | SendCollabState Enc.Value
       -- === Desktop ===
     | SaveToFile String String
     | ExportToFile String String
@@ -53,7 +56,6 @@ type Msg
     | SetFullscreen Bool
     | PositionTourStep Int String
       -- === UI ===
-    | SendCollabState Enc.Value
     | UpdateCommits ( Enc.Value, Maybe String )
     | HistorySlider Bool Int
     | SetSidebarState Bool
@@ -141,6 +143,13 @@ send info =
         NoDataToSave ->
             dataToSend "NoDataToSave" null
 
+        -- === Collaboration ===
+        AddCollabRequest treeId collabEmail ->
+            dataToSend "AddCollabRequest" (tupleToValue string ( treeId, collabEmail ))
+
+        SendCollabState collabState ->
+            dataToSend "SendCollabState" collabState
+
         -- === Desktop ===
         SaveToFile filename str ->
             dataToSend "SaveToFile" (tupleToValue string ( filename, str ))
@@ -203,9 +212,6 @@ send info =
             dataToSend "PositionTourStep" (tupleToValue identity ( int step, string elId ))
 
         -- === UI ===
-        SendCollabState collabState ->
-            dataToSend "SendCollabState" collabState
-
         UpdateCommits ( objectsValue, head_ ) ->
             let
                 headToValue mbs =
