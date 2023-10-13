@@ -522,7 +522,7 @@ const fromElm = (msg, elmData) => {
     LoadDocument : async () => {
       TREE_ID = elmData;
 
-      wsSend('rt:join', { tr: TREE_ID, uid: CLIENT_ID, m: COLLAB_STATE }, true);
+      wsSend('rt:join', { tr: TREE_ID, uid: CLIENT_ID, m: COLLAB_STATE || null}, true);
       // Load title
       const treeDoc = await dexie.trees.get(elmData);
       if (treeDoc) {
@@ -954,11 +954,11 @@ function wsSend(msgTag, msgData, queueIfNotReady) {
 
 /* === Database === */
 
-const treeDocDefaults = {name: null, location: "couchdb", inviteUrl: null, collaborators: "[]", deletedAt: null};
+const treeDocDefaults = {name: null, location: "couchdb", inviteUrl: null, collaborators: [], deletedAt: null};
 const cardDefaults = {parentId: null, deleted: 0, content: "", position: 0, synced: false};
 
 function treeDocToMetadata(tree) {
-  return {docId: tree.id, name: tree.name, createdAt: tree.createdAt, updatedAt: tree.updatedAt, _rev: null}
+  return {docId: tree.id, name: tree.name, collaborators: tree.collaborators, createdAt: tree.createdAt, updatedAt: tree.updatedAt, _rev: null}
 }
 
 async function loadCardBasedDocument (treeId) {
