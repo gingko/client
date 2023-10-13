@@ -1,8 +1,9 @@
 module UI.Collaborators exposing (viewHeader, viewOnCard)
 
+import Ant.Icons.Svg as AntIcons
 import Html exposing (Html, div, img, span, text)
 import Html.Attributes exposing (class, id, src, style, title)
-import Html.Events exposing (onMouseEnter, onMouseLeave)
+import Html.Events exposing (onClick, onMouseEnter, onMouseLeave)
 import List.Extra as ListExtra
 import Translation exposing (TranslationId(..))
 import Types exposing (CollabStateMode(..), Collaborator, TooltipPosition(..))
@@ -56,15 +57,24 @@ whiteOrBlack ( r, g, b ) =
 
 
 type alias Messages msg =
-    { tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
+    { collabBtnClicked : msg
+    , tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
     , tooltipClosed : msg
     }
 
 
 viewHeader : Messages msg -> List Collaborator -> Html msg
 viewHeader msgs collabs =
-    div [ style "display" "flex", style "gap" "5px", style "justify-content" "center" ]
-        (List.map (viewCollabInHeader msgs) collabs)
+    div [ id "header-collaborators" ]
+        [ div [ style "display" "flex", style "gap" "5px", style "justify-content" "center", class "pr-1" ]
+            (List.map (viewCollabInHeader msgs) collabs)
+        , div
+            [ id "collab-button"
+            , class "header-button"
+            , onClick msgs.collabBtnClicked
+            ]
+            [ AntIcons.teamOutlined [] ]
+        ]
 
 
 viewCollabInHeader : Messages msg -> Collaborator -> Html msg

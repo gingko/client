@@ -48,6 +48,7 @@ import Time
 import Toast
 import Translation exposing (Language, TranslationId(..), langToString, tr)
 import Types exposing (CardTreeOp(..), ConflictSelection(..), OutsideData, SortBy(..), Toast, ToastPersistence(..), ToastRole(..), TooltipPosition, Tree, ViewMode(..))
+import UI.Collaborators.Modal
 import UI.Header exposing (HeaderMenuState(..), viewHeader)
 import UI.Sidebar exposing (SidebarMenuState(..), SidebarState(..), viewSidebar)
 import Upgrade exposing (Msg(..))
@@ -105,6 +106,7 @@ type alias DbData =
 type ModalState
     = NoModal
     | FileSwitcher Doc.Switcher.Model
+    | CollabModal UI.Collaborators.Modal.Model
     | MigrateModal
     | SidebarContextMenu String ( Float, Float )
     | TemplateSelector
@@ -177,7 +179,7 @@ init nKey globalData session dbData_ =
                         { session = session
                         , docId = dbData.dbName
                         , docModel = Page.Doc.init False globalData
-                        , data = Data.empty
+                        , data = Data.emptyCardBased
                         , lastRemoteSave = Nothing
                         , lastLocalSave = Nothing
                         , titleField = Session.getDocName session dbData.dbName
@@ -347,6 +349,8 @@ type Msg
     | TitleFieldChanged String
     | TitleEdited
     | TitleEditCanceled
+      -- HEADER: Collab
+    | CollabBtnClicked
       -- HEADER: Settings
     | DocSettingsToggled Bool
     | ThemeChanged Theme
@@ -1011,6 +1015,14 @@ update msg model =
                     ( { model | documentState = Doc { docState | titleField = Session.getDocName session docId } }
                     , Task.attempt (always NoOp) (Browser.Dom.blur "title-rename")
                     )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        CollabBtnClicked ->
+            case model.modalState of
+                NoModal ->
+                    ( { model | modalState = CollabModal UI.Collaborators.Modal.init }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -2094,6 +2106,7 @@ view ({ documentState } as model) =
                                 , titleEditCanceled = TitleEditCanceled
                                 , tooltipRequested = TooltipRequested
                                 , tooltipClosed = TooltipClosed
+                                , collabBtnClicked = CollabBtnClicked
                                 , migrateClicked = MigrateModalCalled
                                 , toggledHistory = HistoryToggled
                                 , checkoutTree = CheckoutVersion
@@ -2209,6 +2222,11 @@ viewModal globalData session modalState =
 
         FileSwitcher switcherModel ->
             Doc.Switcher.view SwitcherClosed FileSearchChanged switcherModel
+
+        CollabModal collabModel ->
+            UI.Collaborators.Modal.view language
+                collabModel
+                |> SharedUI.modalWrapper ModalClosed (Just "collab-modal") Nothing "Collaboration"
 
         MigrateModal ->
             [ div [ class "top" ] [ h2 [] [ textNoTr "We've made major improvements to how documents are stored.", br [] [], textNoTr "Upgrade this document to make it :" ] ]

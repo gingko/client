@@ -874,8 +874,6 @@ a.sidebar-menu-item, a.sidebar-menu-item:visited {
   box-shadow: var(--small-shadow);
 }
 #header-collaborators {
-  padding: 0 10px;
-  cursor: pointer;
   fill: var(--ui-1-fg);
   grid-area: migrate-button;
   display: flex;

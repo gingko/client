@@ -44,6 +44,7 @@ viewHeader :
     , titleEditCanceled : msg
     , tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
     , tooltipClosed : msg
+    , collabBtnClicked : msg
     , migrateClicked : msg
     , toggledHistory : Bool -> msg
     , checkoutTree : String -> msg
@@ -142,11 +143,7 @@ viewHeader msgs { session, title_, titleField_, headerMenu, isGitLike, exportSet
     in
     div [ id "document-header" ]
         [ titleArea
-        , viewIf (not (List.isEmpty collaborators)) <|
-            div
-                [ id "header-collaborators" ]
-                [ UI.Collaborators.viewHeader { tooltipRequested = msgs.tooltipRequested, tooltipClosed = msgs.tooltipClosed } collaborators ]
-        , viewIf isGitLike <|
+        , if isGitLike then
             div
                 [ id "migrate-button"
                 , class "header-button"
@@ -155,6 +152,14 @@ viewHeader msgs { session, title_, titleField_, headerMenu, isGitLike, exportSet
                 , onMouseLeave msgs.tooltipClosed
                 ]
                 [ AntIcons.thunderboltFilled [] ]
+
+          else
+            UI.Collaborators.viewHeader
+                { collabBtnClicked = msgs.collabBtnClicked
+                , tooltipRequested = msgs.tooltipRequested
+                , tooltipClosed = msgs.tooltipClosed
+                }
+                collaborators
         , div
             [ id "history-icon"
             , class "header-button"
