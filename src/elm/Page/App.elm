@@ -2330,6 +2330,10 @@ viewModal globalData session modalState =
                 |> SharedUI.modalWrapper ModalClosed (Just "migrate-modal") Nothing "\u{200E}"
 
         SidebarContextMenu docId ( x, y ) ->
+            let
+                isOwner =
+                    Session.isOwner session docId
+            in
             [ div [ onClick ModalClosed, id "sidebar-context-overlay" ] []
             , div
                 [ id "sidebar-context-menu"
@@ -2338,8 +2342,12 @@ viewModal globalData session modalState =
                 ]
                 [ div [ onClick (DuplicateDoc docId), class "context-menu-item" ]
                     [ AntIcons.copyOutlined [ Svg.Attributes.class "icon" ], text language DuplicateDocument ]
-                , div [ onClick (DeleteDoc docId), class "context-menu-item" ]
-                    [ AntIcons.deleteOutlined [ Svg.Attributes.class "icon" ], text language DeleteDocument ]
+                , if isOwner then
+                    div [ onClick (DeleteDoc docId), class "context-menu-item" ]
+                        [ AntIcons.deleteOutlined [ Svg.Attributes.class "icon" ], text language DeleteDocument ]
+
+                  else
+                    textNoTr ""
                 ]
             ]
 
