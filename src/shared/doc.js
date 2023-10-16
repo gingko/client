@@ -1000,7 +1000,26 @@ async function loadCardBasedDocument (treeId) {
   cardDataSubscription = Dexie.liveQuery(() => dexie.cards.where("treeId").equals(treeId).toArray()).subscribe((cards) => {
     //console.log("LiveQuery update", cards);
     if (cards.length > 0) {
+      // Preserve textarea field and cursor position.
+      let currActive = document.activeElement;
+      let currActiveId = currActive ? currActive.id : null;
+      let currActivePos = currActive ? currActive.selectionStart : null;
+      let currActiveContent = currActive ? currActive.value : null;
+
       toElm(cards, "appMsgs", "CardDataReceived");
+
+      // Restore textarea field and cursor position.
+      requestAnimationFrame(() => {
+        let newActive = document.getElementById(currActiveId);
+        if (newActive) {
+          newActive.focus();
+          newActive.value = currActiveContent;
+          newActive.selectionStart = currActivePos;
+          newActive.selectionEnd = currActivePos;
+        }
+      });
+
+
       saveBackupToImmortalDB(treeId, cards);
       if (firstLoad) {
         firstLoad = false;
