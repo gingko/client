@@ -956,7 +956,13 @@ incoming incomingMsg model =
 
         RecvCollabUsers users ->
             ( { model
-                | viewState = { vs | collaborators = users }
+                | viewState =
+                    { vs
+                        | collaborators =
+                            users
+                                |> List.sortBy .uid
+                                |> List.indexedMap (\i u -> { u | int = i })
+                    }
               }
             , Cmd.none
             , []
