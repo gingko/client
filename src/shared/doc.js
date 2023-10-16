@@ -329,6 +329,13 @@ function initWebSocket () {
         case 'rt:users':
           toElm(data.d, 'docMsgs', 'RecvCollabUsers');
           break;
+
+        case 'removedFrom':
+          await dexie.trees.delete(data.d);
+          if (data.d === TREE_ID) {
+            location.assign('/');
+          }
+          break;
       }
     } catch (e) {
       console.log(e)

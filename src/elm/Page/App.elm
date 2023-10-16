@@ -943,8 +943,22 @@ update msg model =
 
                         _ ->
                             ( Cmd.none, True )
+
+                maybeUpdateTitleField m =
+                    case m.documentState of
+                        Doc ({ docId } as docState) ->
+                            case Session.getDocName session docId of
+                                Just docName ->
+                                    ( { m | documentState = Doc { docState | titleField = Just docName } }, Cmd.none )
+
+                                Nothing ->
+                                    ( m, Cmd.none )
+
+                        _ ->
+                            ( model, Cmd.none )
             in
             ( { model | loading = isLoading } |> updateSession newSession, routeCmd )
+                |> andThen maybeUpdateTitleField
 
         SwitcherOpened ->
             case model.documentState of
@@ -1050,11 +1064,16 @@ update msg model =
         CollabModalMsg collabModalMsg ->
             case model.modalState of
                 CollabModal modalState ->
-                    let
-                        newModalState =
-                            UI.Collaborators.Modal.update collabModalMsg modalState
-                    in
-                    ( { model | modalState = CollabModal newModalState }, Cmd.none )
+                    case model.documentState of
+                        Doc { docId } ->
+                            let
+                                newModalState =
+                                    UI.Collaborators.Modal.update docId collabModalMsg modalState
+                            in
+                            ( { model | modalState = CollabModal newModalState }, Cmd.none )
+
+                        _ ->
+                            ( model, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -2092,6 +2111,9 @@ view ({ documentState } as model) =
 
                 globalData =
                     Page.Doc.getGlobalData docModel
+
+                isOwner =
+                    Session.isOwner session docId
             in
             if isFullscreen then
                 div [ id "app-root", classList [ ( "loading", model.loading ) ], applyTheme model.theme ]
@@ -2176,6 +2198,7 @@ view ({ documentState } as model) =
                                 , headerMenu = model.headerMenu
                                 , collaborators = collaborators
                                 , isGitLike = Data.isGitLike data
+                                , isOwner = isOwner
                                 , exportSettings = model.exportSettings
                                 , data = data
                                 , dirty = dirty
@@ -2542,6 +2565,13 @@ subscriptions model =
             ImportModal importModalModel ->
                 ImportModal.subscriptions importModalModel
                     |> Sub.map ImportModalMsg
+
+            _ ->
+                Sub.none
+        , case model.modalState of
+            CollabModal collabModel ->
+                UI.Collaborators.Modal.subscriptions
+                    |> Sub.map CollabModalMsg
 
             _ ->
                 Sub.none

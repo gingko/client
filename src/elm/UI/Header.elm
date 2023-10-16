@@ -6,7 +6,7 @@ import Doc.History as History
 import Doc.UI exposing (viewSaveIndicator)
 import GlobalData exposing (GlobalData)
 import Html exposing (Html, div, h4, input, span)
-import Html.Attributes exposing (attribute, class, classList, id, size, style, type_, value, width)
+import Html.Attributes exposing (attribute, class, classList, disabled, id, size, style, type_, value, width)
 import Html.Attributes.Extra exposing (attributeIf)
 import Html.Events exposing (keyCode, on, onBlur, onClick, onFocus, onInput, onMouseEnter, onMouseLeave)
 import Html.Extra exposing (viewIf)
@@ -66,6 +66,7 @@ viewHeader :
         , titleField_ : Maybe String
         , headerMenu : HeaderMenuState
         , isGitLike : Bool
+        , isOwner : Bool
         , exportSettings : ( ExportSelection, ExportFormat )
         , data : Data.Model
         , dirty : Bool
@@ -75,7 +76,7 @@ viewHeader :
         , collaborators : List Collaborator
         }
     -> Html msg
-viewHeader msgs { session, title_, titleField_, headerMenu, isGitLike, exportSettings, data, dirty, lastLocalSave, lastRemoteSave, globalData, collaborators } =
+viewHeader msgs { session, title_, titleField_, headerMenu, isGitLike, isOwner, exportSettings, data, dirty, lastLocalSave, lastRemoteSave, globalData, collaborators } =
     let
         language =
             GlobalData.language globalData
@@ -115,18 +116,31 @@ viewHeader msgs { session, title_, titleField_, headerMenu, isGitLike, exportSet
                             else
                                 " "
                         ]
-                    , input
-                        [ id "title-rename"
-                        , type_ "text"
-                        , onInput msgs.titleFieldChanged
-                        , onBlur msgs.titleEdited
-                        , onFocus msgs.titleFocused
-                        , handleKeys
-                        , size 1
-                        , value titleString
-                        , attribute "data-private" "lipsum"
-                        ]
-                        []
+                    , if isOwner then
+                        input
+                            [ id "title-rename"
+                            , type_ "text"
+                            , onInput msgs.titleFieldChanged
+                            , onBlur msgs.titleEdited
+                            , onFocus msgs.titleFocused
+                            , handleKeys
+                            , size 1
+                            , value titleString
+                            , attribute "data-private" "lipsum"
+                            ]
+                            []
+
+                      else
+                        input
+                            [ id "title-rename"
+                            , type_ "text"
+                            , size 1
+                            , value titleString
+                            , attribute "data-private" "lipsum"
+                            , style "cursor" "not-allowed"
+                            , disabled True
+                            ]
+                            []
                     ]
                 , viewSaveIndicator language
                     { dirty = dirty, lastLocalSave = lastLocalSave, lastRemoteSave = lastRemoteSave }

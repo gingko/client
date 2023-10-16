@@ -1,4 +1,4 @@
-port module Session exposing (Guest, LoggedIn, PaymentStatus(..), Session(..), UserSource(..), confirmEmail, daysLeft, decode, documents, endFirstRun, fileMenuOpen, fromLegacy, getDocName, getMetadata, isFirstRun, isNotConfirmed, lastDocId, logout, name, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, setFileOpen, setShortcutTrayOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, toGuest, updateDocuments, updateUpgrade, upgradeModel, userLoggedIn, userLoggedOut, userSettingsChange)
+port module Session exposing (Guest, LoggedIn, PaymentStatus(..), Session(..), UserSource(..), confirmEmail, daysLeft, decode, documents, endFirstRun, fileMenuOpen, fromLegacy, getDocName, getMetadata, isFirstRun, isNotConfirmed, isOwner, lastDocId, logout, name, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, setFileOpen, setShortcutTrayOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, toGuest, updateDocuments, updateUpgrade, upgradeModel, userLoggedIn, userLoggedOut, userSettingsChange)
 
 import Coders exposing (sortByDecoder)
 import Doc.List as DocList exposing (Model(..))
@@ -165,6 +165,14 @@ getDocName : LoggedIn -> String -> Maybe String
 getDocName session docId =
     getMetadata session docId
         |> Maybe.andThen Metadata.getDocName
+
+
+isOwner : LoggedIn -> String -> Bool
+isOwner session docId =
+    getMetadata session docId
+        |> Maybe.map Metadata.getCollaborators
+        |> Maybe.map (not << List.member (name session))
+        |> Maybe.withDefault False
 
 
 

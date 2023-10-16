@@ -3,9 +3,12 @@ module UI.Collaborators.Modal exposing (..)
 -- MODEL
 
 import Ant.Icons.Svg as AntIcon
+import Doc.List exposing (documentListChanged)
+import Doc.Metadata as Metadata
 import Html exposing (Html, br, div, hr, img, input, span, strong, text)
 import Html.Attributes exposing (autofocus, class, id, placeholder, src, type_)
 import Html.Events exposing (onClick, onInput)
+import Json.Decode as Dec
 import Svg.Attributes as SA exposing (height, width)
 import Translation
 import Utils
@@ -32,13 +35,28 @@ init myEmail collabs =
 
 type Msg
     = AddCollabFieldUpdated String
+    | DocListChanged Dec.Value
 
 
-update : Msg -> Model -> Model
-update msg model =
+update : String -> Msg -> Model -> Model
+update docId msg model =
     case msg of
         AddCollabFieldUpdated newCollabField ->
             { model | newCollabField = newCollabField }
+
+        DocListChanged value ->
+            case Dec.decodeValue Metadata.listDecoder value of
+                Ok docList ->
+                    let
+                        collabsNew =
+                            docList
+                                |> List.filter (\d -> docId == Metadata.getDocId d)
+                                |> List.concatMap Metadata.getCollaborators
+                    in
+                    { model | collabs = collabsNew }
+
+                Err _ ->
+                    model
 
 
 
@@ -126,3 +144,12 @@ betaWarning lang =
             , text "Please back up your document regularly while testing this feature."
             ]
         ]
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Sub Msg
+subscriptions =
+    documentListChanged DocListChanged
