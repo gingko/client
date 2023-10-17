@@ -1008,16 +1008,18 @@ async function loadCardBasedDocument (treeId) {
 
       toElm(cards, "appMsgs", "CardDataReceived");
 
-      // Restore textarea field and cursor position.
-      requestAnimationFrame(() => {
-        let newActive = document.getElementById(currActiveId);
-        if (newActive) {
-          newActive.focus();
-          newActive.value = currActiveContent;
-          newActive.selectionStart = currActivePos;
-          newActive.selectionEnd = currActivePos;
-        }
-      });
+      if (currActiveId && currActiveId.startsWith("card-edit-")) {
+        // Restore textarea field and cursor position.
+        requestAnimationFrame(() => {
+          let newActive = document.getElementById(currActiveId);
+          if (newActive) {
+            newActive.focus();
+            newActive.value = currActiveContent;
+            newActive.selectionStart = currActivePos;
+            newActive.selectionEnd = currActivePos;
+          }
+        });
+      }
 
 
       saveBackupToImmortalDB(treeId, cards);
