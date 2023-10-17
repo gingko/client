@@ -955,7 +955,7 @@ update msg model =
                                     ( m, Cmd.none )
 
                         _ ->
-                            ( model, Cmd.none )
+                            ( m, Cmd.none )
             in
             ( { model | loading = isLoading } |> updateSession newSession, routeCmd )
                 |> andThen maybeUpdateTitleField
