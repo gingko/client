@@ -444,7 +444,7 @@ incoming incomingMsg model =
 
         -- === DOM ===
         InitialActivation firstCardId ->
-            case vs.viewMode |> Debug.log "InitialActivation viewMode" of
+            case vs.viewMode of
                 Normal currId ->
                     ( model, Cmd.none, [] )
                         |> andThen (changeMode { to = Normal activeId, instant = True, save = False })
@@ -1591,9 +1591,6 @@ goToBottomOfGroup id fallToNextGroup ( model, prevCmd, prevMsgsToParent ) =
 cancelCard : ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 cancelCard ( model, prevCmd, prevMsgsToParent ) =
     let
-        vs =
-            model.viewState
-
         activeId =
             getActiveId (Model model)
     in
@@ -2591,25 +2588,6 @@ viewContent cardId content =
     Markdown.toHtmlWith options
         [ attribute "data-private" "lipsum" ]
         processedContent
-
-
-collabsSpan : List Collaborator -> Html Msg
-collabsSpan collabs =
-    let
-        collabsString =
-            collabs
-                |> List.map
-                    (\c ->
-                        case c.mode of
-                            CollabActive _ ->
-                                c.uid
-
-                            CollabEditing _ ->
-                                c.uid ++ " (editing)"
-                    )
-                |> String.join ", "
-    in
-    span [ class "collaborators" ] [ text collabsString ]
 
 
 

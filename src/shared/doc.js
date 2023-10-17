@@ -214,7 +214,6 @@ function initWebSocket () {
 
     const data = JSON.parse(e.data)
     try {
-      console.log('ws:⋁', data.t, data.d);
       switch (data.t) {
         case 'user':
           console.log('user', JSON.stringify(data.d))
@@ -347,8 +346,6 @@ function initWebSocket () {
   }
 
   ws.onclose = (e) => {
-    console.log('ws:closed', e);
-
     // Clear list of collaborators
     toElm([], 'docMsgs', 'RecvCollabUsers');
 

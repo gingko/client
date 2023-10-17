@@ -81,7 +81,7 @@ subscribe tagger onError =
 
                 -- === DOM ===
                 "InitialActivation" ->
-                    case decodeValue Dec.string outsideInfo.data of
+                    case decodeValue (Dec.oneOf [ Dec.string, Dec.null "" ]) outsideInfo.data of
                         Ok cardId ->
                             tagger <| InitialActivation cardId
 
