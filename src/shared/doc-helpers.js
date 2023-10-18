@@ -54,6 +54,12 @@ const defineCustomTextarea = (toElmFn, getDataTypeFn) => {
       if (name === 'start-value' && !this._isActive() && this.textarea_.value !== newValue ) {
         this.textarea_.value = newValue;
         this._resize();
+      } else if (name === 'disabled') {
+        if (newValue) {
+          this.textarea_.setAttribute('disabled', newValue);
+        } else {
+          this.textarea_.removeAttribute('disabled');
+        }
       }
     }
 
@@ -69,6 +75,9 @@ const defineCustomTextarea = (toElmFn, getDataTypeFn) => {
       this.textarea_.setAttribute('dir', this.getAttribute('dir'));
       this.textarea_.setAttribute('data-private', this.getAttribute('data-private'));
       this.textarea_.setAttribute('data-gramm', this.getAttribute('data-gramm'));
+      if (this.getAttribute('disabled')) {
+        this.textarea_.setAttribute('disabled', this.getAttribute('disabled'));
+      }
       this.appendChild(this.textarea_);
       if (!this.isFullscreen) {
         this.textarea_.focus();

@@ -2260,7 +2260,6 @@ span.collaborators {
   top: 0;
   z-index: 9999;
   border-radius: 4px 0 0 4px;
-  pointer-events: none;
 }
 .collab-editing .view {
   filter: blur(1.5px);

@@ -7,11 +7,12 @@ import Html exposing (..)
 import Html.Attributes as A exposing (..)
 import Html.Events exposing (onClick)
 import Html.Keyed as Keyed
-import Html.Lazy exposing (lazy2, lazy3)
+import Html.Lazy exposing (lazy2, lazy3, lazy4)
 import Json.Encode as Enc
 import Time
 import Translation exposing (Language, TranslationId(..))
 import Types exposing (..)
+import UI.Collaborators
 
 
 
@@ -32,6 +33,7 @@ type alias Config msg =
     , lastRemoteSave : Maybe Time.Posix
     , currentTime : Time.Posix
     , model : Model
+    , collaborators : List Collaborator
     , activeId : String
     , msgs : MsgConfig msg
     }
@@ -57,7 +59,7 @@ view ({ model, activeId } as config) =
     in
     div
         [ id "app-fullscreen" ]
-        [ viewColumn activeId currentColumn
+        [ viewColumn config.collaborators activeId currentColumn
         , viewFullscreenButtons config
         ]
 
@@ -92,49 +94,84 @@ viewFullscreenButtons { language, isMac, dirty, lastLocalSave, lastRemoteSave, c
         ]
 
 
-viewColumn : String -> Column -> Html msg
-viewColumn active col =
+viewColumn : List Collaborator -> String -> Column -> Html msg
+viewColumn collaborators active col =
     div
         [ id "fullscreen-main" ]
-        (List.map (lazy2 viewGroup active) col)
+        (List.map (lazy3 viewGroup collaborators active) col)
 
 
-viewGroup : String -> Group -> Html msg
-viewGroup active xs =
+viewGroup : List Collaborator -> String -> Group -> Html msg
+viewGroup collaborators active xs =
     let
         viewFunction t =
             let
                 isActive =
                     t.id == active
+
+                collabsOnCard =
+                    collaborators
+                        |> List.filter
+                            (\c ->
+                                case c.mode of
+                                    CollabActive collabCardId ->
+                                        collabCardId == t.id
+
+                                    CollabEditing collabCardId ->
+                                        collabCardId == t.id
+                            )
             in
-            ( t.id, lazy3 viewCard isActive t.id t.content )
+            ( t.id, lazy4 viewCard collabsOnCard isActive t.id t.content )
     in
     Keyed.node "div"
         [ class "group-fullscreen" ]
         (List.map viewFunction xs)
 
 
-viewCard : Bool -> String -> String -> Html msg
-viewCard isActive cardId content =
+viewCard : List Collaborator -> Bool -> String -> String -> Html msg
+viewCard collabsOnCard isActive cardId content =
+    let
+        editingByCollab =
+            collabsOnCard
+                |> List.filter
+                    (\c ->
+                        case c.mode of
+                            CollabEditing collabEditingId ->
+                                collabEditingId == cardId
+
+                            _ ->
+                                False
+                    )
+                |> (not << List.isEmpty)
+    in
     div
         [ id ("card-" ++ cardId)
         , dir "auto"
         , classList
             [ ( "card-fullscreen", True )
             , ( "active-fullscreen", isActive )
+            , ( "cursor-not-allowed", editingByCollab )
             ]
+        , style "position" "relative"
         ]
         [ node "gw-textarea"
-            [ attribute "card-id" cardId
-            , dir "auto"
-            , classList
+            ([ attribute "card-id" cardId
+             , dir "auto"
+             , classList
                 [ ( "edit", True )
                 , ( "mousetrap", True )
                 ]
-            , attribute "data-private" "lipsum"
-            , attribute "data-gramm" "false"
-            , A.property "isFullscreen" (Enc.bool True)
-            , attribute "start-value" content
-            ]
-            []
+             , attribute "data-private" "lipsum"
+             , attribute "data-gramm" "false"
+             , A.property "isFullscreen" (Enc.bool True)
+             , attribute "start-value" content
+             ]
+                ++ (if editingByCollab then
+                        [ attribute "disabled" "true" ]
+
+                    else
+                        []
+                   )
+            )
+            [ UI.Collaborators.viewOnCard collabsOnCard ]
         ]

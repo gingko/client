@@ -2021,6 +2021,7 @@ view appMsg lastLocalSave lastRemoteSave (Model model) =
                     , lastRemoteSave = lastRemoteSave
                     , currentTime = GlobalData.currentTime model.globalData
                     , model = model.workingTree
+                    , collaborators = model.viewState.collaborators
                     , activeId = cardId
                     , msgs =
                         { saveChanges = SaveFromFullscreen
