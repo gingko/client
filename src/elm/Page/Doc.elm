@@ -930,7 +930,6 @@ incoming incomingMsg model =
                         |> List.filter (\i -> not (List.member i assignedInts))
                         |> List.head
                         |> Maybe.withDefault 0
-                        |> Debug.log "nextAvailableInt"
 
                 newCollabs =
                     if List.member collabState.uid (vs.collaborators |> List.map .uid) then
@@ -948,7 +947,7 @@ incoming incomingMsg model =
                         { collabState | int = nextAvailableInt } :: vs.collaborators
             in
             ( { model
-                | viewState = { vs | collaborators = newCollabs |> Debug.log "newCollabs" }
+                | viewState = { vs | collaborators = newCollabs }
               }
             , Cmd.none
             , []
