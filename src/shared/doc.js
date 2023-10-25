@@ -955,7 +955,6 @@ const fromElm = (msg, elmData) => {
 
 
 function wsSend(msgTag, msgData, queueIfNotReady) {
-  console.log("ws:⋀", msgTag, msgData, queueIfNotReady)
   if (ws.readyState === ws.OPEN) {
     ws.send(JSON.stringify({t: msgTag, d: msgData}));
   } else if (queueIfNotReady) {
