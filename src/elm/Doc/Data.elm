@@ -1,4 +1,4 @@
-module Doc.Data exposing (Card_tests_only, CommitObject, Model, cardDataReceived, conflictList, conflictToTree, convert, empty, emptyCardBased, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, success, toSave_tests_only, triggeredPush)
+module Doc.Data exposing (Card_tests_only, CommitObject, Model, cardDataReceived, conflictList, conflictToTree, convert, empty, emptyCardBased, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, model_tests_only, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, success, toSave_tests_only, triggeredPush)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -1994,3 +1994,8 @@ type alias Card_tests_only t =
     , synced : Bool
     , updatedAt : t
     }
+
+
+model_tests_only : CardData -> Maybe CardDataConflicts -> Model
+model_tests_only cards conflicts_ =
+    CardBased cards [] conflicts_
