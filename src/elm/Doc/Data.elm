@@ -1,4 +1,4 @@
-module Doc.Data exposing (CommitObject, Model, cardDataReceived, conflictList, conflictToTree, convert, empty, emptyCardBased, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, success, triggeredPush)
+module Doc.Data exposing (Card_tests_only, CommitObject, Model, cardDataReceived, conflictList, conflictToTree, convert, empty, emptyCardBased, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, success, toSave_tests_only, triggeredPush)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -1948,7 +1948,7 @@ getHistoryList model =
 
 
 
----
+-- HELPERS
 
 
 intToBool : Dec.Decoder Bool
@@ -1973,3 +1973,24 @@ boolToInt b =
 
     else
         0
+
+
+
+-- TESTS
+
+
+toSave_tests_only : DBChangeLists -> Enc.Value
+toSave_tests_only =
+    toSave
+
+
+type alias Card_tests_only t =
+    { id : String
+    , treeId : String
+    , content : String
+    , parentId : Maybe String
+    , position : Float
+    , deleted : Bool
+    , synced : Bool
+    , updatedAt : t
+    }
