@@ -608,40 +608,49 @@ const fromElm = (msg, elmData) => {
     },
 
     SaveCardBased : async () => {
-      if (elmData !== null) {
-        let newData = elmData.toAdd.map((c) => { return { ...c, updatedAt: hlc.nxt() }})
-        const toMarkSynced = elmData.toMarkSynced.map((c) => { return { ...c, synced: true }})
-        const timestamp = Date.now();
+      if (elmData && elmData.error) {
+        alert("Error saving data!\n" + elmData.error);
+        return;
+      }
 
-        let toMarkDeleted = [];
-        if (elmData.toMarkDeleted.length > 0) {
-          const deleteHash = uuid();
-          toMarkDeleted = elmData.toMarkDeleted.map((c, i) => ({ ...c, updatedAt: `${timestamp}:${i}:${deleteHash}` }));
-        }
+      if (!elmData || !elmData.toAdd || !elmData.toMarkSynced || !elmData.toMarkDeleted || !elmData.toRemove) {
+        alert("Error saving data!\nInvalid data sent from Elm to DB.");
+        return;
+      }
 
-        dexie.transaction('rw', dexie.cards, async () => {
-          dexie.cards.bulkPut(newData.concat(toMarkSynced).concat(toMarkDeleted));
-          dexie.cards.bulkDelete(elmData.toRemove);
-          DIRTY = false;
-        }).then(async () => {
-          if (elmData.toAdd.length > 0 || toMarkDeleted.length > 0) {
-            if (elmData.toAdd.length == 1 && elmData.toAdd[0].content == "") {
-              // Don't add new empty cards to history.
-              return;
-            }
+      let newData = elmData.toAdd.map((c) => { return { ...c, updatedAt: hlc.nxt() }})
+      const toMarkSynced = elmData.toMarkSynced.map((c) => { return { ...c, synced: true }})
+      const timestamp = Date.now();
 
-            const cards = await dexie.cards.where({ treeId: TREE_ID, deleted: 0 }).toArray();
-            const lastUpdatedTime = cards.map((c) => c.updatedAt.split(':')[0]).reduce((a, b) => Math.max(a, b));
-            const snapshotId = `${lastUpdatedTime}:${TREE_ID}`;
-            const snapshotData = cards.map((c) => ({ ...c, snapshot: snapshotId, delta: 0}));
-            const snapshot = { snapshot: snapshotId, treeId: TREE_ID, data: snapshotData, local: true, ts: Number(lastUpdatedTime)};
-            await dexie.tree_snapshots.put(snapshot);
-          }
-          await dexie.trees.update(TREE_ID, {updatedAt: timestamp, synced: false});
-        })
-          .catch((e) => {
-          alert("Error saving data!" + e);
+      let toMarkDeleted = [];
+      if (elmData.toMarkDeleted.length > 0) {
+        const deleteHash = uuid();
+        toMarkDeleted = elmData.toMarkDeleted.map((c, i) => ({ ...c, updatedAt: `${timestamp}:${i}:${deleteHash}` }));
+      }
+
+      try {
+        await dexie.transaction('rw', dexie.cards, async () => {
+            dexie.cards.bulkPut(newData.concat(toMarkSynced).concat(toMarkDeleted));
+            dexie.cards.bulkDelete(elmData.toRemove);
+            DIRTY = false;
         });
+
+        if (elmData.toAdd.length > 0 || toMarkDeleted.length > 0) {
+          if (elmData.toAdd.length == 1 && elmData.toAdd[0].content == "") {
+            // Don't add new empty cards to history.
+            return;
+          }
+
+          const cards = await dexie.cards.where({ treeId: TREE_ID, deleted: 0 }).toArray();
+          const lastUpdatedTime = cards.map((c) => c.updatedAt.split(':')[0]).reduce((a, b) => Math.max(a, b));
+          const snapshotId = `${lastUpdatedTime}:${TREE_ID}`;
+          const snapshotData = cards.map((c) => ({ ...c, snapshot: snapshotId, delta: 0}));
+          const snapshot = { snapshot: snapshotId, treeId: TREE_ID, data: snapshotData, local: true, ts: Number(lastUpdatedTime)};
+          await dexie.tree_snapshots.put(snapshot);
+        }
+        await dexie.trees.update(TREE_ID, {updatedAt: timestamp, synced: false});
+      } catch (e) {
+        alert("Error saving data!" + e);
       }
     },
 

@@ -1,8 +1,8 @@
 module DataTests exposing (..)
 
-import Doc.Data as Data exposing (Card_tests_only, localSave, model_tests_only, toSave_tests_only)
+import Doc.Data as Data exposing (Card_tests_only, SaveError_tests_only(..), localSave, model_tests_only, saveError_tests_only, toSave_tests_only)
 import Expect exposing (Expectation)
-import Json.Encode as Enc exposing (list, object, string)
+import Json.Encode as Enc
 import Test exposing (..)
 import Types exposing (CardTreeOp(..))
 import UpdatedAt
@@ -83,7 +83,7 @@ suite =
                             , toRemove = []
                             }
                         )
-        , test "CTUpd non-existing card" <|
+        , test "CTUpd non-existing card should return an error" <|
             \_ ->
                 let
                     data =
@@ -101,22 +101,7 @@ suite =
                 in
                 localSave "treeId" (CTUpd "someid" "new content") data
                     |> expectEqualJSON
-                        (toSave
-                            { toAdd =
-                                [ card "someid"
-                                    "treeId"
-                                    "new content"
-                                    Nothing
-                                    0.0
-                                    False
-                                    False
-                                    ()
-                                ]
-                            , toMarkSynced = []
-                            , toMarkDeleted = []
-                            , toRemove = []
-                            }
-                        )
+                        (saveError (CardDoesNotExist_tests_only "someid"))
         ]
 
 
@@ -135,6 +120,10 @@ card =
 
 toSave =
     toSave_tests_only
+
+
+saveError =
+    saveError_tests_only
 
 
 d =

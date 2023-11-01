@@ -1,4 +1,4 @@
-module Doc.Data exposing (Card_tests_only, CommitObject, Model, cardDataReceived, conflictList, conflictToTree, convert, empty, emptyCardBased, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, model_tests_only, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, success, toSave_tests_only, triggeredPush)
+module Doc.Data exposing (Card_tests_only, CommitObject, Model, SaveError_tests_only(..), cardDataReceived, conflictList, conflictToTree, convert, empty, emptyCardBased, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, model_tests_only, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, saveError_tests_only, success, toSave_tests_only, triggeredPush)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -930,6 +930,15 @@ toSave { toAdd, toMarkSynced, toMarkDeleted, toRemove } =
         ]
 
 
+saveError : SaveError -> Enc.Value
+saveError err =
+    case err of
+        CardDoesNotExist id ->
+            Enc.object
+                [ ( "error", Enc.string ("Card with id " ++ id ++ " does not exist.") )
+                ]
+
+
 asUnsynced : Card UpdatedAt -> Card ()
 asUnsynced card =
     { id = card.id
@@ -1065,6 +1074,10 @@ type alias DBChangeLists =
     }
 
 
+type SaveError
+    = CardDoesNotExist String
+
+
 localSave : String -> CardTreeOp -> Model -> Enc.Value
 localSave treeId op model =
     case model of
@@ -1072,15 +1085,22 @@ localSave treeId op model =
             case op of
                 CTUpd id newContent ->
                     let
-                        toAdd =
+                        toAdd_ =
                             data
                                 |> List.filter (\card -> card.id == id)
                                 |> UpdatedAt.sortNewestFirst .updatedAt
                                 |> List.head
                                 |> Maybe.map (\card -> [ { card | content = newContent } |> asUnsynced ])
-                                |> Maybe.withDefault []
                     in
-                    toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = [] }
+                    case toAdd_ of
+                        Nothing ->
+                            saveError (CardDoesNotExist id)
+
+                        Just [] ->
+                            saveError (CardDoesNotExist id)
+
+                        Just toAdd ->
+                            toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = [] }
 
                 CTIns id content parId_ idx ->
                     let
@@ -1982,6 +2002,22 @@ boolToInt b =
 toSave_tests_only : DBChangeLists -> Enc.Value
 toSave_tests_only =
     toSave
+
+
+saveError_tests_only : SaveError_tests_only -> Enc.Value
+saveError_tests_only err =
+    saveError (saveErrorConvert err)
+
+
+saveErrorConvert : SaveError_tests_only -> SaveError
+saveErrorConvert err =
+    case err of
+        CardDoesNotExist_tests_only id ->
+            CardDoesNotExist id
+
+
+type SaveError_tests_only
+    = CardDoesNotExist_tests_only String
 
 
 type alias Card_tests_only t =
