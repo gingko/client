@@ -102,6 +102,64 @@ suite =
                 localSave "treeId" (CTUpd "someid" "new content") data
                     |> expectEqualJSON
                         (saveError (CardDoesNotExist_tests_only "someid"))
+        , test "CTUpd when multiple versions of the card exist" <|
+            \_ ->
+                let
+                    data =
+                        d
+                            [ card "someId"
+                                "treeId"
+                                "second content"
+                                Nothing
+                                0.0
+                                False
+                                True
+                                (u 12346 0 "afe223")
+                            , card "someId"
+                                "treeId"
+                                "first content"
+                                Nothing
+                                0.0
+                                False
+                                False
+                                (u 12345 0 "afe223")
+                            ]
+                            Nothing
+                in
+                localSave "treeId" (CTUpd "someId" "third content") data
+                    |> expectEqualJSON
+                        (toSave
+                            { toAdd = [ card "someId" "treeId" "third content" Nothing 0.0 False False () ]
+                            , toMarkSynced = []
+                            , toMarkDeleted = []
+                            , toRemove = []
+                            }
+                        )
+        , test "CTUpd when empty conflicts exist" <|
+            \_ ->
+                let
+                    data =
+                        d
+                            [ card "someId"
+                                "treeId"
+                                "second content"
+                                Nothing
+                                0.0
+                                False
+                                True
+                                (u 12346 0 "afe223")
+                            ]
+                            (Just { ours = [], theirs = [], original = [] })
+                in
+                localSave "treeId" (CTUpd "someId" "third content") data
+                    |> expectEqualJSON
+                        (toSave
+                            { toAdd = [ card "someId" "treeId" "third content" Nothing 0.0 False False () ]
+                            , toMarkSynced = []
+                            , toMarkDeleted = []
+                            , toRemove = []
+                            }
+                        )
         ]
 
 
