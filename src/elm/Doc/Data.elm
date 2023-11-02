@@ -1,4 +1,4 @@
-module Doc.Data exposing (Card_tests_only, CommitObject, Model, SaveError_tests_only(..), cardDataReceived, conflictList, conflictToTree, convert, empty, emptyCardBased, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, model_tests_only, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, saveError_tests_only, success, toSave_tests_only, triggeredPush)
+module Doc.Data exposing (CardOp_tests_only(..), Card_tests_only, CommitObject, Delta_tests_only, Model, SaveError_tests_only(..), cardDataReceived, cardOpConvert, conflictList, conflictToTree, convert, empty, emptyCardBased, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, model_tests_only, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, saveError_tests_only, success, toDelta_tests_only, toSave_tests_only, triggeredPush)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -1784,18 +1784,20 @@ cardDelta treeId allCards cardId =
                 |> List.filter (\c -> c.id == cardId)
                 |> UpdatedAt.sortNewestFirst .updatedAt
 
-        unsyncedCard_ =
+        unsyncedCards =
             cardVersions
                 |> List.filter (not << .synced)
-                |> List.head
 
         syncedCard_ =
             cardVersions
                 |> List.filter .synced
                 |> List.head
     in
-    case ( unsyncedCard_, syncedCard_ ) of
-        ( Just unsyncedCard, Just syncedCard ) ->
+    case ( unsyncedCards, syncedCard_ ) of
+        ( [], Just _ ) ->
+            []
+
+        ( unsyncedCard :: _, Just syncedCard ) ->
             let
                 updateOps =
                     if unsyncedCard.content /= syncedCard.content then
@@ -1823,16 +1825,66 @@ cardDelta treeId allCards cardId =
             in
             [ Delta cardId treeId unsyncedCard.updatedAt (undeleteOps ++ deleteOps ++ moveOps ++ updateOps) ]
 
-        ( Just unsyncedCard, Nothing ) ->
-            [ Delta cardId treeId unsyncedCard.updatedAt [ InsOp { id = unsyncedCard.id, content = unsyncedCard.content, parentId = unsyncedCard.parentId, position = unsyncedCard.position } ] ]
-
-        ( Nothing, Just _ ) ->
-            -- Unchanged
+        ( [], Nothing ) ->
             []
 
-        ( Nothing, Nothing ) ->
-            -- Error
-            []
+        ( unsyncedCard :: [], Nothing ) ->
+            [ Delta cardId
+                treeId
+                unsyncedCard.updatedAt
+                [ InsOp { id = unsyncedCard.id, content = unsyncedCard.content, parentId = unsyncedCard.parentId, position = unsyncedCard.position } ]
+            ]
+
+        ( multipleNeverSynced, Nothing ) ->
+            case ( multipleNeverSynced, List.reverse multipleNeverSynced ) of
+                ( [], [] ) ->
+                    []
+
+                ( onlyUnsynced :: [], _ :: [] ) ->
+                    [ Delta cardId
+                        treeId
+                        onlyUnsynced.updatedAt
+                        [ InsOp { id = onlyUnsynced.id, content = onlyUnsynced.content, parentId = onlyUnsynced.parentId, position = onlyUnsynced.position } ]
+                    ]
+
+                ( newestUnsynced :: _, oldestUnsynced :: _ ) ->
+                    let
+                        updateOps =
+                            if newestUnsynced.content /= oldestUnsynced.content then
+                                [ UpdOp { content = newestUnsynced.content, expectedVersion = oldestUnsynced.updatedAt } ]
+
+                            else
+                                []
+
+                        moveOps =
+                            if (newestUnsynced.parentId /= oldestUnsynced.parentId) || (newestUnsynced.position /= oldestUnsynced.position) then
+                                [ MovOp { parentId = newestUnsynced.parentId, position = newestUnsynced.position } ]
+
+                            else
+                                []
+
+                        ( deleteOps, undeleteOps ) =
+                            if newestUnsynced.deleted && not oldestUnsynced.deleted then
+                                ( [ DelOp { expectedVersion = oldestUnsynced.updatedAt } ], [] )
+
+                            else if not newestUnsynced.deleted && oldestUnsynced.deleted then
+                                ( [], [ UndelOp ] )
+
+                            else
+                                ( [], [] )
+                    in
+                    [ Delta cardId
+                        treeId
+                        oldestUnsynced.updatedAt
+                        [ InsOp { id = oldestUnsynced.id, content = oldestUnsynced.content, parentId = oldestUnsynced.parentId, position = oldestUnsynced.position } ]
+                    , Delta cardId
+                        treeId
+                        newestUnsynced.updatedAt
+                        (undeleteOps ++ deleteOps ++ moveOps ++ updateOps)
+                    ]
+
+                _ ->
+                    []
 
 
 encodeDelta : Delta -> Enc.Value
@@ -1999,6 +2051,27 @@ boolToInt b =
 -- TESTS
 
 
+type alias Card_tests_only t =
+    { id : String
+    , treeId : String
+    , content : String
+    , parentId : Maybe String
+    , position : Float
+    , deleted : Bool
+    , synced : Bool
+    , updatedAt : t
+    }
+
+
+type SaveError_tests_only
+    = CardDoesNotExist_tests_only String
+
+
+model_tests_only : CardData -> Maybe CardDataConflicts -> Model
+model_tests_only cards conflicts_ =
+    CardBased cards [] conflicts_
+
+
 toSave_tests_only : DBChangeLists -> Enc.Value
 toSave_tests_only =
     toSave
@@ -2016,22 +2089,41 @@ saveErrorConvert err =
             CardDoesNotExist id
 
 
-type SaveError_tests_only
-    = CardDoesNotExist_tests_only String
+
+-- delta tests
 
 
-type alias Card_tests_only t =
-    { id : String
-    , treeId : String
-    , content : String
-    , parentId : Maybe String
-    , position : Float
-    , deleted : Bool
-    , synced : Bool
-    , updatedAt : t
-    }
+type CardOp_tests_only
+    = InsOp_t { id : String, content : String, parentId : Maybe String, position : Float }
+    | UpdOp_t { content : String, expectedVersion : UpdatedAt }
+    | MovOp_t { parentId : Maybe String, position : Float }
+    | DelOp_t { expectedVersion : UpdatedAt }
+    | UndelOp_t
 
 
-model_tests_only : CardData -> Maybe CardDataConflicts -> Model
-model_tests_only cards conflicts_ =
-    CardBased cards [] conflicts_
+type alias Delta_tests_only =
+    { id : String, treeId : String, ts : UpdatedAt, ops : List CardOp }
+
+
+cardOpConvert : CardOp_tests_only -> CardOp
+cardOpConvert cOp =
+    case cOp of
+        InsOp_t insOp ->
+            InsOp insOp
+
+        UpdOp_t updOp ->
+            UpdOp updOp
+
+        MovOp_t movOp ->
+            MovOp movOp
+
+        DelOp_t delOp ->
+            DelOp delOp
+
+        UndelOp_t ->
+            UndelOp
+
+
+toDelta_tests_only : String -> List (Card UpdatedAt) -> List Delta
+toDelta_tests_only treeId db =
+    toDelta treeId db
