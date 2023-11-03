@@ -1,4 +1,4 @@
-module Doc.Data exposing (CardOp_tests_only(..), Card_tests_only, CommitObject, Delta_tests_only, Model, SaveError_tests_only(..), cardDataReceived, cardOpConvert, conflictList, conflictToTree, convert, empty, emptyCardBased, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, model_tests_only, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, saveError_tests_only, success, toDelta_tests_only, toSave_tests_only, triggeredPush)
+module Doc.Data exposing (CardOp_tests_only(..), Card_tests_only, CommitObject, Delta_tests_only, Model, SaveError_tests_only(..), cardDataReceived, cardOpConvert, conflictList, conflictToTree, convert, empty, emptyCardBased, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, model_tests_only, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, saveErrors_tests_only, success, toDelta_tests_only, toSave_tests_only, triggeredPush)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -930,13 +930,18 @@ toSave { toAdd, toMarkSynced, toMarkDeleted, toRemove } =
         ]
 
 
-saveError : SaveError -> Enc.Value
-saveError err =
-    case err of
-        CardDoesNotExist id ->
-            Enc.object
-                [ ( "error", Enc.string ("Card with id " ++ id ++ " does not exist.") )
-                ]
+saveErrors : List SaveError -> Enc.Value
+saveErrors errs =
+    let
+        errorEnc err =
+            case err of
+                CardDoesNotExist { id, src } ->
+                    Enc.string ("Card with id " ++ id ++ " does not exist.\n" ++ src)
+
+                WrongDocumentType treeId ->
+                    Enc.string ("Document with id " ++ treeId ++ " is not a card-based document.")
+    in
+    Enc.list errorEnc errs
 
 
 asUnsynced : Card UpdatedAt -> Card ()
@@ -1075,7 +1080,8 @@ type alias DBChangeLists =
 
 
 type SaveError
-    = CardDoesNotExist String
+    = CardDoesNotExist { id : String, src : String }
+    | WrongDocumentType String
 
 
 localSave : String -> CardTreeOp -> Model -> Enc.Value
@@ -1094,10 +1100,10 @@ localSave treeId op model =
                     in
                     case toAdd_ of
                         Nothing ->
-                            saveError (CardDoesNotExist id)
+                            saveErrors [ CardDoesNotExist { id = id, src = "CTUpd toAdd_ Nothing" } ]
 
                         Just [] ->
-                            saveError (CardDoesNotExist id)
+                            saveErrors [ CardDoesNotExist { id = id, src = "CTUpd toAdd_ []" } ]
 
                         Just toAdd ->
                             toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = [] }
@@ -1157,8 +1163,17 @@ localSave treeId op model =
                             else
                                 mergeDown data currCard otherCard
 
-                        _ ->
-                            Enc.null
+                        ( Nothing, Just _ ) ->
+                            saveErrors [ CardDoesNotExist { id = currTreeId, src = "CTMrg currCard_ Nothing" } ]
+
+                        ( Just _, Nothing ) ->
+                            saveErrors [ CardDoesNotExist { id = otherTreeId, src = "CTMrg otherCard_ Nothing" } ]
+
+                        ( Nothing, Nothing ) ->
+                            saveErrors
+                                [ CardDoesNotExist { id = currTreeId, src = "CTMrg currCard_ Nothing" }
+                                , CardDoesNotExist { id = otherTreeId, src = "CTMrg otherCard_ Nothing" }
+                                ]
 
                 CTBlk tree parId_ idx ->
                     let
@@ -1180,7 +1195,7 @@ localSave treeId op model =
                     toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = [] }
 
         GitLike gitData maybeConflictInfo ->
-            Enc.null
+            saveErrors [ WrongDocumentType treeId ]
 
 
 mergeCards : Bool -> CardData -> Card UpdatedAt -> Card UpdatedAt -> Enc.Value
@@ -2064,7 +2079,7 @@ type alias Card_tests_only t =
 
 
 type SaveError_tests_only
-    = CardDoesNotExist_tests_only String
+    = CardDoesNotExist_tests_only { id : String, src : String }
 
 
 model_tests_only : CardData -> Maybe CardDataConflicts -> Model
@@ -2077,16 +2092,17 @@ toSave_tests_only =
     toSave
 
 
-saveError_tests_only : SaveError_tests_only -> Enc.Value
-saveError_tests_only err =
-    saveError (saveErrorConvert err)
+saveErrors_tests_only : List SaveError_tests_only -> Enc.Value
+saveErrors_tests_only errs =
+    List.map saveErrorConvert errs
+        |> saveErrors
 
 
 saveErrorConvert : SaveError_tests_only -> SaveError
 saveErrorConvert err =
     case err of
-        CardDoesNotExist_tests_only id ->
-            CardDoesNotExist id
+        CardDoesNotExist_tests_only errInfo ->
+            CardDoesNotExist errInfo
 
 
 

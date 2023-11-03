@@ -1,6 +1,6 @@
 module DataTests exposing (..)
 
-import Doc.Data as Data exposing (CardOp_tests_only(..), Card_tests_only, Delta_tests_only, SaveError_tests_only(..), cardOpConvert, localSave, model_tests_only, saveError_tests_only, toDelta_tests_only, toSave_tests_only)
+import Doc.Data as Data exposing (CardOp_tests_only(..), Card_tests_only, Delta_tests_only, SaveError_tests_only(..), cardOpConvert, localSave, model_tests_only, saveErrors_tests_only, toDelta_tests_only, toSave_tests_only)
 import Expect exposing (Expectation)
 import Json.Encode as Enc
 import Test exposing (..)
@@ -102,7 +102,7 @@ suite =
                     in
                     localSave "treeId" (CTUpd "someid" "new content") data
                         |> expectEqualJSON
-                            (saveError (CardDoesNotExist_tests_only "someid"))
+                            (saveErrors [ CardDoesNotExist_tests_only { id = "someid", src = "CTUpd toAdd_ Nothing" } ])
             , test "CTUpd when multiple versions of the card exist" <|
                 \_ ->
                     let
@@ -161,6 +161,25 @@ suite =
                                 , toRemove = []
                                 }
                             )
+            , test "CTMrg when one of the cards doesn't exist" <|
+                \_ ->
+                    let
+                        data =
+                            d
+                                [ card "otherId"
+                                    "treeId"
+                                    ""
+                                    Nothing
+                                    0.0
+                                    False
+                                    True
+                                    (u 12345 0 "afe223")
+                                ]
+                                Nothing
+                    in
+                    localSave "treeId" (CTMrg "someid" "otherId" False) data
+                        |> expectEqualJSON
+                            (saveErrors [ CardDoesNotExist_tests_only { id = "someid", src = "CTMrg currCard_ Nothing" } ])
             ]
         , describe "toDelta"
             [ test "parent insertion order bug" <|
@@ -213,8 +232,8 @@ toSave =
     toSave_tests_only
 
 
-saveError =
-    saveError_tests_only
+saveErrors =
+    saveErrors_tests_only
 
 
 d =

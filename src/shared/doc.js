@@ -463,7 +463,7 @@ function toElm(data, portName, tagName) {
   }
 }
 
-const fromElm = (msg, elmData) => {
+self.fromElm = (msg, elmData) => {
   if (process.env.NODE_ENV === 'development') {
     console.log("fromElm", msg, elmData);
   }
@@ -608,13 +608,13 @@ const fromElm = (msg, elmData) => {
     },
 
     SaveCardBased : async () => {
-      if (elmData && elmData.error) {
-        alert("Error saving data!\n" + elmData.error);
+      if (elmData && Array.isArray(elmData.errors)) {
+        alert("Error saving data!\n\n" + elmData.errors.join("\n----\n"));
         return;
       }
 
       if (!elmData || !elmData.toAdd || !elmData.toMarkSynced || !elmData.toMarkDeleted || !elmData.toRemove) {
-        alert("Error saving data!\nInvalid data sent to DB:\n" + elmData);
+        alert("Error saving data!\nInvalid data sent to DB:\n" + JSON.stringify(elmData));
         return;
       }
 
