@@ -614,7 +614,7 @@ const fromElm = (msg, elmData) => {
       }
 
       if (!elmData || !elmData.toAdd || !elmData.toMarkSynced || !elmData.toMarkDeleted || !elmData.toRemove) {
-        alert("Error saving data!\nInvalid data sent from Elm to DB.");
+        alert("Error saving data!\nInvalid data sent to DB:\n" + elmData);
         return;
       }
 
