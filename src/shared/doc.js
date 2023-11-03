@@ -463,7 +463,7 @@ function toElm(data, portName, tagName) {
   }
 }
 
-self.fromElm = (msg, elmData) => {
+const fromElm = (msg, elmData) => {
   if (process.env.NODE_ENV === 'development') {
     console.log("fromElm", msg, elmData);
   }
