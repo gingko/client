@@ -941,7 +941,7 @@ saveErrors errs =
                 WrongDocumentType treeId ->
                     Enc.string ("Document with id " ++ treeId ++ " is not a card-based document.")
     in
-    Enc.list errorEnc errs
+    Enc.object [ ( "errors", Enc.list errorEnc errs ) ]
 
 
 asUnsynced : Card UpdatedAt -> Card ()

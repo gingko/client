@@ -608,6 +608,10 @@ const fromElm = (msg, elmData) => {
     },
 
     SaveCardBased : async () => {
+      if (DATA_TYPE === GIT_LIKE_DATA) {
+        return;
+      }
+
       if (elmData && Array.isArray(elmData.errors)) {
         alert("Error saving data!\n\n" + elmData.errors.join("\n----\n"));
         return;
