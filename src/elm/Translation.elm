@@ -941,7 +941,7 @@ tr lang trans =
                     }
 
                 TimelineTemplate ->
-                    { en = "Timeline 2023"
+                    { en = "Timeline 2024"
                     , zh_hans = "%zh_hans:TimelineTemplate%"
                     , zh_hant = "%zh_hant:TimelineTemplate%"
                     , es = "%es:TimelineTemplate%"
