@@ -93,6 +93,7 @@ let externalDrag = false;
 let savedObjectIds = new Set();
 let cardDataSubscription = null;
 let historyDataSubscription = null;
+let errorShown = false; // TODO remove this
 const localStore = container.localStore;
 const sessionStorageKey = "gingko-session-storage";
 function getDataType() {
@@ -342,6 +343,10 @@ function initWebSocket () {
   }
 
   ws.onerror = (e) => {
+    if (!errorShown) {
+      alert('Error with the current session. Export a JSON backup of recent work, and log out and back in.')
+    }
+    errorShown = true;
     console.error('ws error', e);
   }
 
