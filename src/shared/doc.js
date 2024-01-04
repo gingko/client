@@ -93,7 +93,7 @@ let externalDrag = false;
 let savedObjectIds = new Set();
 let cardDataSubscription = null;
 let historyDataSubscription = null;
-let errorShown = false; // TODO remove this
+let wsErrorCount = 0;
 const localStore = container.localStore;
 const sessionStorageKey = "gingko-session-storage";
 function getDataType() {
@@ -343,10 +343,11 @@ function initWebSocket () {
   }
 
   ws.onerror = (e) => {
-    if (!errorShown) {
-      alert('Error with the current session. Export a JSON backup of recent work, and log out and back in.')
+    Sentry.captureException(e);
+    if (wsErrorCount == 3 || wsErrorCount == 10 || wsErrorCount >= 20) {
+      alert('Error with the current session.\nTry refreshing.\n\nIf it persists, export a JSON backup of recent work, and log out and back in.')
     }
-    errorShown = true;
+    wsErrorCount++;
     console.error('ws error', e);
   }
 
