@@ -20,6 +20,7 @@ import Page.Message
 import Page.NotFound
 import Page.ResetPassword
 import Page.Signup
+import Route
 import Session exposing (LoggedIn, Session(..))
 import Url exposing (Url)
 
@@ -130,6 +131,12 @@ handleUrlChange url model =
 
                         _ ->
                             ( model, Cmd.none )
+
+                [ "login" ] ->
+                    ( model, Route.pushUrl navKey Route.Root )
+
+                [ "signup" ] ->
+                    ( model, Route.pushUrl navKey Route.Root )
 
                 [ dbName ] ->
                     let
