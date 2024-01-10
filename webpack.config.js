@@ -159,6 +159,9 @@ const webConfig = {
     ]
   },
 
+  // Source maps in production for Sentry
+  devtool: !isDev ? "source-map" : false,
+
   /*
   externals: {
     "pouchdb": "require('pouchdb')",
