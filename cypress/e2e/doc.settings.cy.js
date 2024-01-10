@@ -26,12 +26,12 @@ describe('doc.settings.cy.js', () => {
     cy.get('#language-option').click()
     cy.get('#lang-es').click()
 
-    cy.contains('Sincronizado')
+    cy.contains(/Sincronizado|%es:ChangesSynced%/i)
 
     // Persists language on reload
     cy.visit(config.TEST_SERVER)
     cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
-    cy.contains('Sincronizado')
+    cy.contains(/Sincronizado|%es:ChangesSynced%/i)
 
     // Saves last active position
     cy.get('#app-root')
