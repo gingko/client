@@ -97,9 +97,12 @@ const otherReplacements = [
   { search: '{%TESTIMONIAL_URL%}', replace: config.TESTIMONIAL_URL, flags: 'g' }
 ]
 
+const isDev = false;
+const isDebug = false;
+
 const webConfig = {
   // "production" or "development" flag.
-  mode: "production",
+  mode: isDev ? "development" : "production",
 
   target: "web",
 
@@ -145,11 +148,11 @@ const webConfig = {
         use: [
           {
             loader: "string-replace-loader",
-            options : { multiple : allLanguageStrings.concat(otherReplacements)  }
+            options : { multiple : isDev ? [] : allLanguageStrings.concat(otherReplacements)  }
           },
           {
             loader: "elm-webpack-loader",
-            options: {optimize: true, debug: false, verbose: true, pathToElm: "./elm-log-colors.sh"}
+            options: {optimize: !isDev, debug: isDebug, verbose: true, pathToElm: "./elm-log-colors.sh"}
           }
         ]
       }
