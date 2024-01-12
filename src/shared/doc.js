@@ -345,7 +345,8 @@ function initWebSocket () {
   ws.onerror = (e) => {
     Sentry.captureException(e);
     if (wsErrorCount == 3 || wsErrorCount == 10 || wsErrorCount >= 20) {
-      alert('Error with the current session.\nTry refreshing.\n\nIf it persists, export a JSON backup of recent work, and log out and back in.')
+      let msg = `Error with the current session.\nTry refreshing.\n\nIf it persists, export a JSON backup of recent work, and log out and back in.`
+      toElm(msg, 'appMsgs', 'ErrorAlert');
     }
     wsErrorCount++;
     console.error('ws error', e);

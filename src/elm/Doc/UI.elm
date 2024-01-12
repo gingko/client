@@ -595,12 +595,24 @@ viewToast toastAttr toast =
                 SuccessToast ->
                     [ class "bg-green-400" ]
 
+        deadEndsToString deadEnds =
+            deadEnds
+                |> List.map Markdown.Parser.deadEndToString
+                |> String.join "\n"
+
+        toastRenderedMarkdown =
+            toast.content.message
+                |> Markdown.Parser.parse
+                |> Result.mapError deadEndsToString
+                |> Result.andThen (\ast -> Markdown.Renderer.render Markdown.Renderer.defaultHtmlRenderer ast)
+                |> Result.withDefault [ Html.text "<parse error>" ]
+
         sharedClasses =
             [ class "rounded-lg max-w-xs p-6 py-4 drop-shadow-lg transition duration-500" ]
     in
     div
         (toastAttr ++ roleClass ++ sharedClasses)
-        [ Html.text toast.content.message ]
+        toastRenderedMarkdown
 
 
 viewToastFrame : List (Html.Attribute msg) -> Toast.Info Toast -> Html msg
