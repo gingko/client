@@ -153,6 +153,15 @@ function getFlags() {
 
 async function setUserDbs(eml) {
   email = eml;
+
+  // HEAD request to /session to check if we're logged in
+  let sessionResponse = await fetch("/session", { method: "HEAD" });
+  if (sessionResponse.status === 401) {
+    Sentry.captureMessage('401: Unauthorized', { extra: { email } });
+    await logout();
+    return;
+  }
+
   userDbName = `userdb-${helpers.toHex(email)}`;
   let userDbUrl = window.location.origin + "/db/" + userDbName;
   var remoteOpts = { skip_setup: true };
