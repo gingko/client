@@ -1,4 +1,4 @@
-module Page.Public exposing (..)
+module Page.Public exposing (Model, Msg, init, navKey, update, view)
 
 import Api
 import Browser.Navigation as Nav
@@ -44,6 +44,23 @@ navKey model =
 type Msg
     = NoOp
     | DataReceived (Result Http.Error Dec.Value)
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        NoOp ->
+            ( model, Cmd.none )
+
+        DataReceived (Ok value) ->
+            let
+                _ =
+                    Debug.log "Public Page DataReceived" value
+            in
+            ( model, Cmd.none )
+
+        DataReceived (Err _) ->
+            ( model, Cmd.none )
 
 
 

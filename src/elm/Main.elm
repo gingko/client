@@ -451,6 +451,10 @@ update msg model =
             Page.App.update appMsg appModel
                 |> updateWith App GotAppMsg
 
+        ( GotPublicMsg publicMsg, Public publicModel ) ->
+            Page.Public.update publicMsg publicModel
+                |> updateWith Public GotPublicMsg
+
         ( UserLoggedOut, _ ) ->
             case toSession model of
                 LoggedInSession session ->
