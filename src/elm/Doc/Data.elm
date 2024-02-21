@@ -1,4 +1,4 @@
-module Doc.Data exposing (CardOp_tests_only(..), Card_tests_only, CommitObject, Delta_tests_only, Model, SaveError_tests_only(..), cardDataReceived, cardOpConvert, conflictList, conflictToTree, convert, empty, emptyCardBased, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, model_tests_only, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, saveErrors_tests_only, success, toDelta_tests_only, toSave_tests_only, triggeredPush)
+module Doc.Data exposing (CardOp_tests_only(..), Card_tests_only, CommitObject, Delta_tests_only, Model, SaveError_tests_only(..), cardDataReceived, cardOpConvert, conflictList, conflictToTree, convert, empty, emptyCardBased, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, model_tests_only, publicCardDataReceived, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, saveErrors_tests_only, success, toDelta_tests_only, toSave_tests_only, triggeredPush)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -381,6 +381,18 @@ cardDataReceived json ( oldModel, oldTree, treeId ) =
                 Nothing
 
         Err err ->
+            Nothing
+
+
+publicCardDataReceived : Dec.Value -> Maybe Tree
+publicCardDataReceived json =
+    case Dec.decodeValue decodeCards json of
+        Ok cards ->
+            cards
+                |> toTree
+                |> Just
+
+        Err _ ->
             Nothing
 
 

@@ -1,4 +1,4 @@
-module Page.Doc exposing (Model, Msg, MsgToParent(..), getActiveId, getActiveTree, getCollaborators, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isFullscreen, isNormalMode, lastActives, maybeActivate, opaqueIncoming, opaqueUpdate, setBlock, setDirty, setGlobalData, setLoading, setTree, setWorkingTree, subscriptions, toggleEditing, view)
+module Page.Doc exposing (Model, Msg, MsgToParent(..), getActiveId, getActiveTree, getCollaborators, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isFullscreen, isNormalMode, lastActives, maybeActivate, opaqueIncoming, opaqueUpdate, publicTreeLoaded, setBlock, setDirty, setGlobalData, setLoading, setTree, setWorkingTree, subscriptions, toggleEditing, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -89,6 +89,15 @@ init isNew globalData =
         , textCursorInfo = { selected = False, position = End, text = ( "", "" ) }
         , fileSearchField = ""
         , fonts = Fonts.default
+        }
+
+
+publicTreeLoaded : Tree -> Model -> Model
+publicTreeLoaded newTree (Model model) =
+    Model
+        { model
+            | workingTree = TreeStructure.setTree newTree model.workingTree
+            , loading = False
         }
 
 

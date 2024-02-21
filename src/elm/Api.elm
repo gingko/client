@@ -2,7 +2,7 @@ module Api exposing (exportDocx, getPublicDocument)
 
 import Bytes exposing (Bytes)
 import Http exposing (Error(..), Response(..))
-import Json.Decode as Dec
+import Json.Decode as Dec exposing (Decoder)
 import Json.Encode as Enc
 import Result exposing (Result(..))
 
@@ -23,11 +23,11 @@ exportDocx msg { docId, markdown } =
         }
 
 
-getPublicDocument : (Result Http.Error Enc.Value -> msg) -> String -> Cmd msg
-getPublicDocument msg docId =
+getPublicDocument : (Result Http.Error a -> msg) -> Decoder a -> String -> Cmd msg
+getPublicDocument msg decoder docId =
     Http.get
         { url = "/public/" ++ docId
-        , expect = Http.expectJson msg Dec.value
+        , expect = Http.expectJson msg decoder
         }
 
 

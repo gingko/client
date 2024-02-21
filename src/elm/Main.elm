@@ -76,11 +76,11 @@ init json url navKey =
     if isPublic then
         case .path (AppUrl.fromUrl url) of
             [] ->
-                Page.Public.init navKey ""
+                Page.Public.init navKey globalData ""
                     |> updateWith Public GotPublicMsg
 
             [ dbName ] ->
-                Page.Public.init navKey dbName
+                Page.Public.init navKey globalData dbName
                     |> updateWith Public GotPublicMsg
 
             _ ->

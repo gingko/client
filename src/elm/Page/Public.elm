@@ -2,9 +2,15 @@ module Page.Public exposing (Model, Msg, init, navKey, update, view)
 
 import Api
 import Browser.Navigation as Nav
-import Html exposing (Html, div, h1, p, text)
+import Doc.TreeStructure exposing (defaultTree)
+import GlobalData exposing (GlobalData)
+import Html exposing (Html, div)
+import Html.Attributes exposing (classList, id)
 import Http
-import Json.Decode as Dec
+import Json.Decode as Dec exposing (Decoder)
+import Page.Doc
+import Translation exposing (TranslationId)
+import Types exposing (TooltipPosition, Tree)
 
 
 
@@ -13,16 +19,18 @@ import Json.Decode as Dec
 
 type alias Model =
     { title : String
-    , content : String
+    , loading : Bool
     , navKey : Nav.Key
+    , doc : Page.Doc.Model
     }
 
 
-init : Nav.Key -> String -> ( Model, Cmd Msg )
-init key dbName =
+init : Nav.Key -> GlobalData -> String -> ( Model, Cmd Msg )
+init key globalData dbName =
     ( { title = "Public Page"
-      , content = "This is a public page."
+      , loading = True
       , navKey = key
+      , doc = Page.Doc.init False globalData
       }
     , getPublicDocument dbName
     )
@@ -43,7 +51,11 @@ navKey model =
 
 type Msg
     = NoOp
-    | DataReceived (Result Http.Error Dec.Value)
+    | GotDocMsg Page.Doc.Msg
+    | Keyboard String
+    | TooltipRequested String TooltipPosition TranslationId
+    | TooltipClosed
+    | DataReceived (Result Http.Error Tree)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -52,14 +64,36 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
-        DataReceived (Ok value) ->
-            let
-                _ =
-                    Debug.log "Public Page DataReceived" value
-            in
+        GotDocMsg _ ->
             ( model, Cmd.none )
 
-        DataReceived (Err _) ->
+        Keyboard _ ->
+            ( model, Cmd.none )
+
+        TooltipRequested _ _ _ ->
+            ( model, Cmd.none )
+
+        TooltipClosed ->
+            ( model, Cmd.none )
+
+        DataReceived (Ok tree) ->
+            let
+                _ =
+                    tree
+                        |> Debug.log "tree"
+            in
+            ( { model
+                | doc = Page.Doc.publicTreeLoaded tree model.doc
+                , loading = False
+              }
+            , Cmd.none
+            )
+
+        DataReceived (Err err) ->
+            let
+                _ =
+                    Debug.log "Error getting public document." err
+            in
             ( model, Cmd.none )
 
 
@@ -69,16 +103,28 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ h1 [] [ text model.title ]
-        , p [] [ text model.content ]
-        ]
+    div [ id "app-root", classList [ ( "loading", model.loading ) ] ]
+        (Page.Doc.view
+            { docMsg = GotDocMsg
+            , keyboard = Keyboard
+            , tooltipRequested = TooltipRequested
+            , tooltipClosed = TooltipClosed
+            }
+            Nothing
+            Nothing
+            model.doc
+        )
 
 
 
 -- REQUESTS
 
 
+treeDecoder : Decoder Tree
+treeDecoder =
+    Dec.succeed defaultTree
+
+
 getPublicDocument : String -> Cmd Msg
 getPublicDocument dbName =
-    Api.getPublicDocument DataReceived dbName
+    Api.getPublicDocument DataReceived treeDecoder dbName
