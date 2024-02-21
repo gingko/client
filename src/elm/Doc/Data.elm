@@ -1,4 +1,4 @@
-module Doc.Data exposing (CardOp_tests_only(..), Card_tests_only, CommitObject, Delta_tests_only, Model, SaveError_tests_only(..), cardDataReceived, cardOpConvert, conflictList, conflictToTree, convert, empty, emptyCardBased, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, model_tests_only, publicCardDataReceived, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, saveErrors_tests_only, success, toDelta_tests_only, toSave_tests_only, triggeredPush)
+module Doc.Data exposing (CardOp_tests_only(..), Card_tests_only, CommitObject, Delta_tests_only, Model, SaveError_tests_only(..), cardDataReceived, cardOpConvert, conflictList, conflictToTree, convert, empty, emptyCardBased, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, model_tests_only, publicDataDecoder, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, saveErrors_tests_only, success, toDelta_tests_only, toSave_tests_only, triggeredPush)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -381,18 +381,6 @@ cardDataReceived json ( oldModel, oldTree, treeId ) =
                 Nothing
 
         Err err ->
-            Nothing
-
-
-publicCardDataReceived : Dec.Value -> Maybe Tree
-publicCardDataReceived json =
-    case Dec.decodeValue decodeCards json of
-        Ok cards ->
-            cards
-                |> toTree
-                |> Just
-
-        Err _ ->
             Nothing
 
 
@@ -1077,6 +1065,29 @@ requestCommit workingTree author model metadata =
             else
                 -- Unresolved conflicts exist, dont' commit.
                 Nothing
+
+
+
+-- PUBLIC DATA
+
+
+decodePublicCard : Dec.Decoder (Card UpdatedAt)
+decodePublicCard =
+    Dec.map8 Card
+        (Dec.field "id" Dec.string)
+        (Dec.field "treeId" Dec.string)
+        (Dec.field "content" Dec.string)
+        (Dec.field "parentId" (Dec.maybe Dec.string))
+        (Dec.field "position" Dec.float)
+        (Dec.succeed False)
+        (Dec.succeed True)
+        (Dec.field "updatedAt" UpdatedAt.decoder)
+
+
+publicDataDecoder : Dec.Decoder Tree
+publicDataDecoder =
+    Dec.map (\c -> toTree c)
+        (Dec.at [ "cards" ] (Dec.list decodePublicCard))
 
 
 

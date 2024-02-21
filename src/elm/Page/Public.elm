@@ -2,6 +2,7 @@ module Page.Public exposing (Model, Msg, init, navKey, update, view)
 
 import Api
 import Browser.Navigation as Nav
+import Doc.Data as Data
 import Doc.TreeStructure exposing (defaultTree)
 import GlobalData exposing (GlobalData)
 import Html exposing (Html, div)
@@ -120,11 +121,6 @@ view model =
 -- REQUESTS
 
 
-treeDecoder : Decoder Tree
-treeDecoder =
-    Dec.succeed defaultTree
-
-
 getPublicDocument : String -> Cmd Msg
 getPublicDocument dbName =
-    Api.getPublicDocument DataReceived treeDecoder dbName
+    Api.getPublicDocument DataReceived Data.publicDataDecoder dbName
