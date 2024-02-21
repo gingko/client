@@ -1,9 +1,9 @@
 PRAGMA foreign_keys=OFF;
 BEGIN TRANSACTION;
-INSERT OR REPLACE INTO trees VALUES('WtOIf','tree-x','cardbased','cypress@testing.com','[]',NULL,0,1680571952286,NULL);
-INSERT OR REPLACE INTO trees VALUES('OIe5x','tree-a','cardbased','cypress@testing.com','[]',NULL,0,1680571958024,NULL);
-INSERT OR REPLACE INTO trees VALUES('Yx6Xq','tree-u','cardbased','cypress@testing.com','[]',NULL,0,1680571971549,NULL);
-INSERT OR REPLACE INTO trees VALUES('OUlI2','tree-1','cardbased','cypress@testing.com','[]',NULL,0,1680571974868,NULL);
+INSERT OR REPLACE INTO trees VALUES('WtOIf','tree-x','cardbased','cypress@testing.com','[]',NULL,0,1680571952286,NULL,NULL);
+INSERT OR REPLACE INTO trees VALUES('OIe5x','tree-a','cardbased','cypress@testing.com','[]',NULL,0,1680571958024,NULL,NULL);
+INSERT OR REPLACE INTO trees VALUES('Yx6Xq','tree-u','cardbased','cypress@testing.com','[]',NULL,0,1680571971549,NULL,NULL);
+INSERT OR REPLACE INTO trees VALUES('OUlI2','tree-1','cardbased','cypress@testing.com','[]',NULL,0,1680571974868,NULL,NULL);
 INSERT OR REPLACE INTO cards VALUES('node-1538909230','CJoWu','mod','CJoWu:1',2.0,'1680571021368:0:2x6ujej3',0);
 INSERT OR REPLACE INTO cards VALUES('lYTJe:1','lYTJe','Another Test doc',NULL,0.0,'1607259392554:0:a52ea24a',0);
 INSERT OR REPLACE INTO cards VALUES('lYTJe:node-1628744388','lYTJe',replace('# 2\nChild card','\n',char(10)),'lYTJe:1',0.0,'1607259392554:1:67a32294',0);

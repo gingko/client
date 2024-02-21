@@ -1,7 +1,7 @@
 PRAGMA foreign_keys=OFF;
 BEGIN TRANSACTION;
-INSERT OR REPLACE INTO trees VALUES('lYTJe','Another doc, with title','cardbased','cypress@testing.com','[]',NULL,0,1680552170346,NULL);
-INSERT OR REPLACE INTO trees VALUES('CJoWu',NULL,'cardbased','cypress@testing.com','[]',NULL,0,1680552130586,NULL);
+INSERT OR REPLACE INTO trees VALUES('lYTJe','Another doc, with title','cardbased','cypress@testing.com','[]',NULL,0,1680552170346,NULL,NULL);
+INSERT OR REPLACE INTO trees VALUES('CJoWu',NULL,'cardbased','cypress@testing.com','[]',NULL,0,1680552130586,NULL,NULL);
 INSERT OR REPLACE INTO cards VALUES('lYTJe:1','lYTJe','Another Test doc',NULL,0.0,'1607259392554:0:a52ea24a',0);
 INSERT OR REPLACE INTO cards VALUES('lYTJe:node-1628744388','lYTJe',replace('# 2\nChild card','\n',char(10)),'lYTJe:1',0.0,'1607259392554:1:67a32294',0);
 INSERT OR REPLACE INTO cards VALUES('lYTJe:node-230512886','lYTJe',replace('# 3\nAnother Child card','\n',char(10)),'lYTJe:1',1.0,'1607259392554:1:d3717110',0);
