@@ -18,8 +18,10 @@ import Page.Import
 import Page.Login
 import Page.Message
 import Page.NotFound
+import Page.Public
 import Page.ResetPassword
 import Page.Signup
+import Public
 import Route
 import Session exposing (LoggedIn, Session(..))
 import Url exposing (Url)
@@ -48,11 +50,16 @@ type Model
     | Import Page.Import.Model
     | DocNew Page.DocNew.Model
     | App Page.App.Model
+      -- Public Pages:
+    | Public Page.Public.Model
 
 
 init : Value -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init json url navKey =
     let
+        isPublic =
+            Public.isPublic url
+
         session =
             Session.decode json
 
@@ -67,7 +74,11 @@ init json url navKey =
                 GuestSession guestSession ->
                     Page.Login.init navKey globalData guestSession |> updateWith Login GotLoginMsg
     in
-    handleUrlChange url initModel
+    if isPublic then
+        ( Public (Page.Public.init navKey), Cmd.none )
+
+    else
+        handleUrlChange url initModel
 
 
 replaceUrl : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -254,6 +265,9 @@ toSession model =
         App appModel ->
             Page.App.toSession appModel
 
+        Public _ ->
+            Session.public
+
 
 toGlobalData : Model -> GlobalData
 toGlobalData model =
@@ -284,6 +298,9 @@ toGlobalData model =
 
         App appModel ->
             Page.App.toGlobalData appModel
+
+        Public _ ->
+            GlobalData.public
 
 
 getNavKey : Model -> Nav.Key
@@ -316,6 +333,9 @@ getNavKey model =
         App appModel ->
             Page.App.navKey appModel
 
+        Public publicModel ->
+            Page.Public.navKey publicModel
+
 
 
 -- UPDATE
@@ -333,6 +353,7 @@ type Msg
     | GotImportMsg Page.Import.Msg
     | GotDocNewMsg Page.DocNew.Msg
     | GotAppMsg Page.App.Msg
+    | GotPublicMsg Page.Public.Msg
     | UserLoggedOut
 
 
@@ -485,6 +506,9 @@ view model =
             in
             { title = title, body = [ Html.map GotAppMsg (Page.App.view app) ] }
 
+        Public publicModel ->
+            { title = "Gingko Writer", body = [ Html.map GotPublicMsg (Page.Public.view publicModel) ] }
+
 
 
 -- SUBSCRIPTIONS
@@ -519,6 +543,9 @@ subscriptions model =
 
         App appModel ->
             Sub.map GotAppMsg (Page.App.subscriptions appModel)
+
+        Public _ ->
+            Sub.none
 
 
 globalSubscriptions : Model -> Sub Msg

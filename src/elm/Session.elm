@@ -1,4 +1,4 @@
-port module Session exposing (Guest, LoggedIn, PaymentStatus(..), Session(..), UserSource(..), confirmEmail, daysLeft, decode, documents, endFirstRun, fileMenuOpen, fromLegacy, getDocName, getMetadata, isFirstRun, isNotConfirmed, isOwner, lastDocId, logout, name, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, setFileOpen, setShortcutTrayOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, toGuest, updateDocuments, updateUpgrade, upgradeModel, userLoggedIn, userLoggedOut, userSettingsChange)
+port module Session exposing (Guest, LoggedIn, PaymentStatus(..), Session(..), UserSource(..), confirmEmail, daysLeft, decode, documents, endFirstRun, fileMenuOpen, fromLegacy, getDocName, getMetadata, isFirstRun, isNotConfirmed, isOwner, lastDocId, logout, name, paymentStatus, public, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, setFileOpen, setShortcutTrayOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, toGuest, updateDocuments, updateUpgrade, upgradeModel, userLoggedIn, userLoggedOut, userSettingsChange)
 
 import Coders exposing (sortByDecoder)
 import Doc.List as DocList exposing (Model(..))
@@ -232,6 +232,18 @@ updateUpgrade upgradeMsg (LoggedIn sessionData data) =
 
 
 -- ENCODER & DECODER
+
+
+public : Session
+public =
+    GuestSession
+        (Guest
+            { fileMenuOpen = False
+            , lastDocId = Nothing
+            , fromLegacy = False
+            , firstRun = False
+            }
+        )
 
 
 decode : Dec.Value -> Session
