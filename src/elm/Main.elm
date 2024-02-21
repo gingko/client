@@ -557,8 +557,8 @@ subscriptions model =
         App appModel ->
             Sub.map GotAppMsg (Page.App.subscriptions appModel)
 
-        Public _ ->
-            Sub.none
+        Public publicModel ->
+            Sub.map GotPublicMsg (Page.Public.subscriptions publicModel)
 
 
 globalSubscriptions : Model -> Sub Msg

@@ -98,6 +98,7 @@ publicTreeLoaded newTree (Model model) =
         { model
             | workingTree = TreeStructure.setTree newTree model.workingTree
             , loading = False
+            , block = Just "Cannot edit or add cards to a public document."
         }
 
 
