@@ -10,4 +10,3 @@ isPublic url =
         |> List.head
         |> Maybe.map (\subdomain -> subdomain == "public")
         |> Maybe.withDefault False
-        |> Debug.log "isPublic"

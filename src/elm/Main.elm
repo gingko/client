@@ -17,7 +17,6 @@ import Page.ForgotPassword
 import Page.Import
 import Page.Login
 import Page.Message
-import Page.NotFound
 import Page.Public
 import Page.ResetPassword
 import Page.Signup
@@ -75,7 +74,17 @@ init json url navKey =
                     Page.Login.init navKey globalData guestSession |> updateWith Login GotLoginMsg
     in
     if isPublic then
-        ( Public (Page.Public.init navKey), Cmd.none )
+        case .path (AppUrl.fromUrl url) of
+            [] ->
+                Page.Public.init navKey ""
+                    |> updateWith Public GotPublicMsg
+
+            [ dbName ] ->
+                Page.Public.init navKey dbName
+                    |> updateWith Public GotPublicMsg
+
+            _ ->
+                handleUrlChange url initModel
 
     else
         handleUrlChange url initModel
