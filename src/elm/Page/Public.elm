@@ -89,11 +89,16 @@ update msg model =
             ( model, Cmd.none )
 
         DataReceived (Ok tree) ->
+            let
+                ( newDocModel, newCmd ) =
+                    Page.Doc.publicTreeLoaded tree model.doc
+                        |> Page.Doc.lastActives (Ok [])
+            in
             ( { model
-                | doc = Page.Doc.publicTreeLoaded tree model.doc
+                | doc = newDocModel
                 , loading = False
               }
-            , Cmd.none
+            , Cmd.map GotDocMsg newCmd
             )
 
         DataReceived (Err _) ->
