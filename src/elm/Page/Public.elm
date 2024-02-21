@@ -4,8 +4,8 @@ import Api
 import Browser.Navigation as Nav
 import Doc.Data as Data
 import GlobalData exposing (GlobalData)
-import Html exposing (Html, div)
-import Html.Attributes exposing (classList, id)
+import Html exposing (Html, div, h1, span, text)
+import Html.Attributes exposing (class, classList, id, style)
 import Http
 import Outgoing exposing (Msg(..), send)
 import Page.Doc
@@ -19,7 +19,7 @@ import Types exposing (TooltipPosition, Tree)
 
 
 type alias Model =
-    { title : String
+    { docName : Maybe String
     , loading : Bool
     , navKey : Nav.Key
     , doc : Page.Doc.Model
@@ -28,7 +28,7 @@ type alias Model =
 
 init : Nav.Key -> GlobalData -> String -> ( Model, Cmd Msg )
 init key globalData dbName =
-    ( { title = "Public Page"
+    ( { docName = Nothing
       , loading = True
       , navKey = key
       , doc = Page.Doc.init False globalData
@@ -56,7 +56,7 @@ type Msg
     | IncomingDocMsg Incoming.Msg
     | TooltipRequested String TooltipPosition TranslationId
     | TooltipClosed
-    | DataReceived (Result Http.Error Tree)
+    | DataReceived (Result Http.Error ( String, Tree ))
     | LogErr String
 
 
@@ -88,7 +88,7 @@ update msg model =
         TooltipClosed ->
             ( model, Cmd.none )
 
-        DataReceived (Ok tree) ->
+        DataReceived (Ok ( treeName, tree )) ->
             let
                 ( newDocModel, newCmd ) =
                     Page.Doc.publicTreeLoaded tree model.doc
@@ -96,6 +96,7 @@ update msg model =
             in
             ( { model
                 | doc = newDocModel
+                , docName = Just treeName
                 , loading = False
               }
             , Cmd.map GotDocMsg newCmd
@@ -117,16 +118,39 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div [ id "app-root", classList [ ( "loading", model.loading ) ] ]
-        (Page.Doc.view
-            { docMsg = GotDocMsg
-            , keyboard = \s -> IncomingDocMsg (Keyboard s)
-            , tooltipRequested = TooltipRequested
-            , tooltipClosed = TooltipClosed
-            }
-            Nothing
-            Nothing
-            model.doc
+        ([ viewHeader model.docName ]
+            ++ Page.Doc.view
+                { docMsg = GotDocMsg
+                , keyboard = \s -> IncomingDocMsg (Keyboard s)
+                , tooltipRequested = TooltipRequested
+                , tooltipClosed = TooltipClosed
+                }
+                Nothing
+                Nothing
+                model.doc
         )
+
+
+viewHeader : Maybe String -> Html Msg
+viewHeader name_ =
+    let
+        titleString =
+            name_ |> Maybe.withDefault "Untitled"
+    in
+    div [ id "document-header" ]
+        [ span [ id "title" ]
+            [ div [ class "title-grow-wrap" ]
+                [ div [ class "shadow", style "visibility" "visible", style "box-shadow" "none" ]
+                    [ Html.text <|
+                        if titleString /= "" then
+                            titleString
+
+                        else
+                            " "
+                    ]
+                ]
+            ]
+        ]
 
 
 

@@ -1084,9 +1084,10 @@ decodePublicCard =
         (Dec.field "updatedAt" UpdatedAt.decoder)
 
 
-publicDataDecoder : Dec.Decoder Tree
+publicDataDecoder : Dec.Decoder ( String, Tree )
 publicDataDecoder =
-    Dec.map (\c -> toTree c)
+    Dec.map2 (\n c -> ( n, toTree c ))
+        (Dec.at [ "tree", "name" ] Dec.string)
         (Dec.at [ "cards" ] (Dec.list decodePublicCard))
 
 
