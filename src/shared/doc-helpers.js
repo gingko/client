@@ -106,10 +106,8 @@ const defineCustomTextarea = (toElmFn, getDataTypeFn) => {
     _onInput(e) {
       toElm(e.target.value, "docMsgs", "FieldChanged");
       if (this.isFullscreen && getDataTypeFn() == CARD_DATA) {
-        console.log("autoSave")
         autoSave();
       } else if (this.isFullscreen && getDataTypeFn() == GIT_LIKE_DATA) {
-        console.log("autoSaveSlow");
         autoSaveSlow();
       }
       this._resize();
@@ -224,7 +222,6 @@ var scrollFullscreenTo = function (cid) {
   var card = document.getElementById("card-" + cid.toString());
   var col = document.getElementById("app-fullscreen");
   if (card == null) {
-    console.log("scroll error: not found", cid);
     return;
   }
   var rect = card.getBoundingClientRect();
@@ -243,7 +240,6 @@ var scrollTo = function (cid, colIdx, instant, position, errorCount) {
   var col = document.getElementsByClassName("column")[colIdx - 1];
   let doc = document.getElementById("document");
   if (card == null || doc == null) {
-    console.log("scroll error: not found", cid, errorCount);
     window.requestAnimationFrame(()=>{
       if (errorCount <= 3) {
         errorCount++;
