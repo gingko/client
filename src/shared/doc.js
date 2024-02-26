@@ -75,7 +75,6 @@ let userDbName;
 let email = null;
 let ws;
 let wsQueue = [];
-
 let PULL_LOCK = false;
 let DIRTY = false;
 let pushErrorCount = 0;
