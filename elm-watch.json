@@ -6,5 +6,6 @@
       ],
       "output": "web/elm.js"
     }
-  }
+  },
+  "postprocess": [ "elm-watch-node", "elm-postprocess.mjs" ]
 }
