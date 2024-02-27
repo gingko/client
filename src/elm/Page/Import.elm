@@ -65,18 +65,15 @@ update msg model =
 
         TemplateImported tree fileName docId ->
             let
-                author =
-                    model.session |> Session.name
-
-                commitReq_ =
-                    Data.requestCommit tree author Data.empty (Metadata.new docId |> Metadata.renameAndEncode fileName)
+                cardData =
+                    Data.importTree docId tree
             in
-            case commitReq_ of
-                Just commitReq ->
-                    ( model, send <| SaveImportedData commitReq )
-
-                Nothing ->
-                    ( model, Cmd.none )
+            ( model
+            , Cmd.batch
+                [ send <| SaveCardBased cardData
+                , send <| SaveImportedTree ( docId, fileName )
+                ]
+            )
 
         TemplateImportSaved docId_ ->
             case docId_ of

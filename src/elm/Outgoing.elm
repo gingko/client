@@ -30,6 +30,7 @@ type Msg
     | NoDataToSave
     | RenameDocument String
     | SaveCardBased Enc.Value
+    | SaveImportedTree ( String, String )
     | SaveCardBasedMigration Enc.Value
     | PushDeltas Enc.Value
     | CommitData Enc.Value
@@ -107,6 +108,9 @@ send info =
 
         SaveCardBased data ->
             dataToSend "SaveCardBased" data
+
+        SaveImportedTree ( docId, name ) ->
+            dataToSend "SaveCardBasedTree" (tupleToValue string ( docId, name ))
 
         SaveCardBasedMigration data ->
             dataToSend "SaveCardBasedMigration" data

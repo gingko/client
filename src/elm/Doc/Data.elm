@@ -1,4 +1,4 @@
-module Doc.Data exposing (CardOp_tests_only(..), Card_tests_only, CommitObject, Delta_tests_only, Model, SaveError_tests_only(..), cardDataReceived, cardOpConvert, conflictList, conflictToTree, convert, empty, emptyCardBased, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, model_tests_only, publicDataDecoder, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, saveErrors_tests_only, success, toDelta_tests_only, toSave_tests_only, triggeredPush)
+module Doc.Data exposing (CardOp_tests_only(..), Card_tests_only, CommitObject, Delta_tests_only, Model, SaveError_tests_only(..), cardDataReceived, cardOpConvert, conflictList, conflictToTree, convert, empty, emptyCardBased, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, importTree, isGitLike, lastSavedTime, lastSyncedTime, localSave, model_tests_only, publicDataDecoder, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, saveErrors_tests_only, success, toDelta_tests_only, toSave_tests_only, triggeredPush)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -1065,6 +1065,16 @@ requestCommit workingTree author model metadata =
             else
                 -- Unresolved conflicts exist, dont' commit.
                 Nothing
+
+
+importTree : String -> Tree -> Enc.Value
+importTree treeId tree =
+    fromTree treeId 0 Nothing (Time.millisToPosix 0) 0 tree
+        |> List.map asUnsynced
+        |> (\cards ->
+                { toAdd = cards, toMarkSynced = [], toMarkDeleted = [], toRemove = [] }
+                    |> toSave
+           )
 
 
 

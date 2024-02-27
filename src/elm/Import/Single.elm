@@ -59,7 +59,6 @@ encode { author, docId, fileName } tree =
 decode : Decoder Tree
 decode =
     Dec.list unlabelledTreeDecoder
-        |> Dec.map (\children -> Tree "" "" (Children children))
 
 
 unlabelledTreeDecoder : Decoder Tree
