@@ -679,7 +679,7 @@ const fromElm = (msg, elmData) => {
       const now = Date.now();
       const treeName = elmData[1];
       TREE_ID = elmData[0];
-      const treeDoc = {...treeDocDefaults, id: TREE_ID, location: "cardbased", owner: email, createdAt: now, updatedAt: now};
+      const treeDoc = {...treeDocDefaults, name: treeName, id: TREE_ID, location: "cardbased", owner: email, createdAt: now, updatedAt: now};
       await dexie.trees.add(treeDoc);
       toElm(TREE_ID, "importComplete")
     },
