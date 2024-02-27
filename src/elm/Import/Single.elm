@@ -1,7 +1,6 @@
 module Import.Single exposing (decoder, encode)
 
 import Coders exposing (lazyRecurse)
-import Doc.Data as Data
 import Doc.Metadata as Metadata
 import Doc.TreeStructure as TreeStructure exposing (labelTree)
 import Json.Decode as Dec exposing (Decoder, field, list, oneOf, string, succeed)
@@ -59,6 +58,7 @@ encode { author, docId, fileName } tree =
 decode : Decoder Tree
 decode =
     Dec.list unlabelledTreeDecoder
+        |> Dec.map (\children -> Tree "" "root" (Children children))
 
 
 unlabelledTreeDecoder : Decoder Tree
