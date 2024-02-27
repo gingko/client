@@ -1,5 +1,5 @@
 // @format
-import '../static/style.css'
+//import '../static/style.css'
 
 import * as data from "./data.js";
 //import Worker from "worker-loader!./data.worker.js";
