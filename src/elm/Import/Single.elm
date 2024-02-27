@@ -23,15 +23,14 @@ decoder seed =
     ( decode
         |> Dec.map
             (\trees ->
-                Tree ""
-                    ""
-                    (Children
-                        (trees
-                            |> List.indexedMap (\i t -> labelTree i "" t)
-                        )
-                    )
+                trees
+                    |> List.indexedMap (\idx t -> labelTree idx salt t)
+                    |> List.map (TreeStructure.renameNodes salt)
             )
-        |> Dec.map (TreeStructure.renameNodes salt)
+        |> Dec.map
+            (\trees ->
+                Tree "0" "" (Children trees)
+            )
     , newSeed
     )
 
