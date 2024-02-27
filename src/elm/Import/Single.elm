@@ -11,21 +11,6 @@ import Types exposing (Children(..), Tree)
 
 
 
--- MODEL
-
-
-type alias NumberedTree =
-    { id : String
-    , content : String
-    , children : NumberedChildren
-    }
-
-
-type NumberedChildren
-    = NumberedChildren (List NumberedTree)
-
-
-
 -- EXPOSED
 
 
@@ -36,7 +21,16 @@ decoder seed =
             Random.step (RandomId.stringGenerator 7) seed
     in
     ( decode
-        |> Dec.map (\ult -> labelTree 0 "" ult)
+        |> Dec.map
+            (\trees ->
+                Tree ""
+                    ""
+                    (Children
+                        (trees
+                            |> List.indexedMap (\i t -> labelTree i "" t)
+                        )
+                    )
+            )
         |> Dec.map (TreeStructure.renameNodes salt)
     , newSeed
     )
@@ -55,10 +49,9 @@ encode { author, docId, fileName } tree =
 -- INTERNAL
 
 
-decode : Decoder Tree
+decode : Decoder (List Tree)
 decode =
     Dec.list unlabelledTreeDecoder
-        |> Dec.map (\children -> Tree "" "root" (Children children))
 
 
 unlabelledTreeDecoder : Decoder Tree
