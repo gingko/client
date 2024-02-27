@@ -1,4 +1,4 @@
-port module Session exposing (Guest, LoggedIn, PaymentStatus(..), Session(..), UserSource(..), confirmEmail, daysLeft, decode, documents, endFirstRun, fileMenuOpen, fromLegacy, getDocName, getMetadata, isFirstRun, isNotConfirmed, isOwner, lastDocId, logout, name, paymentStatus, public, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, setFileOpen, setShortcutTrayOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, toGuest, updateDocuments, updateUpgrade, upgradeModel, userLoggedIn, userLoggedOut, userSettingsChange)
+port module Session exposing (Guest, LoggedIn, PaymentStatus(..), Session(..), UserSource(..), confirmEmail, copyNaming, daysLeft, decode, documents, endFirstRun, fileMenuOpen, fromLegacy, getDocName, getMetadata, isFirstRun, isNotConfirmed, isOwner, lastDocId, logout, name, paymentStatus, public, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, setFileOpen, setShortcutTrayOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, toGuest, updateDocuments, updateUpgrade, upgradeModel, userLoggedIn, userLoggedOut, userSettingsChange)
 
 import Coders exposing (sortByDecoder)
 import Doc.List as DocList exposing (Model(..))
@@ -9,6 +9,7 @@ import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as Enc
 import List.Extra as ListExtra
 import Outgoing exposing (Msg(..), send)
+import Regex
 import Time exposing (Posix)
 import Translation exposing (Language)
 import Types exposing (SortBy(..))
@@ -148,6 +149,37 @@ sortBy (LoggedIn _ data) =
 documents : LoggedIn -> DocList.Model
 documents (LoggedIn _ data) =
     data.documents
+
+
+copyNaming : LoggedIn -> String -> String
+copyNaming (LoggedIn _ data) originalName =
+    let
+        copyNameRegex =
+            Maybe.withDefault Regex.never <|
+                Regex.fromString (originalName ++ "\\s*(\\(\\d+\\))?$")
+    in
+    case data.documents of
+        Success docList ->
+            docList
+                |> List.filter
+                    (\d ->
+                        d
+                            |> Metadata.getDocName
+                            |> Maybe.withDefault ""
+                            |> Regex.find copyNameRegex
+                            |> (not << List.isEmpty)
+                    )
+                |> List.length
+                |> (\n ->
+                        if n > 0 then
+                            originalName ++ " (" ++ String.fromInt (n + 1) ++ ")"
+
+                        else
+                            originalName
+                   )
+
+        _ ->
+            originalName
 
 
 getMetadata : LoggedIn -> String -> Maybe Metadata

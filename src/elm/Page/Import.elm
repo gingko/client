@@ -29,9 +29,14 @@ init navKey globalData session template =
     let
         ( importTreeDecoder, newSeed ) =
             Import.Single.decoder (GlobalData.seed globalData)
+
+        copyName =
+            template
+                |> Template.toString
+                |> Session.copyNaming session
     in
     ( { session = session, globalData = GlobalData.setSeed newSeed globalData, navKey = navKey }
-    , Template.fetchJSON (TemplateJSONReceived (Template.toString template)) importTreeDecoder template
+    , Template.fetchJSON (TemplateJSONReceived copyName) importTreeDecoder template
     )
 
 
