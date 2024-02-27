@@ -1505,11 +1505,15 @@ update msg model =
 
                 newGlobalData =
                     GlobalData.setSeed newSeed globalData
+
+                copyName =
+                    fileName
+                        |> Session.copyNaming session
             in
             case Json.decodeString importTreeDecoder jsonString of
                 Ok tree ->
                     ( { model | loading = True } |> updateGlobalData newGlobalData
-                    , RandomId.generate (ImportJSONIdGenerated tree fileName)
+                    , RandomId.generate (ImportJSONIdGenerated tree copyName)
                     )
 
                 Err _ ->
@@ -1517,18 +1521,15 @@ update msg model =
 
         ImportJSONIdGenerated tree fileName docId ->
             let
-                author =
-                    session |> Session.name
-
-                commitReq_ =
-                    Data.requestCommit tree author Data.empty (Metadata.new docId |> Metadata.renameAndEncode fileName)
+                cardData =
+                    Data.importTree docId tree
             in
-            case commitReq_ of
-                Just commitReq ->
-                    ( model, send <| SaveImportedData commitReq )
-
-                Nothing ->
-                    ( model, Cmd.none )
+            ( model
+            , Cmd.batch
+                [ send <| SaveCardBased cardData
+                , send <| SaveImportedTree ( docId, fileName )
+                ]
+            )
 
         ImportSingleCompleted docId ->
             ( model, Route.pushUrl model.navKey (Route.DocUntitled docId) )
