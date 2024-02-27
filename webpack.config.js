@@ -181,7 +181,14 @@ const webConfig = {
     // Plugin to copy static assets (css, images).
     new CopyWebpackPlugin({ patterns: [{
       from: "./static",
-      to: "../web"
+      to: "../web",
+      filter: async (resourcePath) => {
+        if (resourcePath.endsWith('index.html')) {
+          return false;
+        } else {
+          return true;
+        }
+      }
     }]})
   ]
 };

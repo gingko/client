@@ -1,11 +1,11 @@
 // @format
-import '../static/style.css';
+import '../static/style.css'
 
 import * as data from "./data.js";
-import Worker from "worker-loader!./data.worker.js";
+//import Worker from "worker-loader!./data.worker.js";
 import hlc from '@tpp/hybrid-logical-clock';
 import uuid from '@tpp/simple-uuid';
-const dataWorker = new Worker();
+const dataWorker = new Worker('./data.worker.js');
 
 const _ = require("lodash");
 const Mousetrap = require("mousetrap");
@@ -52,7 +52,7 @@ dexie.version(4).stores({
 });
 
 const helpers = require("./doc-helpers");
-import { Elm } from "../elm/Main";
+//import { Elm } from "../elm/Main";
 
 /* === Global Variables === */
 
