@@ -18,6 +18,7 @@ const result = await Bun.build({
     'global': 'self',
   },
   sourcemap: 'external',
+  minify: true,
 })
 
 if (!result.success) {
