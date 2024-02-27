@@ -5,7 +5,7 @@ import * as data from "./data.js";
 //import Worker from "worker-loader!./data.worker.js";
 import hlc from '@tpp/hybrid-logical-clock';
 import uuid from '@tpp/simple-uuid';
-const dataWorker = new Worker('./data.worker.js');
+const dataWorker = new Worker('/data.worker.js');
 
 const _ = require("lodash");
 const Mousetrap = require("mousetrap");

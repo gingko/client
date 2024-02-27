@@ -23,6 +23,7 @@
     "test:web": "playwright test tests/web",
     "test:firefox": "cypress run --browser firefox",
     "build": "webpack",
+    "newbuild": "bun bun.build.js && cp -r src/static/. web/ && elm-watch make --optimize",
     "newwatch": "bunx run-pty % bun run watch:static % elm-watch hot % bun run watch:js",
     "watch:js": "chokidar 'src/shared/*.js' -c 'bun bun.build.js' --initial",
     "watch:static": "chokidar 'src/static/**/*' -c 'cp -r src/static/. web/' --initial",
