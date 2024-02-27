@@ -1,3 +1,6 @@
+// @format
+import '../static/style.css'
+
 import * as data from "./data.js";
 //import Worker from "worker-loader!./data.worker.js";
 import hlc from '@tpp/hybrid-logical-clock';
