@@ -25,7 +25,7 @@
     "build": "webpack",
     "newbuild": "bun esbuild.mjs && cp -r src/static/. web/ && elm-watch make --optimize && bun run minifyelm",
     "minifyjs": "bunx esbuild web/doc.js --minify --bundle --outfile=web/doc.js --allow-overwrite",
-    "minifyelm": "uglifyjs web/elm.js --compress 'pure_funcs=[F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9],pure_getters,keep_fargs=false,unsafe_comps,unsafe' | uglifyjs --mangle --output web/elm.js",
+    "minifyelm": "bunx uglifyjs web/elm.js --compress 'pure_funcs=[F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9],pure_getters,keep_fargs=false,unsafe_comps,unsafe' | bunx uglifyjs --mangle --output web/elm.js",
     "newwatch": "bunx run-pty % bun run watch:static % elm-watch hot % bun run watch:js",
     "watch:js": "chokidar 'src/shared/*.js' -c 'bun esbuild.mjs' --initial",
     "watch:static": "chokidar 'src/static/**/*' -c 'cp -r src/static/. web/' --initial",
