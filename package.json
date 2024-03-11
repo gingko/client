@@ -2,7 +2,7 @@
   "name": "gingko-writer",
   "productName": "Gingko Writer",
   "version": "2.5.0",
-  "description": "Gingko client rewritten in Elm, packaged with Electron.",
+  "description": "Gingko client rewritten in Elm.",
   "repository": {
     "type": "git",
     "url": "git://github.com/gingko/client.git"
