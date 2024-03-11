@@ -39,9 +39,6 @@ describe('Welcome Tree & Templates', () => {
     cy.get('#template-new')
       .should('be.visible')
 
-    cy.get('#template-import-bulk')
-      .should('be.visible')
-
     cy.get('#template-import')
       .should('be.visible')
 
@@ -54,9 +51,6 @@ describe('Welcome Tree & Templates', () => {
 
     cy.get('#template-new')
       .scrollIntoView()
-      .should('be.visible')
-
-    cy.get('#template-import-bulk')
       .should('be.visible')
 
     cy.get('#template-import-text')
