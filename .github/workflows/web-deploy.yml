@@ -16,6 +16,9 @@ jobs:
         node-version: [18.x]
 
     steps:
+      - name: Setup bun
+        uses: oven-sh/setup-bun@v1
+
       - name: Checkout client
         uses: actions/checkout@v3
         with:
