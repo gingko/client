@@ -1,0 +1,10 @@
+{
+  "name": "legacy-import",
+  "version": "1.0.0",
+  "dependencies": {
+    "mongodb": "^6.5.0"
+  },
+  "devDependencies": {
+    "bun-types": "^1.0.30"
+  }
+}
