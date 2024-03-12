@@ -2,6 +2,8 @@ elm-stuff
 dist/*
 src/elm.js
 src/elm-*.js
+src/migration/elm-stuff
+src/migration/*.js
 app/*
 /web/*
 !app/package.json

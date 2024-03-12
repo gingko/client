@@ -18,12 +18,12 @@ main =
 
 
 type alias Model =
-    Int
+    ()
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( 0, Cmd.none )
+    ( (), Cmd.none )
 
 
 
@@ -32,22 +32,18 @@ init _ =
 
 type Msg
     = Incoming (Result Dec.Error Int)
-    | Decrement
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Incoming (Ok value) ->
-            ( value, output (Enc.int (value * value)) )
+            ( model, output (Enc.int (value * value)) )
 
         Incoming (Err err) ->
             ( model
             , output (Enc.string (Dec.errorToString err))
             )
-
-        Decrement ->
-            ( model - 1, Cmd.none )
 
 
 
