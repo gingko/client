@@ -33,24 +33,30 @@ init _ =
 
 
 type Msg
-    = Incoming Dec.Value
+    = Incoming ( String, Dec.Value )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Incoming json ->
+        Incoming ( docId, json ) ->
             case Data.gitDataReceived json ( Data.empty, Tree.defaultTree ) of
                 Just { newData, newTree } ->
-                    ( model
-                    , output
-                        (Debug.toString newTree
-                            |> Enc.string
-                        )
-                    )
+                    let
+                        converted =
+                            Data.convert docId newData
+                    in
+                    case converted of
+                        Just ( _, outvalue ) ->
+                            ( model
+                            , output ( docId, outvalue )
+                            )
+
+                        Nothing ->
+                            ( model, output ( "", Enc.string "Conversion failed" ) )
 
                 Nothing ->
-                    ( model, output (Enc.string "Invalid JSON") )
+                    ( model, output ( "", Enc.string "Invalid JSON" ) )
 
 
 
@@ -62,7 +68,7 @@ subscriptions model =
     input Incoming
 
 
-port input : (Dec.Value -> msg) -> Sub msg
+port input : (( String, Dec.Value ) -> msg) -> Sub msg
 
 
-port output : Dec.Value -> Cmd msg
+port output : ( String, Dec.Value ) -> Cmd msg
