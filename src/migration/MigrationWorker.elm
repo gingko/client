@@ -1,5 +1,7 @@
 port module MigrationWorker exposing (Model, Msg(..), init, update)
 
+import Doc.Data as Data
+import Doc.TreeStructure as Tree
 import Json.Decode as Dec
 import Json.Encode as Enc
 import Platform exposing (worker)
@@ -31,19 +33,24 @@ init _ =
 
 
 type Msg
-    = Incoming (Result Dec.Error Int)
+    = Incoming Dec.Value
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Incoming (Ok value) ->
-            ( model, output (Enc.int (value * value)) )
+        Incoming json ->
+            case Data.gitDataReceived json ( Data.empty, Tree.defaultTree ) of
+                Just { newData, newTree } ->
+                    ( model
+                    , output
+                        (Debug.toString newTree
+                            |> Enc.string
+                        )
+                    )
 
-        Incoming (Err err) ->
-            ( model
-            , output (Enc.string (Dec.errorToString err))
-            )
+                Nothing ->
+                    ( model, output (Enc.string "Invalid JSON") )
 
 
 
@@ -52,7 +59,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    input (Dec.decodeValue Dec.int >> Incoming)
+    input Incoming
 
 
 port input : (Dec.Value -> msg) -> Sub msg

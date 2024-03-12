@@ -4,9 +4,6 @@ const {Elm} = require('./MigrationWorker.js')
 
 const app = Elm.MigrationWorker.init();
 
-console.log('Sending 5')
-app.ports.input.send(5)
-
 app.ports.output.subscribe(function(data) {
   console.log(data);
 });
@@ -44,11 +41,12 @@ async function setupDb(email) {
 
   // Get list of trees from sqlite for user
   const treesToConvert = await couchdbTreesByUser.all(email).map((row) => row.id);
-  console.log(treesToConvert);
 
   // Load tree from CouchDB
-  const treeData = await data.load(remoteDB, treesToConvert[0]);
-  console.log(treeData[0]);
+  const [treeData, rest] = await data.load(remoteDB, treesToConvert[0]);
+
+  console.log(treeData);
+  app.ports.input.send(treeData);
 }
 
 
