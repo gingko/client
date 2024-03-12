@@ -23,7 +23,7 @@
     "test:web": "playwright test tests/web",
     "test:firefox": "cypress run --browser firefox",
     "build": "webpack",
-    "newbuild": "bun esbuild.mjs && cp -r src/static/. web/ && elm-watch make --optimize && bun run minifyelm",
+    "newbuild": "bun esbuild.mjs && cp -r src/static/. web/ && bunx tailwindcss -i src/static/style.css -o web/style.css && elm-watch make --optimize && bun run minifyelm",
     "minifyjs": "bunx esbuild web/doc.js --minify --bundle --outfile=web/doc.js --allow-overwrite",
     "minifyelm": "bunx uglifyjs web/elm.js --compress 'pure_funcs=[F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9],pure_getters,keep_fargs=false,unsafe_comps,unsafe' | bunx uglifyjs --mangle --output web/elm.js",
     "newwatch": "bunx run-pty % bun run watch:static % elm-watch hot % bun run watch:js",
