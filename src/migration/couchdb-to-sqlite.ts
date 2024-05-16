@@ -5,14 +5,20 @@ import PouchDB from "pouchdb";
 
 const db = new Database(hiddenConfig.SQLITE_DB_PATH);
 console.log(db);
-const couchdbTreesByUser = db.query(`SELECT * FROM trees WHERE location='couchdb' AND owner = ?`);
+const couchdbTreesByUser = db.query(`SELECT * FROM trees WHERE location='couchdb' AND deletedAt IS NULL AND owner = ?`);
 const insertCard = db.query(`INSERT INTO cards (id, treeId, content, parentId, position, updatedAt, deleted) VALUES ($id, $treeId, $content, $parentId, $position, $updatedAt, $deleted)`);
 const insertCards = db.transaction( cards => {
   for (const card of cards) {
     insertCard.run(card);
   }
 })
-const setTreeLocation = db.query(`UPDATE trees SET location='cardbased' WHERE id = ?`);
+
+// Query to copy the tree with id treeId to a new row with id newTreeId
+const copyTree = db.query(`INSERT INTO trees
+ (id, name, location, owner, collaborators, inviteUrl, createdAt, updatedAt, publicUrl)
+ SELECT $newTreeId, name, 'cardbased', owner, collaborators, inviteUrl, createdAt, updatedAt, publicUrl
+ FROM trees WHERE id = $treeId`);
+const markAsMigrated = db.query(`UPDATE trees SET deletedAt = unixepoch() * 1000, migratedTo = $newTreeId WHERE id = $treeId`);
 
 /* ==== Elm Setup ==== */
 
@@ -23,8 +29,16 @@ const app = Elm.MigrationWorker.init();
 app.ports.output.subscribe(function([docId, data]) {
   try {
     console.log('Received conversion data for ', docId);
-    insertCards(data.map(cardToQuery));
-    setTreeLocation.run(docId);
+    const newTreeId = randomString(7);
+    console.log('New tree id:', newTreeId);
+
+    const cardsToInsert = data.map(updateTreeId(newTreeId)).map(cardToQuery);
+    console.log('card ids:', cardsToInsert.map(c => c.$id));
+
+    copyTree.run({$newTreeId: newTreeId, $treeId: docId});
+    markAsMigrated.run({$newTreeId: newTreeId, $treeId: docId});
+    insertCards(cardsToInsert);
+    console.log('Migration complete for ', docId);
   } catch (e) {
     console.error(e);
   }
@@ -58,6 +72,8 @@ async function setupDb(email) {
   if (treesToConvert.length === 0) {
     console.error('No trees to convert');
     return;
+  } else {
+    console.log('Trees to convert:', treesToConvert);
   }
 
   // get first treeId
@@ -83,6 +99,22 @@ if (Bun.argv.length == 3) {
 
 function toHex (str: string) {
   return Array.from(str).map(c => c.charCodeAt(0).toString(16)).join('');
+}
+
+function randomString(length) {
+  const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let result = '';
+  for (var i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
+  return result;
+}
+
+function updateTreeId(newTreeId: string) {
+  return function(card) {
+    return {
+      ...card,
+      treeId: newTreeId
+    };
+  }
 }
 
 function cardToQuery(card) {
