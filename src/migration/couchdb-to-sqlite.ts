@@ -2,6 +2,7 @@ import * as data from '../shared/data.js';
 import * as hiddenConfig from '../../hidden-config.js';
 import { Database } from 'bun:sqlite';
 import PouchDB from "pouchdb";
+import sha1 from 'sha1';
 
 const db = new Database(hiddenConfig.SQLITE_DB_PATH);
 console.log(db);
@@ -108,7 +109,7 @@ function randomString(length) {
   return result;
 }
 
-function updateTreeId(newTreeId: string) {
+  function updateTreeId(newTreeId: string) {
   return function(card) {
     return {
       ...card,
@@ -118,11 +119,13 @@ function updateTreeId(newTreeId: string) {
 }
 
 function cardToQuery(card) {
+  const hashedId = sha1(card.treeId + card.id);
+  const hashedParentId = card.parentId ? sha1(card.treeId + card.parentId) : null;
   return {
-    $id: card.id,
+    $id: hashedId,
     $treeId: card.treeId,
     $content: card.content,
-    $parentId: card.parentId,
+    $parentId: hashedParentId,
     $position: card.position,
     $updatedAt: card.updatedAt,
     $deleted: false
