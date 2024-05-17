@@ -27,8 +27,9 @@ const {Elm} = require('./MigrationWorker.js')
 
 const app = Elm.MigrationWorker.init();
 
-app.ports.output.subscribe(function([docId, data]) {
+app.ports.output.subscribe(function(dataReceived) {
   try {
+    const [docId, data] = dataReceived;
     console.log('Received conversion data for ', docId);
     const newTreeId = randomString(7);
     console.log('New tree id:', newTreeId);
@@ -41,7 +42,7 @@ app.ports.output.subscribe(function([docId, data]) {
     insertCards(cardsToInsert);
     console.log('Migration complete for ', docId);
   } catch (e) {
-    console.error(e);
+    console.error(e, dataReceived);
   }
 });
 
@@ -77,13 +78,12 @@ async function setupDb(email) {
     console.log('Trees to convert:', treesToConvert);
   }
 
-  // get first treeId
-  const treeId = treesToConvert[0];
+  for (const treeId of treesToConvert) {
+    // Load tree from CouchDB
+    const [treeData, rest] = await data.load(couchdb, treeId);
 
-  // Load tree from CouchDB
-  const [treeData, rest] = await data.load(couchdb, treeId);
-
-  app.ports.input.send([treeId, treeData]);
+    app.ports.input.send([treeId, treeData]);
+  }
 }
 
 if (Bun.argv.length == 3) {
