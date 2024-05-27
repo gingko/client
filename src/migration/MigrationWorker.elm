@@ -53,10 +53,10 @@ update msg model =
                             )
 
                         Nothing ->
-                            ( model, output ( "", Enc.string "Conversion failed" ) )
+                            ( model, output ( "ERROR", Enc.string "Conversion failed" ) )
 
                 Nothing ->
-                    ( model, output ( "", Enc.string "Invalid JSON" ) )
+                    ( model, output ( "ERROR", Enc.string "Invalid JSON" ) )
 
 
 

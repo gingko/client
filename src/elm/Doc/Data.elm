@@ -466,6 +466,13 @@ gitDataReceived json ( oldModel, oldTree ) =
                         |> Just
 
         Err err ->
+            {--Can enable this for debugging couchdb-to-sqlite conversion errors
+
+            let
+                _ =
+                    Debug.log "Error decoding git data" ( err, Enc.encode 2 json )
+            in
+            --}
             Nothing
 
 

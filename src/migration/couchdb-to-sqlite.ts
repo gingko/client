@@ -34,6 +34,16 @@ app.ports.output.subscribe(function(dataReceived) {
     const newTreeId = randomString(7);
     console.log('New tree id:', newTreeId);
 
+    if (docId === 'ERROR') {
+      console.error('Error converting data : ', data);
+      return;
+    }
+
+    if (data.length === 0) {
+      console.error('No data to convert for ', docId);
+      return;
+    }
+
     const cardsToInsert = data.map(updateTreeId(newTreeId)).map(cardToQuery);
     console.log('card ids:', cardsToInsert.map(c => c.$id));
 
