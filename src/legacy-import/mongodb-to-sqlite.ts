@@ -35,9 +35,28 @@ async function main() {
     const db = client.db('gingko');
 
     switch (Bun.argv[2]) {
+      case 'getTreesByName' : {
+        const trees = await db.collection('trees').find({ name: Bun.argv[3] }).toArray();
+        console.log(trees.map(tree => [tree._id, tree.name]).join('\n'));
+        return;
+      }
+
+      case 'getTreeById' : {
+        const tree = await db.collection('trees').findOne({ _id: new ObjectId(Bun.argv[3]) });
+        console.log(tree);
+        return;
+      }
+
+      case 'getUserById' : {
+        const user = await db.collection('users').findOne({ _id: new ObjectId(Bun.argv[3]) });
+        console.log(user);
+        return;
+      }
+
       case 'getUserTreesByEmail': {
         const trees = await getUserTreesByEmail(db, Bun.argv[3]);
         console.log(trees.map(tree => [tree._id, tree.name]).join('\n'));
+        return;
       }
 
       case 'convertUserTreesByIds': {
