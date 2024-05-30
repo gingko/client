@@ -24,6 +24,11 @@ const client = new MongoClient(hiddenConfig.LEGACY_MONGODB_URI, {
   serverApi: ServerApiVersion.v1,
 });
 
+// Elm setup
+
+const {Elm} = require('./LegacyWorker.js')
+
+const app = Elm.LegacyWorker.init();
 
 // Main function
 
@@ -152,5 +157,12 @@ function cardMongoToSqlite(card) {
     $updatedAt: card.updatedAt.toISOString(),
   };
 }
+
+
+async function saveTreeAsJSON(db: Db, folderName: string, tree: WithId<Document>) {
+  // Get cards with treeId and deleted field null or not present
+  const cards = await db.collection('cards').find({ treeId: tree._id, deleted: { $in: [null, false] } }).toArray();
+}
+
 
 main().catch(console.error);

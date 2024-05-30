@@ -4,6 +4,8 @@ src/elm.js
 src/elm-*.js
 src/migration/elm-stuff
 src/migration/*.js
+src/legacy-import/elm-stuff
+src/legacy-import/*.js
 app/*
 /web/*
 !app/package.json
