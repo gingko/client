@@ -1,5 +1,8 @@
 port module LegacyWorker exposing (..)
 
+import Coders exposing (treeToJSON)
+import Doc.Data as Data
+import Doc.TreeStructure as TreeStructure
 import Json.Decode as Dec
 import Platform exposing (worker)
 
@@ -25,19 +28,32 @@ init _ =
     ( (), Cmd.none )
 
 
+type alias InputData =
+    { email : String, name : String, treeId : String, cards : Dec.Value }
+
+
+type alias OutputData =
+    { email : String, name : String, treeId : String, treeJSON : Dec.Value }
+
+
 
 -- UPDATE
 
 
 type Msg
-    = Incoming ( String, Dec.Value )
+    = Incoming InputData
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Incoming ( key, value ) ->
-            ( model, Cmd.none )
+        Incoming { email, name, treeId, cards } ->
+            case Data.cardDataReceived cards ( Data.empty, TreeStructure.defaultTree, treeId ) of
+                Just { newTree } ->
+                    ( (), output { email = email, name = name, treeId = treeId, treeJSON = treeToJSON False newTree } )
+
+                Nothing ->
+                    ( (), Cmd.none )
 
 
 
@@ -49,7 +65,7 @@ subscriptions model =
     input Incoming
 
 
-port input : (( String, Dec.Value ) -> msg) -> Sub msg
+port input : (InputData -> msg) -> Sub msg
 
 
-port output : ( String, Dec.Value ) -> Cmd msg
+port output : OutputData -> Cmd msg

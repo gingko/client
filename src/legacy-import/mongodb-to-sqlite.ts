@@ -1,5 +1,6 @@
 import { Db, ObjectId, Document, MongoClient, ServerApiVersion, WithId } from "mongodb";
 import * as hiddenConfig from '../../hidden-config.js';
+import { mkdir } from "node:fs/promises";
 
 // SQLite setup
 import { Database } from 'bun:sqlite';
@@ -20,7 +21,7 @@ const insertCards = sqliteDb.transaction( cards => {
 
 
 // MongoDB setup
-const client = new MongoClient(hiddenConfig.LEGACY_MONGODB_URI, {
+const client = new MongoClient(hiddenConfig.LEGACY_MONGODB_LOCAL_URI, {
   serverApi: ServerApiVersion.v1,
 });
 
@@ -29,6 +30,17 @@ const client = new MongoClient(hiddenConfig.LEGACY_MONGODB_URI, {
 const {Elm} = require('./LegacyWorker.js')
 
 const app = Elm.LegacyWorker.init();
+
+app.ports.output.subscribe(async function(data) {
+  const {email, name, treeId, treeJSON} = data;
+
+  const baseDir = '/home/adriano/code/gingko/legacy-gingko-data';
+  const userDir = `${baseDir}/${email}`;
+  const treePath = `${userDir}/${treeId}-${name}.json`;
+
+  await mkdir(userDir, { recursive: true });
+  Bun.write(treePath, JSON.stringify(treeJSON, null, 2));
+});
 
 // Main function
 
@@ -61,6 +73,27 @@ async function main() {
       case 'getUserTreesByEmail': {
         const trees = await getUserTreesByEmail(db, Bun.argv[3]);
         console.log(trees.map(tree => [tree._id, tree.name]).join('\n'));
+        return;
+      }
+
+      case 'saveUserTreesAsJSON': {
+        if (Bun.argv.length < 4) {
+          console.error('Usage: bun mongodb-to-sqlite.ts saveUserTreesAsJSON <emailLegacy>');
+          return;
+        }
+
+        const emailLegacy = Bun.argv[3];
+
+        const trees = await getUserTreesByEmail(db, emailLegacy);
+        const totalTrees = trees.length;
+
+        for (const [index, tree] of trees.entries()) {
+          await saveTreeAsJSON(db, emailLegacy, tree);
+
+          // Calculate progress
+          const progress = ((index + 1) / totalTrees) * 100;
+          console.log(`Progress: ${progress.toFixed(2)}%`);
+        }
         return;
       }
 
@@ -115,7 +148,7 @@ async function getUserTreesByEmail(db : Db, emailLegacy: string) {
     throw new Error('User not found');
   }
 
-  return await db.collection('trees').find({ owner: user._id }).toArray();
+  return await db.collection('trees').find({ owner: user._id, deleted: { $in: [null, false] } }).toArray();
 }
 
 
@@ -158,10 +191,25 @@ function cardMongoToSqlite(card) {
   };
 }
 
+function cardMongoToElmCard(card, idx) {
+  return {
+    id: card._id.toHexString(),
+    treeId: '',
+    content: card.content,
+    parentId: card.parentId ? card.parentId.toHexString() : null,
+    position: card.position,
+    deleted: 0,
+    synced: true,
+    updatedAt: `${Date.now()}:${idx}:aaaaa`
+  };
 
-async function saveTreeAsJSON(db: Db, folderName: string, tree: WithId<Document>) {
+}
+
+
+async function saveTreeAsJSON(db: Db, ownerEmail: string, tree: WithId<Document>) {
   // Get cards with treeId and deleted field null or not present
   const cards = await db.collection('cards').find({ treeId: tree._id, deleted: { $in: [null, false] } }).toArray();
+  app.ports.input.send({email: ownerEmail, name: tree.name, treeId: tree._id.toHexString(), cards : cards.map(cardMongoToElmCard)})
 }
 
 
