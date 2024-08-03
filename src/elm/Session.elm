@@ -50,6 +50,7 @@ type alias UserData =
     , shortcutTrayOpen : Bool
     , sortBy : SortBy
     , documents : DocList.Model
+    , features : List String
     }
 
 
@@ -318,7 +319,7 @@ decoderGuestSession =
 decoderLoggedIn : Dec.Decoder LoggedIn
 decoderLoggedIn =
     Dec.succeed
-        (\email t legacy side confirmTime payStat trayOpen sortCriteria _ ->
+        (\email t legacy side confirmTime payStat trayOpen sortCriteria _ featList ->
             let
                 newPayStat =
                     case payStat of
@@ -338,7 +339,7 @@ decoderLoggedIn =
                 , fromLegacy = legacy
                 , firstRun = False
                 }
-                (UserData email Upgrade.init newPayStat confirmTime trayOpen sortCriteria DocList.init)
+                (UserData email Upgrade.init newPayStat confirmTime trayOpen sortCriteria DocList.init featList)
         )
         |> required "email" Dec.string
         |> required "currentTime" (Dec.int |> Dec.map Time.millisToPosix)
@@ -349,6 +350,7 @@ decoderLoggedIn =
         |> optional "shortcutTrayOpen" Dec.bool False
         |> optional "sortBy" sortByDecoder ModifiedAt
         |> optional "lastDocId" (Dec.maybe Dec.string) Nothing
+        |> optional "features" (Dec.list Dec.string) []
 
 
 decodeConfirmedStatus : Decoder (Maybe Time.Posix)
@@ -395,11 +397,11 @@ responseDecoder usrSrc session =
                                 data
                    )
 
-        builder : String -> PaymentStatus -> Maybe Time.Posix -> Language -> List Metadata -> ( LoggedIn, Language )
-        builder email payStat confAt lang docs =
+        builder : String -> PaymentStatus -> Maybe Time.Posix -> Language -> List Metadata -> List String -> ( LoggedIn, Language )
+        builder email payStat confAt lang docs feats =
             ( LoggedIn
                 sessionData
-                (UserData email Upgrade.init payStat confAt True ModifiedAt (DocList.fromList docs))
+                (UserData email Upgrade.init payStat confAt True ModifiedAt (DocList.fromList docs) feats)
             , lang
             )
     in
@@ -409,6 +411,7 @@ responseDecoder usrSrc session =
         |> optional "confirmedAt" decodeConfirmedStatus (Just (Time.millisToPosix 0))
         |> optional "language" (Dec.string |> Dec.map Translation.langFromString) Translation.En
         |> optional "documents" Metadata.responseDecoder []
+        |> optional "features" (Dec.list Dec.string) []
 
 
 encodeUserData : Language -> UserData -> Enc.Value
