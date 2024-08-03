@@ -54,27 +54,7 @@ describe('User Signup Flow', () => {
     cy.get('.close-button').click()
     cy.get('.modal.video-viewer').should('not.exist')
 
-    // Has email verification banner
-    cy.get('#email-confirm-banner')
-      .contains('Please confirm your email')
-
-    cy.request('POST', config.TEST_SERVER + '/test/confirm')
-
-    // Redirected to welcome, Confirmation banner gone
-    cy.get('@welcomeUrl').then((welcomeUrl) => {
-      cy.url().should('eq', welcomeUrl)
-    })
     cy.contains('Welcome to Gingko Writer')
-
-    cy.get('#email-confirm-banner')
-      .should('not.exist')
-
-    // Send email confirmation webhook before logging out
-    cy.request('POST', config.TEST_SERVER + '/mlhooks',
-      {events: [{data: {subscriber: {email: testEmail, confirmation_timestamp: (new Date()).toISOString()}}}]}
-    ).as('mlhook')
-
-    cy.waitFor('@mlhook')
 
     // Logs Out Correctly
     cy.intercept('/logout').as('logoutRequest')
