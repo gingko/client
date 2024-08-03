@@ -9,8 +9,11 @@ type Feature
 
 decoder : Decoder (List Feature)
 decoder =
-    Dec.list Dec.string
-        |> Dec.map (List.filterMap maybeFeature)
+    Dec.oneOf
+        [ Dec.list Dec.string
+            |> Dec.map (List.filterMap maybeFeature)
+        , Dec.succeed []
+        ]
 
 
 maybeFeature : String -> Maybe Feature
