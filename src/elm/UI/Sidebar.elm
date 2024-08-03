@@ -3,6 +3,8 @@ module UI.Sidebar exposing (SidebarMenuState(..), SidebarState(..), viewSidebar,
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
 import Doc.List as DocList exposing (Model(..))
+import Feature
+import Features exposing (Feature(..))
 import GlobalData exposing (GlobalData)
 import Html exposing (Html, a, br, button, div, h2, hr, img, input)
 import Html.Attributes exposing (action, class, classList, href, id, method, name, src, style, target, type_, value, width)
@@ -181,7 +183,8 @@ viewSidebar globalData session msgs currentDocId sortCriteria fileFilter docList
             ]
             [ AntIcons.userOutlined [] ]
          ]
-            ++ viewSidebarMenu lang
+            ++ viewSidebarMenu session
+                lang
                 custId_
                 { clickedEmailSupport = msgs.clickedEmailSupport
                 , clickedShowVideos = msgs.clickedShowVideos
@@ -199,7 +202,8 @@ viewSidebar globalData session msgs currentDocId sortCriteria fileFilter docList
 
 
 viewSidebarMenu :
-    Language
+    LoggedIn
+    -> Language
     -> Maybe String
     ->
         { clickedEmailSupport : msg
@@ -215,7 +219,7 @@ viewSidebarMenu :
     -> String
     -> SidebarMenuState
     -> List (Html msg)
-viewSidebarMenu lang custId_ msgs accountEmail dropdownState =
+viewSidebarMenu session lang custId_ msgs accountEmail dropdownState =
     case dropdownState of
         Account langMenuEl_ ->
             let
@@ -248,13 +252,16 @@ viewSidebarMenu lang custId_ msgs accountEmail dropdownState =
                 [ div [ onClickStop msgs.noOp, class "sidebar-menu-item", class "no-action" ]
                     [ gravatarImg, Html.text accountEmail ]
                 , hr [] []
-                , a [ href "{%TESTIMONIAL_URL%}", onClickStop msgs.noOp, target "_blank", class "sidebar-menu-item" ]
-                    [ div [ class "icon" ] [ AntIcons.giftOutlined [] ]
-                    , text lang WordOfMouthCTA1
-                    , br [] []
-                    , text lang WordOfMouthCTA2
-                    ]
-                , hr [] []
+                , viewIf (Feature.enabled VotingAppLinkInMenu session) <|
+                    div
+                        [ id "voting-app-link"
+                        , class "sidebar-menu-item"
+                        , onClickStop <| msgs.noOp
+                        ]
+                        [ div [ class "icon" ] [ AntIcons.whatsAppOutlined [] ]
+                        , textNoTr "Vote on Improvements"
+                        ]
+                , viewIf (Feature.enabled VotingAppLinkInMenu session) <| hr [] []
                 , manageSubBtn
                 , div
                     [ id "language-option"

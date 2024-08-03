@@ -1,8 +1,9 @@
-port module Session exposing (Guest, LoggedIn, PaymentStatus(..), Session(..), UserSource(..), confirmEmail, copyNaming, daysLeft, decode, documents, endFirstRun, fileMenuOpen, fromLegacy, getDocName, getMetadata, isFirstRun, isNotConfirmed, isOwner, lastDocId, logout, name, paymentStatus, public, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, setFileOpen, setShortcutTrayOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, toGuest, updateDocuments, updateUpgrade, upgradeModel, userLoggedIn, userLoggedOut, userSettingsChange)
+port module Session exposing (Guest, LoggedIn, PaymentStatus(..), Session(..), UserSource(..), confirmEmail, copyNaming, daysLeft, decode, documents, endFirstRun, features, fileMenuOpen, fromLegacy, getDocName, getMetadata, isFirstRun, isNotConfirmed, isOwner, lastDocId, logout, name, paymentStatus, public, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, setFileOpen, setShortcutTrayOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, toGuest, updateDocuments, updateUpgrade, upgradeModel, userLoggedIn, userLoggedOut, userSettingsChange)
 
 import Coders exposing (sortByDecoder)
 import Doc.List as DocList exposing (Model(..))
 import Doc.Metadata as Metadata exposing (Metadata)
+import Features exposing (Feature)
 import Http
 import Json.Decode as Dec exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, required)
@@ -50,7 +51,7 @@ type alias UserData =
     , shortcutTrayOpen : Bool
     , sortBy : SortBy
     , documents : DocList.Model
-    , features : List String
+    , features : List Feature
     }
 
 
@@ -111,6 +112,11 @@ upgradeModel (LoggedIn _ data) =
 paymentStatus : LoggedIn -> PaymentStatus
 paymentStatus (LoggedIn _ userData) =
     userData.paymentStatus
+
+
+features : LoggedIn -> List Feature
+features (LoggedIn _ userData) =
+    userData.features
 
 
 add14days : Posix -> Posix
@@ -350,7 +356,7 @@ decoderLoggedIn =
         |> optional "shortcutTrayOpen" Dec.bool False
         |> optional "sortBy" sortByDecoder ModifiedAt
         |> optional "lastDocId" (Dec.maybe Dec.string) Nothing
-        |> optional "features" (Dec.list Dec.string) []
+        |> optional "features" Features.decoder []
 
 
 decodeConfirmedStatus : Decoder (Maybe Time.Posix)
@@ -397,7 +403,7 @@ responseDecoder usrSrc session =
                                 data
                    )
 
-        builder : String -> PaymentStatus -> Maybe Time.Posix -> Language -> List Metadata -> List String -> ( LoggedIn, Language )
+        builder : String -> PaymentStatus -> Maybe Time.Posix -> Language -> List Metadata -> List Feature -> ( LoggedIn, Language )
         builder email payStat confAt lang docs feats =
             ( LoggedIn
                 sessionData
@@ -411,7 +417,7 @@ responseDecoder usrSrc session =
         |> optional "confirmedAt" decodeConfirmedStatus (Just (Time.millisToPosix 0))
         |> optional "language" (Dec.string |> Dec.map Translation.langFromString) Translation.En
         |> optional "documents" Metadata.responseDecoder []
-        |> optional "features" (Dec.list Dec.string) []
+        |> optional "features" Features.decoder []
 
 
 encodeUserData : Language -> UserData -> Enc.Value
