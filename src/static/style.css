@@ -535,9 +535,6 @@ input.has-error {
   width: 37px;
   box-shadow: var(--small-shadow);
 }
-.sidebar-button:hover {
-  fill: var(--ui-2-fg);
-}
 #sidebar.static .sidebar-button, .sidebar-button.disabled {
   fill: #aaa;
   cursor: not-allowed;
@@ -594,11 +591,6 @@ input.has-error {
 #document-list-buttons .sort-button.selected, #document-list-buttons .sort-button:hover {
   fill: black;
   color: black;
-}
-
-.sidebar-menu {
-  background: var(--background-sidebar-menu);
-  color: var(--ui-1-fg);
 }
 .sidebar-menu .sidebar-menu-item, #manage-subscription-button {
   padding: 8px 12px;
@@ -689,8 +681,6 @@ a.sidebar-menu-item, a.sidebar-menu-item:visited {
 }
 #language-menu {
   position: fixed;
-  left: 40px;
-  bottom: 15px;
   border-radius: 5px 5px 5px 0;
   box-shadow: var(--small-shadow);
   overflow-y: auto;

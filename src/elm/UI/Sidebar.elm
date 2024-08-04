@@ -290,7 +290,14 @@ viewSidebarMenu session lang custId_ msgs accountEmail dropdownState =
                                 ]
                                 [ div [ class "icon" ] [ AntIcons.creditCardOutlined [] |> fromUnstyled ], textElmCss lang Upgrade ]
             in
-            [ div [ id "account-menu", class "sidebar-menu" ]
+            [ div
+                [ id "account-menu"
+                , class "sidebar-menu"
+                , css
+                    [ property "background" "var(--background-sidebar-menu)"
+                    , property "color" "var(--ui-1-fg)"
+                    ]
+                ]
                 [ div [ onClickStopStyled msgs.noOp, class "sidebar-menu-item", class "no-action" ]
                     [ gravatarImg, text accountEmail ]
                 , hr [] []
@@ -328,13 +335,28 @@ viewSidebarMenu session lang custId_ msgs accountEmail dropdownState =
                     let
                         bottPx =
                             langMenuEl.scene.height - langMenuEl.element.y - langMenuEl.element.height - 8
+
+                        leftPx =
+                            langMenuEl.element.x
+                                + langMenuEl.element.width
+                                |> Debug.log "leftPx"
+
+                        maxH =
+                            langMenuEl.viewport.height
+                                - 41
+                                - bottPx
+                                |> Debug.log "maxH"
                     in
                     div
                         [ id "language-menu"
                         , class "sidebar-menu"
-                        , style "left" ((langMenuEl.element.x + langMenuEl.element.width |> String.fromFloat) ++ "px")
-                        , style "bottom" ((bottPx |> String.fromFloat) ++ "px")
-                        , style "max-height" ((langMenuEl.viewport.height - 41 - bottPx |> String.fromFloat) ++ "px")
+                        , css
+                            [ property "background" "var(--background-sidebar-menu)"
+                            , property "color" "var(--ui-1-fg)"
+                            , left (px leftPx)
+                            , bottom (px bottPx)
+                            , maxHeight (px maxH)
+                            ]
                         ]
                         ((Translation.activeLanguages
                             |> List.map
