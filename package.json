@@ -125,9 +125,9 @@
     "turndown": "^7.1.1"
   },
   "devDependencies": {
-    "@playwright/test": "^1.32.3",
+    "@playwright/test": "^1.45.3",
     "autoprefixer": "^10.4.14",
-    "bun-types": "^1.0.30",
+    "bun-types": "^1.1.21",
     "chokidar-cli": "^3.0.0",
     "copy-webpack-plugin": "^11.0.0",
     "couchdb-backup": "^1.0.2",
