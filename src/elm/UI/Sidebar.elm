@@ -339,13 +339,11 @@ viewSidebarMenu session lang custId_ msgs accountEmail dropdownState =
                         leftPx =
                             langMenuEl.element.x
                                 + langMenuEl.element.width
-                                |> Debug.log "leftPx"
 
                         maxH =
                             langMenuEl.viewport.height
                                 - 41
                                 - bottPx
-                                |> Debug.log "maxH"
                     in
                     div
                         [ id "language-menu"
