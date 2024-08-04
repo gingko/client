@@ -1,10 +1,12 @@
-module Utils exposing (delay, emptyText, getFieldErrors, gravatar, hash, hexEncode, myDebug, onClickStop, text, textNoTr, voxEmporiumHash)
+module Utils exposing (delay, emptyText, getFieldErrors, gravatar, hash, hexEncode, myDebug, onClickStop, onClickStopStyled, ternary, text, textElmCss, textNoTr, voxEmporiumHash)
 
 {--import DebugToJson exposing (pp)--}
 
 import Hex
 import Html exposing (Html)
 import Html.Events exposing (stopPropagationOn)
+import Html.Styled
+import Html.Styled.Events
 import Json.Decode as Dec
 import Murmur3 exposing (hashString)
 import Process
@@ -13,9 +15,23 @@ import Task
 import Translation exposing (Language, TranslationId, tr)
 
 
+ternary : Bool -> a -> a -> a
+ternary condition trueValue falseValue =
+    if condition then
+        trueValue
+
+    else
+        falseValue
+
+
 onClickStop : msg -> Html.Attribute msg
 onClickStop msg =
     stopPropagationOn "click" (Dec.succeed ( msg, True ))
+
+
+onClickStopStyled : msg -> Html.Styled.Attribute msg
+onClickStopStyled msg =
+    Html.Styled.Events.stopPropagationOn "click" (Dec.succeed ( msg, True ))
 
 
 hexEncode : String -> String
@@ -83,6 +99,11 @@ myDebug label value =
 text : Language -> TranslationId -> Html msg
 text lang tid =
     Html.text <| tr lang tid
+
+
+textElmCss : Language -> TranslationId -> Html.Styled.Html msg
+textElmCss lang tid =
+    Html.Styled.text <| tr lang tid
 
 
 textNoTr : String -> Html msg

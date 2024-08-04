@@ -2,21 +2,21 @@ module UI.Sidebar exposing (SidebarMenuState(..), SidebarState(..), viewSidebar,
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
+import Css exposing (..)
 import Doc.List as DocList exposing (Model(..))
 import Feature
 import Features exposing (Feature(..))
 import GlobalData exposing (GlobalData)
-import Html exposing (Html, a, br, button, div, h2, hr, img, input)
-import Html.Attributes exposing (action, class, classList, href, id, method, name, src, style, target, type_, value, width)
-import Html.Attributes.Extra exposing (attributeIf)
-import Html.Events exposing (onClick, onMouseEnter, onMouseLeave)
-import Html.Extra exposing (viewIf)
+import Html exposing (Html)
+import Html.Styled exposing (a, button, div, form, fromUnstyled, h2, hr, img, input, text, toUnstyled)
+import Html.Styled.Attributes as A exposing (action, class, classList, css, href, id, method, name, src, style, type_, value)
+import Html.Styled.Events exposing (onClick, onMouseEnter, onMouseLeave)
 import MD5
 import Octicons
 import Session exposing (LoggedIn, PaymentStatus(..))
 import Translation exposing (Language(..), TranslationId(..), langToString, languageName)
 import Types exposing (SortBy, TooltipPosition(..))
-import Utils exposing (emptyText, onClickStop, text, textNoTr)
+import Utils exposing (emptyText, onClickStopStyled, ternary, textElmCss)
 
 
 type SidebarState
@@ -100,43 +100,78 @@ viewSidebar globalData session msgs currentDocId sortCriteria fileFilter docList
 
             else
                 emptyText
+
+        sidebarButtonCss =
+            Css.batch
+                [ width (px 40)
+                , padding (px 10)
+                , cursor pointer
+                , property "fill" "var(--ui-1-fg)"
+                , hover [ property "fill" "var(--ui-2-fg)" ]
+                ]
+
+        sidebarButtonOpen =
+            Css.batch
+                [ property "background" "var(--background-sidebar-menu)"
+                , property "fill" "var(--ui-2-fg)"
+                , borderRadius4 (px 5) (px 0) (px 0) (px 5)
+                , paddingLeft (px 7)
+                , marginLeft (px 3)
+                , width (px 37)
+                , property "box-shadow" "var(--small-shadow)"
+                ]
     in
     div [ id "sidebar", onClick <| toggle File, classList [ ( "open", isOpen ) ] ]
-        ([ div [ id "brand" ]
-            ([ img [ src "../gingko-leaf-logo.svg", width 28 ] [] ]
+        ([ div
+            [ id "brand"
+            , css
+                []
+            ]
+            ([ img [ src "../gingko-leaf-logo.svg", A.width 28 ] [] ]
                 ++ (if isOpen then
-                        [ h2 [ id "brand-name" ] [ Html.text "Gingko Writer" ]
-                        , div [ id "sidebar-collapse-icon" ] [ AntIcons.leftOutlined [] ]
+                        [ h2 [ id "brand-name" ] [ text "Gingko Writer" ]
+                        , div [ id "sidebar-collapse-icon" ] [ AntIcons.leftOutlined [] |> fromUnstyled ]
                         ]
 
                     else
-                        [ emptyText ]
+                        [ text "" ]
                    )
-                ++ [ div [ id "hamburger-icon" ] [ AntIcons.menuOutlined [] ] ]
+                ++ [ div [ id "hamburger-icon" ] [ AntIcons.menuOutlined [] |> fromUnstyled ] ]
             )
          , div
             [ id "new-icon"
-            , class "sidebar-button"
-            , onClickStop msgs.clickedNew
+            , css [ sidebarButtonCss, property "grid-area" "row1-icon" ]
+            , onClickStopStyled msgs.clickedNew
             , onMouseEnter <| msgs.tooltipRequested "new-icon" RightTooltip NewDocument
             , onMouseLeave msgs.tooltipClosed
             ]
-            [ AntIcons.fileAddOutlined [] ]
+            [ AntIcons.fileAddOutlined [] |> fromUnstyled ]
          , div
-            [ id "documents-icon"
-            , class "sidebar-button"
-            , classList [ ( "open", isOpen ) ]
-            , attributeIf (not isOpen) <| onMouseEnter <| msgs.tooltipRequested "documents-icon" RightTooltip ShowDocumentList
-            , attributeIf (not isOpen) <| onMouseLeave msgs.tooltipClosed
-            ]
+            ([ id "documents-icon"
+             , css
+                ([ sidebarButtonCss, property "grid-area" "row2-icon" ]
+                    ++ ternary isOpen
+                        [ sidebarButtonOpen
+                        , property "background" "var(--background-sidebar-menu)"
+                        , marginLeft (px 4)
+                        ]
+                        []
+                )
+             ]
+                ++ ternary (not isOpen)
+                    [ onMouseEnter <| msgs.tooltipRequested "documents-icon" RightTooltip ShowDocumentList
+                    , onMouseLeave msgs.tooltipClosed
+                    ]
+                    []
+            )
             [ if isOpen then
-                AntIcons.folderOpenOutlined []
+                AntIcons.folderOpenOutlined [] |> fromUnstyled
 
               else
-                AntIcons.folderOutlined []
+                AntIcons.folderOutlined [] |> fromUnstyled
             ]
-         , viewIf isOpen <|
-            DocList.viewSidebarList
+         , viewIf isOpen
+            (DocList.viewSidebarList
                 { noOp = msgs.noOp
                 , filter = msgs.fileSearchChanged
                 , changeSortBy = msgs.changeSortBy
@@ -149,57 +184,63 @@ viewSidebar globalData session msgs currentDocId sortCriteria fileFilter docList
                 contextTarget_
                 fileFilter
                 docList
+            )
+            |> fromUnstyled
          , div
-            [ id "document-switcher-icon"
-            , onClickStop msgs.clickedSwitcher
-            , onMouseEnter <| msgs.tooltipRequested "document-switcher-icon" RightTooltip OpenQuickSwitcher
-            , onMouseLeave msgs.tooltipClosed
-            , class "sidebar-button"
-            , attributeIf (docList == Success []) (class "disabled")
-            ]
-            [ AntIcons.fileSearchOutlined [] ]
+            ([ id "document-switcher-icon"
+             , onClickStopStyled msgs.clickedSwitcher
+             , onMouseEnter <| msgs.tooltipRequested "document-switcher-icon" RightTooltip OpenQuickSwitcher
+             , onMouseLeave msgs.tooltipClosed
+             , css [ sidebarButtonCss, property "grid-area" "row3-icon" ]
+             ]
+                ++ ternary (docList == DocList.Success []) [ class "disabled" ] []
+            )
+            [ AntIcons.fileSearchOutlined [] |> fromUnstyled ]
          , div
             [ id "help-icon"
-            , class "sidebar-button"
-            , onClickStop msgs.clickedHelp
+            , css [ sidebarButtonCss, property "grid-area" "bott-row1" ]
+            , onClickStopStyled msgs.clickedHelp
             , onMouseEnter <| msgs.tooltipRequested "help-icon" RightTooltip Help
             , onMouseLeave msgs.tooltipClosed
             ]
-            [ AntIcons.questionCircleFilled [] ]
+            [ AntIcons.questionCircleFilled [] |> fromUnstyled ]
          , div
             [ id "notifications-icon"
-            , class "sidebar-button"
-            , onClickStop <| msgs.noOp
+            , css [ sidebarButtonCss, property "grid-area" "bott-row2" ]
+            , onClickStopStyled <| msgs.noOp
             , onMouseEnter <| msgs.tooltipRequested "notifications-icon" RightTooltip WhatsNew
             , onMouseLeave msgs.tooltipClosed
             ]
-            [ AntIcons.bellOutlined [] ]
+            [ AntIcons.bellOutlined [] |> fromUnstyled ]
          , div
-            [ id "account-icon"
-            , class "sidebar-button"
-            , classList [ ( "open", accountOpen ) ]
-            , onClickStop <| msgs.toggledAccount (not accountOpen)
-            , attributeIf (not accountOpen) <| onMouseEnter <| msgs.tooltipRequested "account-icon" RightTooltip AccountTooltip
-            , onMouseLeave msgs.tooltipClosed
-            ]
-            [ AntIcons.userOutlined [] ]
+            ([ id "account-icon"
+             , css ([ sidebarButtonCss, property "grid-area" "bott-row3" ] ++ ternary accountOpen [ sidebarButtonOpen ] [])
+             , onClickStopStyled <| msgs.toggledAccount (not accountOpen)
+             , onMouseLeave msgs.tooltipClosed
+             ]
+                ++ ternary (not accountOpen) [ onMouseEnter <| msgs.tooltipRequested "account-icon" RightTooltip AccountTooltip ] []
+            )
+            [ AntIcons.userOutlined [] |> fromUnstyled ]
          ]
-            ++ viewSidebarMenu session
-                lang
-                custId_
-                { clickedEmailSupport = msgs.clickedEmailSupport
-                , clickedShowVideos = msgs.clickedShowVideos
-                , helpClosed = msgs.clickedHelp
-                , languageMenuRequested = msgs.languageMenuRequested
-                , languageChanged = msgs.languageChanged
-                , logout = msgs.logout
-                , toggledAccount = msgs.toggledAccount
-                , upgrade = msgs.upgrade
-                , noOp = msgs.noOp
-                }
-                accountEmail
-                dropdownState
+            ++ (viewSidebarMenu session
+                    lang
+                    custId_
+                    { clickedEmailSupport = msgs.clickedEmailSupport
+                    , clickedShowVideos = msgs.clickedShowVideos
+                    , helpClosed = msgs.clickedHelp
+                    , languageMenuRequested = msgs.languageMenuRequested
+                    , languageChanged = msgs.languageChanged
+                    , logout = msgs.logout
+                    , toggledAccount = msgs.toggledAccount
+                    , upgrade = msgs.upgrade
+                    , noOp = msgs.noOp
+                    }
+                    accountEmail
+                    dropdownState
+                    |> List.map fromUnstyled
+               )
         )
+        |> toUnstyled
 
 
 viewSidebarMenu :
@@ -234,50 +275,52 @@ viewSidebarMenu session lang custId_ msgs accountEmail dropdownState =
                 manageSubBtn =
                     case custId_ of
                         Just custId ->
-                            Html.form [ method "POST", action "/create-portal-session" ]
+                            form [ method "POST", action "/create-portal-session" ]
                                 [ input [ type_ "hidden", name "customer_id", value custId ] []
                                 , button [ id "manage-subscription-button", type_ "submit" ]
-                                    [ div [ class "icon" ] [ AntIcons.creditCardOutlined [] ]
-                                    , text lang ManageSubscription
+                                    [ div [ class "icon" ] [ AntIcons.creditCardOutlined [] |> fromUnstyled ]
+                                    , textElmCss lang ManageSubscription
                                     ]
                                 ]
 
                         Nothing ->
                             div
-                                [ onClickStop msgs.upgrade
+                                [ onClickStopStyled msgs.upgrade
                                 , class "sidebar-menu-item"
                                 ]
-                                [ div [ class "icon" ] [ AntIcons.creditCardOutlined [] ], text lang Upgrade ]
+                                [ div [ class "icon" ] [ AntIcons.creditCardOutlined [] |> fromUnstyled ], textElmCss lang Upgrade ]
             in
             [ div [ id "account-menu", class "sidebar-menu" ]
-                [ div [ onClickStop msgs.noOp, class "sidebar-menu-item", class "no-action" ]
-                    [ gravatarImg, Html.text accountEmail ]
+                [ div [ onClickStopStyled msgs.noOp, class "sidebar-menu-item", class "no-action" ]
+                    [ gravatarImg, text accountEmail ]
                 , hr [] []
-                , viewIf (Feature.enabled VotingAppLinkInMenu session) <|
-                    a [ href ("https://gingkowriter.voxemporium.com#" ++ Utils.voxEmporiumHash (Session.name session)), onClickStop msgs.noOp, target "_blank", class "sidebar-menu-item" ]
-                        [ div [ class "icon" ] [ Octicons.megaphone Octicons.defaultOptions ]
-                        , textNoTr "Vote on Improvements"
+                , ternary (Feature.enabled VotingAppLinkInMenu session)
+                    (a [ href ("https://gingkowriter.voxemporium.com#" ++ Utils.voxEmporiumHash (Session.name session)), onClickStopStyled msgs.noOp, A.target "_blank", class "sidebar-menu-item" ]
+                        [ div [ class "icon" ] [ Octicons.megaphone Octicons.defaultOptions |> fromUnstyled ]
+                        , text "Vote on Improvements"
                         ]
-                , viewIf (Feature.enabled VotingAppLinkInMenu session) <| hr [] []
+                    )
+                    (text "")
+                , ternary (Feature.enabled VotingAppLinkInMenu session) (hr [] []) (text "")
                 , manageSubBtn
                 , div
                     [ id "language-option"
                     , class "sidebar-menu-item"
                     , if langMenuEl_ == Nothing then
-                        onClickStop <| msgs.languageMenuRequested (Just "language-option")
+                        onClickStopStyled <| msgs.languageMenuRequested (Just "language-option")
 
                       else
-                        onClickStop <| msgs.languageMenuRequested Nothing
+                        onClickStopStyled <| msgs.languageMenuRequested Nothing
                     ]
-                    [ div [ class "icon" ] [ AntIcons.globalOutlined [] ]
-                    , textNoTr (languageName lang)
-                    , div [ class "right-icon" ] [ AntIcons.rightOutlined [] ]
+                    [ div [ class "icon" ] [ AntIcons.globalOutlined [] |> fromUnstyled ]
+                    , text (languageName lang)
+                    , div [ class "right-icon" ] [ AntIcons.rightOutlined [] |> fromUnstyled ]
                     ]
                 , hr [] []
                 , div
-                    [ id "logout-button", class "sidebar-menu-item", onClickStop msgs.logout ]
-                    [ div [ class "icon" ] [ AntIcons.logoutOutlined [] ]
-                    , text lang Logout
+                    [ id "logout-button", class "sidebar-menu-item", onClickStopStyled msgs.logout ]
+                    [ div [ class "icon" ] [ AntIcons.logoutOutlined [] |> fromUnstyled ]
+                    , textElmCss lang Logout
                     ]
                 ]
             , case langMenuEl_ of
@@ -298,61 +341,63 @@ viewSidebarMenu session lang custId_ msgs accountEmail dropdownState =
                                 (\( langOpt, langName ) ->
                                     div
                                         [ id <| "lang-" ++ langToString langOpt
-                                        , onClickStop <| msgs.languageChanged langOpt
+                                        , onClickStopStyled <| msgs.languageChanged langOpt
                                         , class "sidebar-menu-item"
                                         , classList [ ( "selected", langOpt == lang ) ]
                                         ]
-                                        [ textNoTr langName ]
+                                        [ text langName ]
                                 )
                          )
                             ++ [ a
                                     [ href "https://poeditor.com/join/project?hash=k8Br3k0JVz"
-                                    , target "_blank"
+                                    , A.target "_blank"
                                     , class "sidebar-menu-item"
-                                    , onClickStop <| msgs.toggledAccount False
+                                    , onClickStopStyled <| msgs.toggledAccount False
                                     ]
-                                    [ text lang ContributeTranslations ]
+                                    [ textElmCss lang ContributeTranslations ]
                                ]
                         )
 
                 Nothing ->
-                    emptyText
-            , viewIf (langMenuEl_ == Nothing) <| div [ id "help-menu-exit-top", onMouseEnter <| msgs.toggledAccount False ] []
-            , viewIf (langMenuEl_ == Nothing) <| div [ id "help-menu-exit-right", onMouseEnter <| msgs.toggledAccount False ] []
+                    text ""
+            , ternary (langMenuEl_ == Nothing) (div [ id "help-menu-exit-top", onMouseEnter <| msgs.toggledAccount False ] []) (text "")
+            , ternary (langMenuEl_ == Nothing) (div [ id "help-menu-exit-right", onMouseEnter <| msgs.toggledAccount False ] []) (text "")
             ]
+                |> List.map toUnstyled
 
         NoSidebarMenu ->
-            [ emptyText ]
+            [ text "" |> toUnstyled ]
 
 
 viewSidebarStatic : Bool -> List (Html msg)
 viewSidebarStatic sidebarOpen =
     [ div [ id "sidebar", classList [ ( "open", sidebarOpen ) ], class "static" ]
         [ div [ id "brand" ]
-            ([ img [ src "../gingko-leaf-logo.svg", width 28 ] [] ]
+            ([ img [ src "../gingko-leaf-logo.svg", A.width 28 ] [] ]
                 ++ (if sidebarOpen then
-                        [ h2 [ id "brand-name" ] [ text En (NoTr "Gingko Writer") ]
-                        , div [ id "sidebar-collapse-icon" ] [ AntIcons.leftOutlined [] ]
+                        [ h2 [ id "brand-name" ] [ textElmCss En (NoTr "Gingko Writer") ]
+                        , div [ id "sidebar-collapse-icon" ] [ AntIcons.leftOutlined [] |> fromUnstyled ]
                         ]
 
                     else
-                        [ emptyText ]
+                        [ text "" ]
                    )
             )
-        , viewIf sidebarOpen <| div [ id "sidebar-document-list-wrap" ] []
-        , div [ id "new-icon", class "sidebar-button" ] [ AntIcons.fileAddOutlined [] ]
+        , ternary sidebarOpen (div [ id "sidebar-document-list-wrap" ] []) (text "")
+        , div [ id "new-icon", class "sidebar-button" ] [ AntIcons.fileAddOutlined [] |> fromUnstyled ]
         , div [ id "documents-icon", class "sidebar-button", classList [ ( "open", sidebarOpen ) ] ]
             [ if sidebarOpen then
-                AntIcons.folderOpenOutlined []
+                AntIcons.folderOpenOutlined [] |> fromUnstyled
 
               else
-                AntIcons.folderOutlined []
+                AntIcons.folderOutlined [] |> fromUnstyled
             ]
-        , div [ id "document-switcher-icon", class "sidebar-button", class "disabled" ] [ AntIcons.fileSearchOutlined [] ]
+        , div [ id "document-switcher-icon", class "sidebar-button", class "disabled" ] [ AntIcons.fileSearchOutlined [] |> fromUnstyled ]
         , div
             [ id "help-icon", class "sidebar-button" ]
-            [ AntIcons.questionCircleFilled [] ]
-        , div [ id "notifications-icon", class "sidebar-button" ] [ AntIcons.bellOutlined [] ]
-        , div [ id "account-icon", class "sidebar-button" ] [ AntIcons.userOutlined [] ]
+            [ AntIcons.questionCircleFilled [] |> fromUnstyled ]
+        , div [ id "notifications-icon", class "sidebar-button" ] [ AntIcons.bellOutlined [] |> fromUnstyled ]
+        , div [ id "account-icon", class "sidebar-button" ] [ AntIcons.userOutlined [] |> fromUnstyled ]
         ]
     ]
+        |> List.map toUnstyled

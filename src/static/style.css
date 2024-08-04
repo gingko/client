@@ -542,16 +542,6 @@ input.has-error {
   fill: #aaa;
   cursor: not-allowed;
 }
-#new-icon {
-  grid-area: row1-icon;
-}
-#documents-icon {
-  grid-area: row2-icon;
-}
-#documents-icon.open {
-  background: var(--background-sidebar-menu);
-  margin-left: 4px;
-}
 #sidebar-document-list-wrap {
   grid-area: doc-list;
   display: flex;
@@ -604,18 +594,6 @@ input.has-error {
 #document-list-buttons .sort-button.selected, #document-list-buttons .sort-button:hover {
   fill: black;
   color: black;
-}
-#document-switcher-icon {
-  grid-area: row3-icon;
-}
-#help-icon {
-  grid-area: bott-row1;
-}
-#notifications-icon {
-  grid-area: bott-row2;
-}
-#account-icon {
-  grid-area: bott-row3;
 }
 
 .sidebar-menu {
