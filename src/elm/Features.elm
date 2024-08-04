@@ -5,6 +5,7 @@ import Json.Decode as Dec exposing (Decoder)
 
 type Feature
     = VotingAppLinkInMenu
+    | VotingAppLinkInSidebar
 
 
 decoder : Decoder (List Feature)
@@ -21,6 +22,9 @@ maybeFeature str =
     case str of
         "voting-app-link-in-menu" ->
             Just VotingAppLinkInMenu
+
+        "voting-app-link-in-sidebar" ->
+            Just VotingAppLinkInSidebar
 
         _ ->
             Nothing
