@@ -1,4 +1,4 @@
-module Utils exposing (delay, emptyText, getFieldErrors, gravatar, hash, hexEncode, myDebug, onClickStop, text, textNoTr)
+module Utils exposing (delay, emptyText, getFieldErrors, gravatar, hash, hexEncode, myDebug, onClickStop, text, textNoTr, voxEmporiumHash)
 
 {--import DebugToJson exposing (pp)--}
 
@@ -31,6 +31,16 @@ hash : Int -> String -> String
 hash seed str =
     hashString seed str
         |> Hex.toString
+
+
+voxEmporiumHash : String -> String
+voxEmporiumHash rawEmail =
+    (rawEmail ++ "{%VOX_EMPORIUM_SALT%}")
+        |> String.toLower
+        |> String.trim
+        |> SHA256.fromString
+        |> SHA256.toHex
+        |> String.left 16
 
 
 delay : Int -> msg -> Cmd msg

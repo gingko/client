@@ -12,6 +12,7 @@ import Html.Attributes.Extra exposing (attributeIf)
 import Html.Events exposing (onClick, onMouseEnter, onMouseLeave)
 import Html.Extra exposing (viewIf)
 import MD5
+import Octicons
 import Session exposing (LoggedIn, PaymentStatus(..))
 import Translation exposing (Language(..), TranslationId(..), langToString, languageName)
 import Types exposing (SortBy, TooltipPosition(..))
@@ -253,12 +254,8 @@ viewSidebarMenu session lang custId_ msgs accountEmail dropdownState =
                     [ gravatarImg, Html.text accountEmail ]
                 , hr [] []
                 , viewIf (Feature.enabled VotingAppLinkInMenu session) <|
-                    div
-                        [ id "voting-app-link"
-                        , class "sidebar-menu-item"
-                        , onClickStop <| msgs.noOp
-                        ]
-                        [ div [ class "icon" ] [ AntIcons.whatsAppOutlined [] ]
+                    a [ href ("https://gingkowriter.voxemporium.com#" ++ Utils.voxEmporiumHash (Session.name session)), onClickStop msgs.noOp, target "_blank", class "sidebar-menu-item" ]
+                        [ div [ class "icon" ] [ Octicons.megaphone Octicons.defaultOptions ]
                         , textNoTr "Vote on Improvements"
                         ]
                 , viewIf (Feature.enabled VotingAppLinkInMenu session) <| hr [] []

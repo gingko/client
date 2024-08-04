@@ -85,7 +85,8 @@ const otherReplacements = [
   { search: '{%SUPPORT_EMAIL%}', replace: config.SUPPORT_EMAIL, flags: 'g' },
   { search: '{%SUPPORT_URGENT_EMAIL%}', replace: config.SUPPORT_URGENT_EMAIL, flags: 'g' },
   { search: '{%HOMEPAGE_URL%}', replace: config.HOMEPAGE_URL, flags: 'g' },
-  { search: '{%TESTIMONIAL_URL%}', replace: config.TESTIMONIAL_URL, flags: 'g' }
+  { search: '{%TESTIMONIAL_URL%}', replace: config.TESTIMONIAL_URL, flags: 'g' },
+  { search: '{%VOX_EMPORIUM_SALT%}', replace: config.VOX_EMPORIUM_SALT, flags: 'g' },
 ]
 
 const allReplacements = allLanguageStrings.concat(otherReplacements);
