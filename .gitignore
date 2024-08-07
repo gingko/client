@@ -23,4 +23,5 @@ hidden-config.js
 cypress/screenshots
 cypress/videos
 test-results/
+tests/e2e/.auth/
 playwright-report/
