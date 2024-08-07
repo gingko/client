@@ -57,3 +57,7 @@ function deleteTestData() {
   const cmd = execSync(`sqlite3 ${dbPath} < ${oldFixtures}/deleteTestData.sql`);
   console.log(cmd.toString());
 }
+
+export function getCard(colNum: number, groupNum: number, cardNum: number) {
+  return `#column-container > .column:nth-child(${colNum}) > .group:nth-child(${groupNum + 1}) > .card:nth-child(${cardNum})`;
+}
