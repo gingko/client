@@ -58,6 +58,6 @@ function deleteTestData() {
   console.log(cmd.toString());
 }
 
-export function getCard(colNum: number, groupNum: number, cardNum: number) {
+export function card(colNum: number, groupNum: number, cardNum: number) {
   return `#column-container > .column:nth-child(${colNum}) > .group:nth-child(${groupNum + 1}) > .card:nth-child(${cardNum})`;
 }

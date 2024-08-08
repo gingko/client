@@ -65,6 +65,9 @@ jobs:
       - run: bun i
       - run: bun run newbuild
 
+      - name: Playwright e2e Tests
+        run: bun run test
+
       - name: Cypress e2e Tests
         run: bunx cypress run
 

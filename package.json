@@ -19,7 +19,7 @@
   "scripts": {
     "start": "webpack --progress --watch",
     "test:cypress": "cypress run",
-    "test": "playwright test",
+    "test": "bunx playwright test --reporter=dot",
     "test:web": "playwright test tests/web",
     "test:firefox": "cypress run --browser firefox",
     "build": "webpack",
