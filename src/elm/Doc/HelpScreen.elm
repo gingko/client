@@ -124,7 +124,8 @@ normalAdvancedShortcuts lang ctrlOrCmd =
 
 normalCopyShortcuts : Language -> String -> List (Html msg)
 normalCopyShortcuts lang ctrlOrCmd =
-    [ shortcutRow lang CopyCurrent [ keyNoTr ctrlOrCmd, keyNoTr "C" ]
+    [ Html.tr [] [ th [ colspan 2 ] [ text lang WorksAcrossDocuments ] ]
+    , shortcutRow lang CopyCurrent [ keyNoTr ctrlOrCmd, keyNoTr "C" ]
     , shortcutRow lang PasteBelow [ keyNoTr ctrlOrCmd, keyNoTr "V" ]
     , shortcutRow lang PasteAsChild [ keyNoTr ctrlOrCmd, key lang ShiftKey, keyNoTr "V" ]
     , shortcutRow lang InsertSelected [ dragCommand lang DragSelected ]

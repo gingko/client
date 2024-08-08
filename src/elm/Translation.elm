@@ -102,6 +102,7 @@ type TranslationId
     | ClearSearch
     | MergeCardUp
     | MergeCardDown
+    | WorksAcrossDocuments
     | CopyCurrent
     | PasteBelow
     | PasteAsChild
@@ -2767,6 +2768,35 @@ tr lang trans =
                     , pl = "%pl:MergeCardDown%"
                     , uk = "%uk:MergeCardDown%"
                     , nb = "%nb:MergeCardDown%"
+                    }
+
+                WorksAcrossDocuments ->
+                    { en = "(Works across documents)"
+                    , zh_hans = "%zh_hans:WorksAcrossDocuments%"
+                    , zh_hant = "%zh_hant:WorksAcrossDocuments%"
+                    , es = "%es:WorksAcrossDocuments%"
+                    , ar = "%ar:WorksAcrossDocuments%"
+                    , fr = "%fr:WorksAcrossDocuments%"
+                    , ru = "%ru:WorksAcrossDocuments%"
+                    , de = "%de:WorksAcrossDocuments%"
+                    , ja = "%ja:WorksAcrossDocuments%"
+                    , pes = "%pes:WorksAcrossDocuments%"
+                    , it = "%it:WorksAcrossDocuments%"
+                    , ro = "%ro:WorksAcrossDocuments%"
+                    , hr = "%hr:WorksAcrossDocuments%"
+                    , nl = "%nl:WorksAcrossDocuments%"
+                    , hu = "%hu:WorksAcrossDocuments%"
+                    , sv = "%sv:WorksAcrossDocuments%"
+                    , ca = "%ca:WorksAcrossDocuments%"
+                    , br = "%br:WorksAcrossDocuments%"
+                    , mr = "%mr:WorksAcrossDocuments%"
+                    , cs = "%cs:WorksAcrossDocuments%"
+                    , fa = "%fa:WorksAcrossDocuments%"
+                    , id = "%id:WorksAcrossDocuments%"
+                    , ko = "%ko:WorksAcrossDocuments%"
+                    , pl = "%pl:WorksAcrossDocuments%"
+                    , uk = "%uk:WorksAcrossDocuments%"
+                    , nb = "%nb:WorksAcrossDocuments%"
                     }
 
                 CopyCurrent ->

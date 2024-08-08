@@ -323,6 +323,10 @@ msgstr ""
 msgid "Merge card down"
 msgstr ""
 
+#: Elm:WorksAcrossDocuments
+msgid "(Works across documents)"
+msgstr ""
+
 #: Elm:CopyCurrent
 msgid "Copy current subtree"
 msgstr ""
