@@ -23,9 +23,11 @@ Prerequisites:
 * Git : https://git-scm.com/downloads
 * Node : https://nodejs.org/en/
 * Elm-Platform : https://guide.elm-lang.org/install.html
+* Bun : https://bun.sh
 
+Note: I am slowly switching to a new build process, using Bun and esbuild, instead of Node and Webpack.
 ```bash
-npm install
-npm start
+bun install
+bun run newwatch # or newbuild for a one-time build
 ```
 
