@@ -24,10 +24,12 @@ Prerequisites:
 * Node : https://nodejs.org/en/
 * Elm-Platform : https://guide.elm-lang.org/install.html
 * Bun : https://bun.sh
+* Gingko Server: https://github.com/gingko/server
 
-Note: I am slowly switching to a new build process, using Bun and esbuild, instead of Node and Webpack.
+To build:
+
 ```bash
 bun install
 bun run newwatch # or newbuild for a one-time build
 ```
-
+(Note: I am slowly switching to a new build process, using Bun and esbuild, instead of Node and Webpack.)
