@@ -18,18 +18,45 @@ For code contributions, see [CONTRIBUTING.md](./CONTRIBUTING.md) for a guide to 
 
 ### Installation & Dev Environment
 
-Prerequisites:
+#### 1. Install Prerequisites
+- [Node.js](https://nodejs.org)
+- [Bun.sh](https://bun.sh)
+- [SQlite](https://sqlite.org)
+- [CouchDB](https://couchdb.apache.org)*
+  - Note down your admin username and password for the next step.
 
-* Git : https://git-scm.com/downloads
-* Node : https://nodejs.org/en/
-* Elm-Platform : https://guide.elm-lang.org/install.html
-* Bun : https://bun.sh
-* Gingko Server: https://github.com/gingko/server
+I can't provide detailed instructions for installing these, because each system is different.
 
-To build:
+\* _this dependency will be removed once all user documents are migrated to SQLite DB._
 
-```bash
-bun install
-bun run newwatch # or newbuild for a one-time build
+#### 2. Project Directories
+
 ```
-(Note: I am slowly switching to a new build process, using Bun and esbuild, instead of Node and Webpack.)
+git clone git@github.com:gingko/client.git
+git clone git@github.com:gingko/server.git
+mkdir data
+```
+After this you should have all three directories side-by-side: client, server, and data.
+
+#### 3. Client setup
+
+```
+cd client
+bun i
+cp config-example.js config.js
+bun run newwatch
+```
+
+#### 4. Server setup
+
+In a new terminal, navigate to the `/server` directory, and do the following:
+```
+npm i
+cp config-example.js config.js
+sed -i 's/couchusername/your_couchdb_admin_username/' config.js
+sed -i 's/couchpassword/your_couchdb_admin_password/' config.js
+npm run build
+npm start
+```
+
+Now you should be able to visit http://localhost:3000 and use your local Gingko Writer install.
