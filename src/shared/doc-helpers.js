@@ -581,19 +581,24 @@ var casesShared = (elmData, params) => {
       } else {
         const start = tarea.selectionStart
         const end = tarea.selectionEnd
+        let cursorPos;
+        let newValue;
         if (start !== end) {
           const text = tarea.value.slice(start, end)
           const modifiedText = surroundString + text + surroundString
-          const newValue = tarea.value.substring(0, start) + modifiedText + tarea.value.substring(end)
-          tarea.value = newValue
-          const cursorPos = start + modifiedText.length
-          tarea.setSelectionRange(cursorPos, cursorPos)
-          params.DIRTY = true
-          toElm(newValue, 'docMsgs', 'FieldChanged')
+          newValue = tarea.value.substring(0, start) + modifiedText + tarea.value.substring(end)
+          cursorPos = start + modifiedText.length
+        } else {
+          newValue = tarea.value.substring(0, start) + surroundString + surroundString + tarea.value.substring(end)
+          cursorPos = start + surroundString.length
+        }
+        tarea.value = newValue
+        tarea.setSelectionRange(cursorPos, cursorPos)
+        params.DIRTY = true
+        toElm(newValue, 'docMsgs', 'FieldChanged')
 
-          if (card !== null) {
-            card.dataset.clonedContent = newValue
-          }
+        if (card !== null) {
+          card.dataset.clonedContent = newValue
         }
       }
     },
