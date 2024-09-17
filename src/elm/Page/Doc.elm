@@ -788,6 +788,12 @@ incoming incomingMsg model =
                 "mod+shift+up" ->
                     normalMode model (mergeUp activeId)
 
+                "mod+alt+right" ->
+                    aiGenerateChildren model
+
+                "mod+alt+l" ->
+                    aiGenerateChildren model
+
                 "h" ->
                     normalMode model (goLeft activeId)
 
@@ -1770,6 +1776,19 @@ mergeDown id ( model, prevCmd, prevMsgsToParent ) =
 setCursorPosition : Int -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 setCursorPosition pos ( model, prevCmd, prevMsgsToParent ) =
     ( model, Cmd.batch [ prevCmd, send (SetCursorPosition pos) ], prevMsgsToParent )
+
+
+aiGenerateChildren : ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
+aiGenerateChildren model =
+    case model.viewState.viewMode of
+        Normal id ->
+            ( model
+            , send (GenerateChildrenAIRequest id)
+            , []
+            )
+
+        _ ->
+            ( model, Cmd.none, [] )
 
 
 

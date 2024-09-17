@@ -771,6 +771,12 @@ const fromElm = (msg, elmData) => {
 
       toElm(null, "importComplete");
     },
+
+    // === AI ===
+    GenerateChildrenAIRequest: () => {
+      wsSend('ai:generate-children', elmData, false);
+    },
+
     // === Collaboration ===
     AddCollabRequest: () => {
       wsSend('rt:addCollab', { tr: elmData[0], c: elmData[1] }, true);

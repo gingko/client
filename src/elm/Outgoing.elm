@@ -37,6 +37,8 @@ type Msg
     | PullData
     | SaveImportedData Enc.Value
     | SaveBulkImportedData Enc.Value
+      -- === AI ===
+    | GenerateChildrenAIRequest String
       -- === Collaboration ===
     | AddCollabRequest String String
     | RemoveCollabRequest String String
@@ -147,6 +149,10 @@ send info =
 
         NoDataToSave ->
             dataToSend "NoDataToSave" null
+
+        -- === AI ===
+        GenerateChildrenAIRequest id ->
+            dataToSend "GenerateChildrenAIRequest" (string id)
 
         -- === Collaboration ===
         AddCollabRequest treeId collabEmail ->
