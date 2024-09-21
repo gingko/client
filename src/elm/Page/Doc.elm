@@ -2,7 +2,7 @@ module Page.Doc exposing (Model, Msg, MsgToParent(..), getActiveId, getActiveTre
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
-import Coders exposing (collabStateEncoder, treeToValue)
+import Coders exposing (collabStateEncoder, treeToJSON, treeToValue)
 import Doc.Fonts as Fonts
 import Doc.Fullscreen as Fullscreen
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
@@ -1783,7 +1783,7 @@ aiGenerateChildren model =
     case model.viewState.viewMode of
         Normal id ->
             ( model
-            , send (GenerateChildrenAIRequest id)
+            , send (GenerateChildrenWithPrompt id)
             , []
             )
 

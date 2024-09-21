@@ -39,6 +39,7 @@ type Msg
     | SaveBulkImportedData Enc.Value
       -- === AI ===
     | GenerateChildrenAIRequest String
+    | GenerateChildrenWithPrompt String
       -- === Collaboration ===
     | AddCollabRequest String String
     | RemoveCollabRequest String String
@@ -153,6 +154,9 @@ send info =
         -- === AI ===
         GenerateChildrenAIRequest id ->
             dataToSend "GenerateChildrenAIRequest" (string id)
+
+        GenerateChildrenWithPrompt cardId ->
+            dataToSend "GenerateChildrenWithPrompt" (string cardId)
 
         -- === Collaboration ===
         AddCollabRequest treeId collabEmail ->

@@ -773,8 +773,13 @@ const fromElm = (msg, elmData) => {
     },
 
     // === AI ===
-    GenerateChildrenAIRequest: () => {
-      wsSend('ai:generate-children', elmData, false);
+    GenerateChildrenWithPrompt: async () => {
+      console.log("GenerateChildrenWithPrompt", elmData);
+      const id = elmData;
+      const userPrompt = localStorage.getItem('prompt');
+      const prompt = await getTreeString(id, userPrompt, TREE_ID);
+      console.log(prompt);
+      wsSend('ai:generate-children', {id, prompt}, false);
     },
 
     // === Collaboration ===
@@ -1111,6 +1116,23 @@ function saveBackupToImmortalDB (treeId, cards) {
   }
 }
 
+async function getTreeString(cardId, prompt, treeId) {
+  const cards = await dexie.cards.where('treeId').equals(treeId).toArray();
+  const snapshot = _.chain(cards).sortBy('updatedAt').reverse().uniqBy('id').value();
+  const snapshotWithModified = snapshot
+    .filter(c => c.deleted === 0)
+    .map(c => {
+      if (c.id === cardId) {
+        return { ...c, content: c.content + "\n\nPROMPT:INSERT_CHILDREN:"+ prompt }
+      } else {
+        return c;
+      }
+  });
+  console.log(snapshotWithModified);
+  const trees = treeHelper(snapshotWithModified, null);
+  return trees.map(treeToHtml).join('\n');
+}
+
 function treeToGkw (tree) {
   return "<gingko-card id=\""
     + tree.id
@@ -1119,6 +1141,14 @@ function treeToGkw (tree) {
     + "\n\n"
     + tree.children.map(treeToGkw).join("\n\n")
     + "</gingko-card>";
+}
+
+function treeToHtml (tree) {
+  return "<section>\n"
+    + tree.content
+    + "\n"
+    + tree.children.map(treeToHtml).join("\n")
+    + "</section>";
 }
 
 function treeHelper (cards, parentId) {
