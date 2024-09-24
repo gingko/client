@@ -504,6 +504,7 @@ viewShortcuts msgs lang isOpen isMac children textCursorInfo viewMode =
                         , h5 [] [ text lang Formatting ]
                         , shortcutSpanEnabled isTextSelected [ NoTr ctrlOrCmd, NoTr "B" ] ForBold
                         , shortcutSpanEnabled isTextSelected [ NoTr ctrlOrCmd, NoTr "I" ] ForItalic
+                        , shortcutSpanEnabled isTextSelected [ NoTr ctrlOrCmd, AltKey, NoTr "K" ] ForInsertLink
                         , shortcutSpan [ AltKey, ParenNumber ] SetHeadingLevel
                         , formattingSpan FormattingTitle
                         , formattingSpan FormattingList

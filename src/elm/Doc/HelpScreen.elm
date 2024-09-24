@@ -155,6 +155,7 @@ editFormatShortcuts : Language -> String -> List (Html msg)
 editFormatShortcuts lang ctrlOrCmd =
     [ shortcutRow lang BoldSelection [ keyNoTr ctrlOrCmd, keyNoTr "B" ]
     , shortcutRow lang ItalicizeSelection [ keyNoTr ctrlOrCmd, keyNoTr "I" ]
+    , shortcutRow lang InsertLink [ keyNoTr ctrlOrCmd, key lang AltKey, keyNoTr "K" ]
     , shortcutRow lang SetTitleLevel [ key lang AltKey, keyNoTr "1", text lang (NoTr " ... "), keyNoTr "6" ]
     ]
 

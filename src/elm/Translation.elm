@@ -149,6 +149,8 @@ type TranslationId
     | BoldSelection
     | ForItalic
     | ItalicizeSelection
+    | ForInsertLink
+    | InsertLink
     | SaveChanges
     | SaveChangesAndExit
     | ExitEditMode
@@ -4104,6 +4106,35 @@ tr lang trans =
                     , nb = "%nb:ForItalic%"
                     }
 
+                ForInsertLink ->
+                    { en = "to Insert Link"
+                    , zh_hans = "%zh_hans:ForInsertLink%"
+                    , zh_hant = "%zh_hant:ForInsertLink%"
+                    , es = "%es:ForInsertLink%"
+                    , ar = "%ar:ForInsertLink%"
+                    , fr = "%fr:ForInsertLink%"
+                    , ru = "%ru:ForInsertLink%"
+                    , de = "%de:ForInsertLink%"
+                    , ja = "%ja:ForInsertLink%"
+                    , pes = "%pes:ForInsertLink%"
+                    , it = "%it:ForInsertLink%"
+                    , ro = "%ro:ForInsertLink%"
+                    , hr = "%hr:ForInsertLink%"
+                    , nl = "%nl:ForInsertLink%"
+                    , hu = "%hu:ForInsertLink%"
+                    , sv = "%sv:ForInsertLink%"
+                    , ca = "%ca:ForInsertLink%"
+                    , br = "%br:ForInsertLink%"
+                    , mr = "%mr:ForInsertLink%"
+                    , cs = "%cs:ForInsertLink%"
+                    , fa = "%fa:ForInsertLink%"
+                    , id = "%id:ForInsertLink%"
+                    , ko = "%ko:ForInsertLink%"
+                    , pl = "%pl:ForInsertLink%"
+                    , uk = "%uk:ForInsertLink%"
+                    , nb = "%nb:ForInsertLink%"
+                    }
+
                 ItalicizeSelection ->
                     { en = "Italicize selection"
                     , zh_hans = "%zh_hans:ItalicizeSelection%"
@@ -4131,6 +4162,35 @@ tr lang trans =
                     , pl = "%pl:ItalicizeSelection%"
                     , uk = "%uk:ItalicizeSelection%"
                     , nb = "%nb:ItalicizeSelection%"
+                    }
+
+                InsertLink ->
+                    { en = "Insert Link"
+                    , zh_hans = "%zh_hans:InsertLink%"
+                    , zh_hant = "%zh_hant:InsertLink%"
+                    , es = "%es:InsertLink%"
+                    , ar = "%ar:InsertLink%"
+                    , fr = "%fr:InsertLink%"
+                    , ru = "%ru:InsertLink%"
+                    , de = "%de:InsertLink%"
+                    , ja = "%ja:InsertLink%"
+                    , pes = "%pes:InsertLink%"
+                    , it = "%it:InsertLink%"
+                    , ro = "%ro:InsertLink%"
+                    , hr = "%hr:InsertLink%"
+                    , nl = "%nl:InsertLink%"
+                    , hu = "%hu:InsertLink%"
+                    , sv = "%sv:InsertLink%"
+                    , ca = "%ca:InsertLink%"
+                    , br = "%br:InsertLink%"
+                    , mr = "%mr:InsertLink%"
+                    , cs = "%cs:InsertLink%"
+                    , fa = "%fa:InsertLink%"
+                    , id = "%id:InsertLink%"
+                    , ko = "%ko:InsertLink%"
+                    , pl = "%pl:InsertLink%"
+                    , uk = "%uk:InsertLink%"
+                    , nb = "%nb:InsertLink%"
                     }
 
                 SaveChanges ->

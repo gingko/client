@@ -507,8 +507,16 @@ msgstr ""
 msgid "for Italic"
 msgstr ""
 
+#: Elm:ForInsertLink
+msgid "to Insert Link"
+msgstr ""
+
 #: Elm:ItalicizeSelection
 msgid "Italicize selection"
+msgstr ""
+
+#: Elm:InsertLink
+msgid "Insert Link"
 msgstr ""
 
 #: Elm:SaveChanges
