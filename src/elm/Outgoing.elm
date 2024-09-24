@@ -53,6 +53,7 @@ type Msg
     | SelectAll String
     | FlashPrice
     | TextSurround String String
+    | InsertMarkdownLink String
     | SetField String String
     | SetCursorPosition Int
     | SetFullscreen Bool
@@ -206,6 +207,9 @@ send info =
 
         TextSurround id str ->
             dataToSend "TextSurround" (list string [ id, str ])
+        
+        InsertMarkdownLink id ->
+            dataToSend "InsertMarkdownLink" (string id)
 
         SetField id str ->
             dataToSend "SetField" (list string [ id, str ])
