@@ -733,6 +733,20 @@ incoming incomingMsg model =
                                 |> saveCardIfEditing
                                 |> insertAbove activeId beforeText
 
+                "mod+alt+k" ->
+                    case vs.viewMode of
+                        Normal _ ->
+                            ( model
+                            , Cmd.none
+                            , []
+                            )
+
+                        _ ->
+                            ( model
+                            , send (InsertMarkdownLink activeId)
+                            , []
+                            )
+
                 "mod+up" ->
                     normalMode model (insertAbove activeId "")
 
@@ -782,7 +796,7 @@ incoming incomingMsg model =
                 "mod+shift+down" ->
                     normalMode model (mergeDown activeId)
 
-                "mod+shift+k" ->
+                "mod+shift+k" -> 
                     normalMode model (mergeUp activeId)
 
                 "mod+shift+up" ->

@@ -13,6 +13,15 @@ function toHex(s) {
   return h;
 }
 
+function isValidURL(text) {
+  try {
+      new URL(text);
+      return true;
+  } catch {
+      return false;
+  }
+}
+
 /* ===== DOM Manipulation ===== */
 let toElm;
 const CARD_DATA = Symbol.for("cardbased");
@@ -439,6 +448,7 @@ var shortcuts = [
   "mod+shift+down",
   "mod+shift+k",
   "mod+shift+up",
+  "mod+alt+k",
   "h",
   "j",
   "k",
@@ -581,16 +591,58 @@ var casesShared = (elmData, params) => {
       } else {
         const start = tarea.selectionStart
         const end = tarea.selectionEnd
+        let cursorPos;
+        let newValue;
         if (start !== end) {
           const text = tarea.value.slice(start, end)
           const modifiedText = surroundString + text + surroundString
-          const newValue = tarea.value.substring(0, start) + modifiedText + tarea.value.substring(end)
+          newValue = tarea.value.substring(0, start) + modifiedText + tarea.value.substring(end)
+          cursorPos = start + modifiedText.length
+        } else {
+          newValue = tarea.value.substring(0, start) + surroundString + surroundString + tarea.value.substring(end)
+          cursorPos = start + surroundString.length
+        }
+        tarea.value = newValue
+        tarea.setSelectionRange(cursorPos, cursorPos)
+        params.DIRTY = true
+        toElm(newValue, 'docMsgs', 'FieldChanged')
+
+        if (card !== null) {
+          card.dataset.clonedContent = newValue
+        }
+      }
+    },
+
+    InsertMarkdownLink: () => {
+      const id = elmData
+      const tarea = document.getElementById('card-edit-' + id)
+      const card = document.getElementById('card-' + id)
+
+      if (tarea === null) {
+        console.log('Textarea not found for InsertMarkdownLink command.')
+      } else {
+        const start = tarea.selectionStart
+        const end = tarea.selectionEnd
+        const text = tarea.value.slice(start, end)
+
+        let modifiedText;
+        let cursorPos;
+        if (start !== end) {
+          if (isValidURL(text)) {
+            modifiedText = "[](" + text + ")"
+            newValue = tarea.value.substring(0, start) + modifiedText + tarea.value.substring(end)
+            cursorPos = start + 1
+          } else {
+            modifiedText = "[" + text + "]()"
+            newValue = tarea.value.substring(0, start) + modifiedText + tarea.value.substring(end)
+            cursorPos = start + modifiedText.length - 1
+          }
+          
           tarea.value = newValue
-          const cursorPos = start + modifiedText.length
           tarea.setSelectionRange(cursorPos, cursorPos)
           params.DIRTY = true
           toElm(newValue, 'docMsgs', 'FieldChanged')
-
+          
           if (card !== null) {
             card.dataset.clonedContent = newValue
           }
