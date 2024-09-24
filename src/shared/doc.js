@@ -773,10 +773,10 @@ const fromElm = (msg, elmData) => {
     },
 
     // === AI ===
-    GenerateChildrenWithPrompt: async () => {
-      console.log("GenerateChildrenWithPrompt", elmData);
-      const id = elmData;
-      const userPrompt = localStorage.getItem('prompt');
+    GenerateChildren: async () => {
+      console.log("GenerateChildren", elmData);
+      const id = elmData[0];
+      const userPrompt = elmData[1];
       const prompt = await getTreeString(id, userPrompt, TREE_ID);
       console.log(prompt);
       wsSend('ai:generate-children', {id, prompt}, false);

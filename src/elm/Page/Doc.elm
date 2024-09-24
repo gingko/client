@@ -135,6 +135,7 @@ type Msg
 type MsgToParent
     = ParentAddToast ToastPersistence Toast
     | CloseTooltip
+    | OpenAIPrompt String
     | LocalSave CardTreeOp
     | Commit
 
@@ -1783,8 +1784,8 @@ aiGenerateChildren model =
     case model.viewState.viewMode of
         Normal id ->
             ( model
-            , send (GenerateChildrenWithPrompt id)
-            , []
+            , Cmd.none
+            , [ OpenAIPrompt id ]
             )
 
         _ ->

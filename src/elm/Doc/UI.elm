@@ -1,4 +1,4 @@
-module Doc.UI exposing (countWords, fillet, renderToast, viewAppLoadingSpinner, viewBreadcrumbs, viewConflict, viewDocumentLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewTemplateSelector, viewTooltip, viewWordCount)
+module Doc.UI exposing (countWords, fillet, renderToast, viewAIPrompt, viewAppLoadingSpinner, viewBreadcrumbs, viewConflict, viewDocumentLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewTemplateSelector, viewTooltip, viewWordCount)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -8,7 +8,7 @@ import Doc.Data.Conflict as Conflict exposing (Conflict, Op(..), Selection(..), 
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils as TreeUtils exposing (..)
 import GlobalData exposing (GlobalData)
-import Html exposing (Html, a, button, del, div, fieldset, h2, h3, h5, hr, input, ins, label, li, pre, span, ul)
+import Html exposing (Html, a, button, del, div, fieldset, h2, h3, h5, hr, input, ins, label, li, pre, span, textarea, ul)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onMouseEnter, onMouseLeave)
 import Import.Template exposing (Template(..))
@@ -663,6 +663,21 @@ viewTooltip lang ( el, tipPos, content ) =
     in
     div ([ class "tooltip" ] ++ posAttributes)
         [ text lang content, div [ class "tooltip-arrow" ] [] ]
+
+
+viewAIPrompt : (String -> msg) -> msg -> Html msg
+viewAIPrompt promptInputMsg generateChildren =
+    div [ id "ai-prompt-container" ]
+        [ div []
+            [ textarea
+                [ id "ai-prompt"
+                , onInput promptInputMsg
+                ]
+                []
+            , button [ onClick generateChildren ]
+                [ textNoTr "Generate Children" ]
+            ]
+        ]
 
 
 getStats : { m | activeCardId : String, workingTree : TreeStructure.Model } -> Stats

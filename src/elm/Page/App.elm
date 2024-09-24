@@ -71,6 +71,7 @@ type alias Model =
     , tray : Toast.Tray Toast
     , errorState : Bool
     , tooltip : Maybe ( Element, TooltipPosition, TranslationId )
+    , aiPrompt : Maybe { prompt : String, id : String }
     , fileSearchField : String -- TODO: not needed if switcher isn't open
     , theme : Theme
     , navKey : Nav.Key
@@ -142,6 +143,7 @@ defaultModel nKey session newDocState =
     , tray = Toast.tray
     , errorState = False
     , tooltip = Nothing
+    , aiPrompt = Nothing
     , fileSearchField = ""
     , theme = Default
     , navKey = nKey
@@ -402,6 +404,9 @@ type Msg
     | ImportJSONLoaded String String
     | ImportJSONIdGenerated Tree String String
     | ImportSingleCompleted String
+      -- AI
+    | AIPromptFieldChanged String
+    | AIPromptSubmitted
       -- Misc UI
     | ToastMsg Toast.Msg
     | AddToast ToastPersistence Toast
@@ -655,7 +660,7 @@ update msg model =
                                     ( { model | modalState = NoModal }, Cmd.none )
 
                                 "esc" ->
-                                    ( { model | fileSearchField = "", modalState = NoModal }, Cmd.none )
+                                    ( { model | fileSearchField = "", modalState = NoModal, aiPrompt = Nothing }, Cmd.none )
 
                                 _ ->
                                     ( model, Cmd.none )
@@ -1534,6 +1539,23 @@ update msg model =
         ImportSingleCompleted docId ->
             ( model, Route.pushUrl model.navKey (Route.DocUntitled docId) )
 
+        -- AI
+        AIPromptFieldChanged newField ->
+            case model.aiPrompt of
+                Just promptInfo ->
+                    ( { model | aiPrompt = Just { promptInfo | prompt = newField } }, Cmd.none )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        AIPromptSubmitted ->
+            case model.aiPrompt of
+                Just { prompt, id } ->
+                    ( { model | aiPrompt = Nothing }, send <| GenerateChildren { prompt = prompt, id = id } )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
         -- Misc UI
         ToastMsg toastMsg ->
             let
@@ -1853,6 +1875,14 @@ applyParentMsg parentMsg ( prevModel, prevCmd ) =
         CloseTooltip ->
             ( { prevModel | tooltip = Nothing }, prevCmd )
 
+        OpenAIPrompt id ->
+            ( { prevModel | aiPrompt = Just { prompt = "", id = id } }
+            , Cmd.batch
+                [ prevCmd
+                , Task.attempt (always NoOp) (Browser.Dom.focus "ai-prompt")
+                ]
+            )
+
         LocalSave op ->
             ( prevModel, prevCmd )
                 |> andThen (localSave op)
@@ -2075,6 +2105,14 @@ view ({ documentState } as model) =
                 Nothing ->
                     emptyText
 
+        viewAIPrompt =
+            case model.aiPrompt of
+                Just _ ->
+                    UI.viewAIPrompt AIPromptFieldChanged AIPromptSubmitted
+
+                Nothing ->
+                    emptyText
+
         sidebarMsgs =
             { sidebarStateChanged = SidebarStateChanged
             , noOp = NoOp
@@ -2222,6 +2260,7 @@ view ({ documentState } as model) =
                                 model.sidebarState
                            , viewIf (Session.isNotConfirmed session) (viewConfirmBanner lang CloseEmailConfirmBanner email)
                            , viewTooltip
+                           , viewAIPrompt
                            ]
                         ++ UI.viewShortcuts
                             { toggledShortcutTray = ToggledShortcutTray

@@ -38,8 +38,7 @@ type Msg
     | SaveImportedData Enc.Value
     | SaveBulkImportedData Enc.Value
       -- === AI ===
-    | GenerateChildrenAIRequest String
-    | GenerateChildrenWithPrompt String
+    | GenerateChildren { prompt : String, id : String }
       -- === Collaboration ===
     | AddCollabRequest String String
     | RemoveCollabRequest String String
@@ -152,11 +151,8 @@ send info =
             dataToSend "NoDataToSave" null
 
         -- === AI ===
-        GenerateChildrenAIRequest id ->
-            dataToSend "GenerateChildrenAIRequest" (string id)
-
-        GenerateChildrenWithPrompt cardId ->
-            dataToSend "GenerateChildrenWithPrompt" (string cardId)
+        GenerateChildren { prompt, id } ->
+            dataToSend "GenerateChildren" (tupleToValue string ( id, prompt ))
 
         -- === Collaboration ===
         AddCollabRequest treeId collabEmail ->
