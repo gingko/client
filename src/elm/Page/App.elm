@@ -41,7 +41,7 @@ import Page.DocMessage
 import RandomId
 import Route
 import Session exposing (LoggedIn, PaymentStatus(..), Session(..))
-import SharedUI
+import SharedUI exposing (ctrlOrCmdText)
 import Svg.Attributes
 import Task
 import Time
@@ -71,7 +71,6 @@ type alias Model =
     , tray : Toast.Tray Toast
     , errorState : Bool
     , tooltip : Maybe ( Element, TooltipPosition, TranslationId )
-    , aiPrompt : Maybe { prompt : String, id : String }
     , fileSearchField : String -- TODO: not needed if switcher isn't open
     , theme : Theme
     , navKey : Nav.Key
@@ -108,6 +107,7 @@ type ModalState
     = NoModal
     | FileSwitcher Doc.Switcher.Model
     | CollabModal UI.Collaborators.Modal.Model
+    | AIPrompt { prompt : String, id : String }
     | MigrateModal
     | SidebarContextMenu String ( Float, Float )
     | TemplateSelector
@@ -143,7 +143,6 @@ defaultModel nKey session newDocState =
     , tray = Toast.tray
     , errorState = False
     , tooltip = Nothing
-    , aiPrompt = Nothing
     , fileSearchField = ""
     , theme = Default
     , navKey = nKey
@@ -660,7 +659,18 @@ update msg model =
                                     ( { model | modalState = NoModal }, Cmd.none )
 
                                 "esc" ->
-                                    ( { model | fileSearchField = "", modalState = NoModal, aiPrompt = Nothing }, Cmd.none )
+                                    ( { model | fileSearchField = "", modalState = NoModal }, Cmd.none )
+
+                                _ ->
+                                    ( model, Cmd.none )
+
+                        AIPrompt promptInfo ->
+                            case shortcut of
+                                "esc" ->
+                                    ( { model | modalState = NoModal }, Cmd.none )
+
+                                "mod+l" ->
+                                    ( { model | modalState = NoModal }, send <| GenerateChildren promptInfo )
 
                                 _ ->
                                     ( model, Cmd.none )
@@ -1541,19 +1551,19 @@ update msg model =
 
         -- AI
         AIPromptFieldChanged newField ->
-            case model.aiPrompt of
-                Just promptInfo ->
-                    ( { model | aiPrompt = Just { promptInfo | prompt = newField } }, Cmd.none )
+            case model.modalState of
+                AIPrompt promptInfo ->
+                    ( { model | modalState = AIPrompt { promptInfo | prompt = newField } }, Cmd.none )
 
-                Nothing ->
+                _ ->
                     ( model, Cmd.none )
 
         AIPromptSubmitted ->
-            case model.aiPrompt of
-                Just { prompt, id } ->
-                    ( { model | aiPrompt = Nothing }, send <| GenerateChildren { prompt = prompt, id = id } )
+            case model.modalState of
+                AIPrompt { prompt, id } ->
+                    ( { model | modalState = NoModal }, send <| GenerateChildren { prompt = prompt, id = id } )
 
-                Nothing ->
+                _ ->
                     ( model, Cmd.none )
 
         -- Misc UI
@@ -1876,10 +1886,10 @@ applyParentMsg parentMsg ( prevModel, prevCmd ) =
             ( { prevModel | tooltip = Nothing }, prevCmd )
 
         OpenAIPrompt id ->
-            ( { prevModel | aiPrompt = Just { prompt = "", id = id } }
+            ( { prevModel | modalState = AIPrompt { prompt = "", id = id } }
             , Cmd.batch
                 [ prevCmd
-                , Task.attempt (always NoOp) (Browser.Dom.focus "ai-prompt")
+                , Task.attempt (always NoOp) (Browser.Dom.focus "ai-prompt-textarea")
                 ]
             )
 
@@ -2105,14 +2115,6 @@ view ({ documentState } as model) =
                 Nothing ->
                     emptyText
 
-        viewAIPrompt =
-            case model.aiPrompt of
-                Just _ ->
-                    UI.viewAIPrompt AIPromptFieldChanged AIPromptSubmitted
-
-                Nothing ->
-                    emptyText
-
         sidebarMsgs =
             { sidebarStateChanged = SidebarStateChanged
             , noOp = NoOp
@@ -2260,7 +2262,6 @@ view ({ documentState } as model) =
                                 model.sidebarState
                            , viewIf (Session.isNotConfirmed session) (viewConfirmBanner lang CloseEmailConfirmBanner email)
                            , viewTooltip
-                           , viewAIPrompt
                            ]
                         ++ UI.viewShortcuts
                             { toggledShortcutTray = ToggledShortcutTray
@@ -2326,6 +2327,9 @@ viewModal globalData session modalState =
     let
         language =
             GlobalData.language globalData
+
+        ctrlOrCmd =
+            ctrlOrCmdText (GlobalData.isMac globalData)
     in
     case modalState of
         NoModal ->
@@ -2343,6 +2347,9 @@ viewModal globalData session modalState =
                 language
                 collabModel
                 |> SharedUI.modalWrapper ModalClosed (Just "collab-modal") Nothing "Collaborators"
+
+        AIPrompt _ ->
+            [ UI.viewAIPrompt ctrlOrCmd AIPromptFieldChanged ]
 
         MigrateModal ->
             [ div [ class "top" ] [ h2 [] [ textNoTr "We've made major improvements to how documents are stored.", br [] [], textNoTr "Upgrade this document to make it :" ] ]
