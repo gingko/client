@@ -107,7 +107,7 @@ type ModalState
     = NoModal
     | FileSwitcher Doc.Switcher.Model
     | CollabModal UI.Collaborators.Modal.Model
-    | AIPrompt String
+    | AIPrompt Bool String
     | MigrateModal
     | SidebarContextMenu String ( Float, Float )
     | TemplateSelector
@@ -561,6 +561,23 @@ update msg model =
                         DocNotFound _ _ ->
                             ( model, Cmd.none )
 
+                AISuccess _ ->
+                    case model.documentState of
+                        Doc ({ docModel } as docState) ->
+                            let
+                                ( newDocModel, cmd ) =
+                                    Page.Doc.maybeActivate docModel
+                            in
+                            ( { model
+                                | modalState = NoModal
+                                , documentState = Doc { docState | docModel = newDocModel }
+                              }
+                            , Cmd.map GotDocMsg cmd
+                            )
+
+                        _ ->
+                            ( model, Cmd.none )
+
                 GitDataReceived json ->
                     gitDataReceived json model
 
@@ -663,13 +680,13 @@ update msg model =
                                 _ ->
                                     ( model, Cmd.none )
 
-                        AIPrompt prompt ->
+                        AIPrompt _ prompt ->
                             case shortcut of
                                 "esc" ->
                                     ( { model | modalState = NoModal }, Cmd.none )
 
                                 "mod+l" ->
-                                    ( model, send <| GenerateChildren { id = Page.Doc.getActiveId docModel, prompt = prompt } )
+                                    ( { model | modalState = AIPrompt True prompt }, send <| GenerateChildren { id = Page.Doc.getActiveId docModel, prompt = prompt } )
 
                                 _ ->
                                     ( model, Cmd.none )
@@ -1551,8 +1568,8 @@ update msg model =
         -- AI
         AIPromptFieldChanged newField ->
             case model.modalState of
-                AIPrompt _ ->
-                    ( { model | modalState = AIPrompt newField }, Cmd.none )
+                AIPrompt isWaiting _ ->
+                    ( { model | modalState = AIPrompt isWaiting newField }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -1877,7 +1894,7 @@ applyParentMsg parentMsg ( prevModel, prevCmd ) =
             ( { prevModel | tooltip = Nothing }, prevCmd )
 
         OpenAIPrompt ->
-            ( { prevModel | modalState = AIPrompt "" }
+            ( { prevModel | modalState = AIPrompt False "" }
             , Cmd.batch
                 [ prevCmd
                 , Task.attempt (always NoOp) (Browser.Dom.focus "ai-prompt-textarea")
@@ -2339,8 +2356,8 @@ viewModal globalData session modalState =
                 collabModel
                 |> SharedUI.modalWrapper ModalClosed (Just "collab-modal") Nothing "Collaborators"
 
-        AIPrompt _ ->
-            [ UI.viewAIPrompt ctrlOrCmd AIPromptFieldChanged ]
+        AIPrompt isWaiting _ ->
+            [ UI.viewAIPrompt ctrlOrCmd isWaiting AIPromptFieldChanged ]
 
         MigrateModal ->
             [ div [ class "top" ] [ h2 [] [ textNoTr "We've made major improvements to how documents are stored.", br [] [], textNoTr "Upgrade this document to make it :" ] ]
@@ -2507,6 +2524,7 @@ type IncomingAppMsg
     | HistoryDataReceived Enc.Value
     | PushOk (List String)
     | PushError
+    | AISuccess Enc.Value
     | GitDataReceived Enc.Value
     | MetadataUpdate Metadata
     | SavedRemotely Time.Posix
@@ -2541,6 +2559,9 @@ subscribe tagger onError =
 
                 "PushError" ->
                     tagger PushError
+
+                "AISuccess" ->
+                    tagger <| AISuccess outsideInfo.data
 
                 "GitDataReceived" ->
                     tagger <| GitDataReceived outsideInfo.data

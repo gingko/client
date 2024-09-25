@@ -284,6 +284,14 @@ function initWebSocket () {
           }
           break
 
+        case 'ai:success':
+          if (data.d.t === TREE_ID) {
+            let cards = await dexie.cards.where('treeId').equals(TREE_ID).toArray()
+            pull(TREE_ID, getChk(TREE_ID, cards))
+            toElm(data.d.i, 'appMsgs', 'AISuccess')
+          }
+          break
+
         case 'trees':
           await dexie.trees.bulkPut(data.d.map(t => ({ ...t, synced: true })))
           break
@@ -777,7 +785,6 @@ const fromElm = (msg, elmData) => {
       const id = elmData[0];
       const userPrompt = elmData[1];
       const prompt = await getTreeString(id, userPrompt, TREE_ID);
-      console.log(prompt);
       wsSend('ai:generate-children', {id, prompt}, false);
     },
 

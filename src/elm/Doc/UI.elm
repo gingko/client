@@ -663,8 +663,8 @@ viewTooltip lang ( el, tipPos, content ) =
         [ text lang content, div [ class "tooltip-arrow" ] [] ]
 
 
-viewAIPrompt : String -> (String -> msg) -> Html msg
-viewAIPrompt ctrlOrCmd promptInputMsg =
+viewAIPrompt : String -> Bool -> (String -> msg) -> Html msg
+viewAIPrompt ctrlOrCmd isWaiting promptInputMsg =
     let
         shortCutKey k =
             span [ class "shortcut-key" ] [ textNoTr k ]
@@ -677,14 +677,21 @@ viewAIPrompt ctrlOrCmd promptInputMsg =
         [ div [ id "ai-prompt" ]
             [ textarea
                 [ id "ai-prompt-textarea"
+                , disabled isWaiting
                 , classList [ ( "mousetrap", True ) ]
                 , onInput promptInputMsg
                 ]
                 []
-            , div [ class "switcher-instructions" ]
-                [ div [ class "switcher-instruction" ] (shortCut [ ctrlOrCmd, "J" ] " to Generate Below")
-                , div [ class "switcher-instruction" ] (shortCut [ ctrlOrCmd, "L" ] " to Generate Children")
-                ]
+            , if not isWaiting then
+                div [ class "switcher-instructions" ]
+                    [ div [ class "switcher-instruction" ] (shortCut [ ctrlOrCmd, "J" ] " to Generate Below")
+                    , div [ class "switcher-instruction" ] (shortCut [ ctrlOrCmd, "L" ] " to Generate Children")
+                    ]
+
+              else
+                div [ class "switcher-instructions" ]
+                    [ div [ class "switcher-instruction" ] [ textNoTr "Generating..." ]
+                    ]
             ]
         ]
 
