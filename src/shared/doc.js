@@ -788,6 +788,13 @@ const fromElm = (msg, elmData) => {
       wsSend('ai:generate-children', {id, prompt}, false);
     },
 
+    GenerateBelow: async () => {
+      const id = elmData[0];
+      const userPrompt = elmData[1];
+      const prompt = await getTreeString(id, userPrompt, TREE_ID);
+      wsSend('ai:generate-below', {id, prompt}, false);
+    },
+
     // === Collaboration ===
     AddCollabRequest: () => {
       wsSend('rt:addCollab', { tr: elmData[0], c: elmData[1] }, true);

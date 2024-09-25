@@ -685,6 +685,9 @@ update msg model =
                                 "esc" ->
                                     ( { model | modalState = NoModal }, Cmd.none )
 
+                                "mod+j" ->
+                                    ( { model | modalState = AIPrompt True prompt }, send <| GenerateBelow { id = Page.Doc.getActiveId docModel, prompt = prompt } )
+
                                 "mod+l" ->
                                     ( { model | modalState = AIPrompt True prompt }, send <| GenerateChildren { id = Page.Doc.getActiveId docModel, prompt = prompt } )
 
