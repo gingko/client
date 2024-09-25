@@ -382,13 +382,14 @@ viewShortcuts :
         { lang : Language
         , isOpen : Bool
         , isMac : Bool
+        , aiFeaturesEnabled : Bool
         , isAIPromptOpen : Bool
         , children : Children
         , textCursorInfo : TextCursorInfo
         , viewMode : ViewMode
         }
     -> List (Html msg)
-viewShortcuts msgs { lang, isOpen, isMac, isAIPromptOpen, children, textCursorInfo, viewMode } =
+viewShortcuts msgs { lang, isOpen, isMac, aiFeaturesEnabled, isAIPromptOpen, children, textCursorInfo, viewMode } =
     let
         isTextSelected =
             textCursorInfo.selected
@@ -462,31 +463,39 @@ viewShortcuts msgs { lang, isOpen, isMac, isAIPromptOpen, children, textCursorIn
                 [ div
                     [ id "shortcuts-tray", classList [ ( "open", isOpen ) ], onClick msgs.toggledShortcutTray ]
                     [ div [ id "shortcuts" ]
-                        [ h3 [] [ text lang KeyboardShortcuts ]
-                        , h5 [] [ text lang EditCards ]
-                        , shortcutSpan [ EnterKey ] EnterAction
-                        , shortcutSpan [ ShiftKey, EnterKey ] EditFullscreenAction
-                        , viewIfNotOnly <| h5 [] [ text lang Navigate ]
-                        , viewIfNotOnly <| shortcutSpan [ NoTr "↑", NoTr "↓", NoTr "←", NoTr "→" ] ArrowsAction
-                        , h5 [] [ text lang AddNewCards ]
-                        , shortcutSpan [ NoTr ctrlOrCmd, NoTr "→" ] AddChildAction
-                        , shortcutSpan [ NoTr ctrlOrCmd, NoTr "↓" ] AddBelowAction
-                        , shortcutSpan [ NoTr ctrlOrCmd, NoTr "↑" ] AddAboveAction
-                        , h5 [] [ text lang AIFeatures ]
-                        , shortcutSpan [ AltKey, NoTr "I" ] ToOpenAIPrompt
-                        , viewIf isAIPromptOpen <| shortcutSpan [ NoTr ctrlOrCmd, NoTr "J" ] AIGenerateBelow
-                        , viewIf isAIPromptOpen <| shortcutSpan [ NoTr ctrlOrCmd, NoTr "L" ] AIGenerateChildren
-                        , viewIfNotOnly <| h5 [] [ text lang MoveAndDelete ]
-                        , viewIfNotOnly <| shortcutSpan [ AltKey, ArrowKeys ] MoveAction
-                        , viewIfNotOnly <| shortcutSpan [ NoTr ctrlOrCmd, Backspace ] DeleteAction
-                        , viewIfNotOnly <| h5 [] [ text lang MergeCards ]
-                        , viewIfNotOnly <| shortcutSpan [ NoTr ctrlOrCmd, ShiftKey, NoTr "↓" ] MergeDownAction
-                        , viewIfNotOnly <| shortcutSpan [ NoTr ctrlOrCmd, ShiftKey, NoTr "↑" ] MergeUpAction
-                        , hr [] []
-                        , h5 [] [ text lang OtherShortcuts ]
-                        , shortcutSpan [ NoTr "w" ] DisplayWordCounts
-                        , shortcutSpan [ NoTr ctrlOrCmd, NoTr "O" ] QuickDocumentSwitcher
-                        ]
+                        ([ h3 [] [ text lang KeyboardShortcuts ]
+                         , h5 [] [ text lang EditCards ]
+                         , shortcutSpan [ EnterKey ] EnterAction
+                         , shortcutSpan [ ShiftKey, EnterKey ] EditFullscreenAction
+                         , viewIfNotOnly <| h5 [] [ text lang Navigate ]
+                         , viewIfNotOnly <| shortcutSpan [ NoTr "↑", NoTr "↓", NoTr "←", NoTr "→" ] ArrowsAction
+                         , h5 [] [ text lang AddNewCards ]
+                         , shortcutSpan [ NoTr ctrlOrCmd, NoTr "→" ] AddChildAction
+                         , shortcutSpan [ NoTr ctrlOrCmd, NoTr "↓" ] AddBelowAction
+                         , shortcutSpan [ NoTr ctrlOrCmd, NoTr "↑" ] AddAboveAction
+                         ]
+                            ++ (if aiFeaturesEnabled then
+                                    [ h5 [] [ text lang AIFeatures ]
+                                    , shortcutSpan [ AltKey, NoTr "I" ] ToOpenAIPrompt
+                                    , viewIf isAIPromptOpen <| shortcutSpan [ NoTr ctrlOrCmd, NoTr "J" ] AIGenerateBelow
+                                    , viewIf isAIPromptOpen <| shortcutSpan [ NoTr ctrlOrCmd, NoTr "L" ] AIGenerateChildren
+                                    ]
+
+                                else
+                                    []
+                               )
+                            ++ [ viewIfNotOnly <| h5 [] [ text lang MoveAndDelete ]
+                               , viewIfNotOnly <| shortcutSpan [ AltKey, ArrowKeys ] MoveAction
+                               , viewIfNotOnly <| shortcutSpan [ NoTr ctrlOrCmd, Backspace ] DeleteAction
+                               , viewIfNotOnly <| h5 [] [ text lang MergeCards ]
+                               , viewIfNotOnly <| shortcutSpan [ NoTr ctrlOrCmd, ShiftKey, NoTr "↓" ] MergeDownAction
+                               , viewIfNotOnly <| shortcutSpan [ NoTr ctrlOrCmd, ShiftKey, NoTr "↑" ] MergeUpAction
+                               , hr [] []
+                               , h5 [] [ text lang OtherShortcuts ]
+                               , shortcutSpan [ NoTr "w" ] DisplayWordCounts
+                               , shortcutSpan [ NoTr ctrlOrCmd, NoTr "O" ] QuickDocumentSwitcher
+                               ]
+                        )
                     ]
                 ]
 

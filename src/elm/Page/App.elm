@@ -15,6 +15,8 @@ import Doc.Switcher
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.UI as UI
 import Doc.VideoViewer as VideoViewer
+import Feature
+import Features exposing (Feature(..))
 import File exposing (File)
 import File.Download as Download
 import File.Select as Select
@@ -2286,6 +2288,7 @@ view ({ documentState } as model) =
                             { lang = lang
                             , isOpen = Session.shortcutTrayOpen session
                             , isMac = GlobalData.isMac globalData
+                            , aiFeaturesEnabled = Feature.enabled AIPromptFeature session
                             , isAIPromptOpen =
                                 case model.modalState of
                                     AIPrompt _ _ ->
@@ -2356,7 +2359,11 @@ viewModal globalData session modalState =
     in
     case modalState of
         NoModal ->
-            [ UI.viewAIButton AIButtonClicked ]
+            if Feature.enabled AIPromptFeature session then
+                [ UI.viewAIButton AIButtonClicked ]
+
+            else
+                []
 
         FileSwitcher switcherModel ->
             Doc.Switcher.view SwitcherClosed FileSearchChanged switcherModel
@@ -2433,6 +2440,7 @@ viewModal globalData session modalState =
         HelpScreen ->
             HelpScreen.view language
                 (GlobalData.isMac globalData)
+                (Feature.enabled AIPromptFeature session)
                 { closeModal = ModalClosed
                 , showVideoTutorials = VideoViewerOpened
                 , showWidget = ClickedShowWidget

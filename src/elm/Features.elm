@@ -6,6 +6,7 @@ import Json.Decode as Dec exposing (Decoder)
 type Feature
     = VotingAppLinkInMenu
     | VotingAppLinkInSidebar
+    | AIPromptFeature
 
 
 decoder : Decoder (List Feature)
@@ -25,6 +26,9 @@ maybeFeature str =
 
         "voting-app-link-in-sidebar" ->
             Just VotingAppLinkInSidebar
+
+        "ai-prompt-feature" ->
+            Just AIPromptFeature
 
         _ ->
             Nothing
