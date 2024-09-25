@@ -774,7 +774,6 @@ const fromElm = (msg, elmData) => {
 
     // === AI ===
     GenerateChildren: async () => {
-      console.log("GenerateChildren", elmData);
       const id = elmData[0];
       const userPrompt = elmData[1];
       const prompt = await getTreeString(id, userPrompt, TREE_ID);

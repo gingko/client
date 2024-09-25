@@ -135,7 +135,7 @@ type Msg
 type MsgToParent
     = ParentAddToast ToastPersistence Toast
     | CloseTooltip
-    | OpenAIPrompt String
+    | OpenAIPrompt
     | LocalSave CardTreeOp
     | Commit
 
@@ -1779,10 +1779,10 @@ setCursorPosition pos ( model, prevCmd, prevMsgsToParent ) =
 openAIPrompt : ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
 openAIPrompt model =
     case model.viewState.viewMode of
-        Normal id ->
+        Normal _ ->
             ( model
             , Cmd.none
-            , [ OpenAIPrompt id ]
+            , [ OpenAIPrompt ]
             )
 
         _ ->

@@ -107,7 +107,7 @@ type ModalState
     = NoModal
     | FileSwitcher Doc.Switcher.Model
     | CollabModal UI.Collaborators.Modal.Model
-    | AIPrompt { prompt : String, id : String }
+    | AIPrompt String
     | MigrateModal
     | SidebarContextMenu String ( Float, Float )
     | TemplateSelector
@@ -405,7 +405,6 @@ type Msg
     | ImportSingleCompleted String
       -- AI
     | AIPromptFieldChanged String
-    | AIPromptSubmitted
       -- Misc UI
     | ToastMsg Toast.Msg
     | AddToast ToastPersistence Toast
@@ -664,13 +663,13 @@ update msg model =
                                 _ ->
                                     ( model, Cmd.none )
 
-                        AIPrompt promptInfo ->
+                        AIPrompt prompt ->
                             case shortcut of
                                 "esc" ->
                                     ( { model | modalState = NoModal }, Cmd.none )
 
                                 "mod+l" ->
-                                    ( { model | modalState = NoModal }, send <| GenerateChildren promptInfo )
+                                    ( model, send <| GenerateChildren { id = Page.Doc.getActiveId docModel, prompt = prompt } )
 
                                 _ ->
                                     ( model, Cmd.none )
@@ -1552,16 +1551,8 @@ update msg model =
         -- AI
         AIPromptFieldChanged newField ->
             case model.modalState of
-                AIPrompt promptInfo ->
-                    ( { model | modalState = AIPrompt { promptInfo | prompt = newField } }, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
-
-        AIPromptSubmitted ->
-            case model.modalState of
-                AIPrompt { prompt, id } ->
-                    ( { model | modalState = NoModal }, send <| GenerateChildren { prompt = prompt, id = id } )
+                AIPrompt _ ->
+                    ( { model | modalState = AIPrompt newField }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -1885,8 +1876,8 @@ applyParentMsg parentMsg ( prevModel, prevCmd ) =
         CloseTooltip ->
             ( { prevModel | tooltip = Nothing }, prevCmd )
 
-        OpenAIPrompt id ->
-            ( { prevModel | modalState = AIPrompt { prompt = "", id = id } }
+        OpenAIPrompt ->
+            ( { prevModel | modalState = AIPrompt "" }
             , Cmd.batch
                 [ prevCmd
                 , Task.attempt (always NoOp) (Browser.Dom.focus "ai-prompt-textarea")
