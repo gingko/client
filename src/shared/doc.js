@@ -284,6 +284,14 @@ function initWebSocket () {
           }
           break
 
+        case 'ai:success':
+          if (data.d.t === TREE_ID) {
+            let cards = await dexie.cards.where('treeId').equals(TREE_ID).toArray()
+            pull(TREE_ID, getChk(TREE_ID, cards))
+            toElm(data.d.i, 'appMsgs', 'AISuccess')
+          }
+          break
+
         case 'trees':
           await dexie.trees.bulkPut(data.d.map(t => ({ ...t, synced: true })))
           break
@@ -771,6 +779,22 @@ const fromElm = (msg, elmData) => {
 
       toElm(null, "importComplete");
     },
+
+    // === AI ===
+    GenerateChildren: async () => {
+      const id = elmData[0];
+      const userPrompt = elmData[1];
+      const prompt = await getTreeString(id, userPrompt, TREE_ID);
+      wsSend('ai:generate-children', {id, prompt}, false);
+    },
+
+    GenerateBelow: async () => {
+      const id = elmData[0];
+      const userPrompt = elmData[1];
+      const prompt = await getTreeString(id, userPrompt, TREE_ID);
+      wsSend('ai:generate-below', {id, prompt}, false);
+    },
+
     // === Collaboration ===
     AddCollabRequest: () => {
       wsSend('rt:addCollab', { tr: elmData[0], c: elmData[1] }, true);
@@ -1105,6 +1129,23 @@ function saveBackupToImmortalDB (treeId, cards) {
   }
 }
 
+async function getTreeString(cardId, prompt, treeId) {
+  const cards = await dexie.cards.where('treeId').equals(treeId).toArray();
+  const snapshot = _.chain(cards).sortBy('updatedAt').reverse().uniqBy('id').value();
+  const snapshotWithModified = snapshot
+    .filter(c => c.deleted === 0)
+    .map(c => {
+      if (c.id === cardId) {
+        return { ...c, content: c.content + "\n\nPROMPT:INSERT_CHILDREN:"+ prompt }
+      } else {
+        return c;
+      }
+  });
+  console.log(snapshotWithModified);
+  const trees = treeHelper(snapshotWithModified, null);
+  return trees.map(treeToHtml).join('\n');
+}
+
 function treeToGkw (tree) {
   return "<gingko-card id=\""
     + tree.id
@@ -1113,6 +1154,14 @@ function treeToGkw (tree) {
     + "\n\n"
     + tree.children.map(treeToGkw).join("\n\n")
     + "</gingko-card>";
+}
+
+function treeToHtml (tree) {
+  return "<section>\n"
+    + tree.content
+    + "\n"
+    + tree.children.map(treeToHtml).join("\n")
+    + "</section>";
 }
 
 function treeHelper (cards, parentId) {

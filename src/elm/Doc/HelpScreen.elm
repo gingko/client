@@ -1,11 +1,14 @@
 module Doc.HelpScreen exposing (view, viewShortcuts)
 
 import Ant.Icons.Svg as Icons
+import Feature
+import Features exposing (Feature(..))
 import Html exposing (Html, a, button, div, h2, h3, h4, kbd, li, span, table, td, th, thead, ul)
 import Html.Attributes exposing (class, colspan, height, href, id, style, target, width)
 import Html.Events exposing (onClick)
 import SharedUI exposing (ctrlOrCmdText)
 import Translation exposing (Language(..), TranslationId(..), tr)
+import Utils exposing (ternary)
 
 
 
@@ -31,8 +34,8 @@ emptyText =
 -- VIEW
 
 
-view : Language -> Bool -> { closeModal : msg, showVideoTutorials : msg, showWidget : msg, contactSupport : msg } -> List (Html msg)
-view lang isMac msg =
+view : Language -> Bool -> Bool -> { closeModal : msg, showVideoTutorials : msg, showWidget : msg, contactSupport : msg } -> List (Html msg)
+view lang isMac aiFeatureEnabled msg =
     [ div [ class "modal-overlay", onClick msg.closeModal ] []
     , div [ class "max-width-grid" ]
         [ div [ class "modal", class "help-modal" ]
@@ -41,7 +44,7 @@ view lang isMac msg =
                 , div [ class "close-button", onClick msg.closeModal ] [ Icons.closeCircleOutlined [ width 20, height 20 ] ]
                 ]
             , div [ class "modal-guts" ]
-                (viewShortcuts lang isMac)
+                (viewShortcuts lang isMac aiFeatureEnabled)
             , div [ class "modal-buttons" ]
                 [ div [ onClick msg.showVideoTutorials ] [ text lang HelpVideos ]
                 , div [ onClick msg.showWidget ] [ text lang FAQAndDocs ]
@@ -52,8 +55,8 @@ view lang isMac msg =
     ]
 
 
-viewShortcuts : Language -> Bool -> List (Html msg)
-viewShortcuts lang isMac =
+viewShortcuts : Language -> Bool -> Bool -> List (Html msg)
+viewShortcuts lang isMac aiFeatureEnabled =
     let
         ctrlOrCmd =
             ctrlOrCmdText isMac
@@ -62,7 +65,7 @@ viewShortcuts lang isMac =
     , div [ id "shortcut-modes-wrapper" ]
         [ div []
             [ h3 [ id "view-mode-shortcuts-title" ] [ text lang ViewModeShortcuts ]
-            , shortcutTable lang CardEditCreateDelete (normalEditShortcuts lang ctrlOrCmd)
+            , shortcutTable lang CardEditCreateDelete (normalEditShortcuts lang ctrlOrCmd aiFeatureEnabled)
             , shortcutTable lang NavigationMovingCards (normalNavigationShortcuts lang ctrlOrCmd)
             , shortcutTable lang CopyPaste (normalCopyShortcuts lang ctrlOrCmd)
             , shortcutTable lang SearchingMerging (normalAdvancedShortcuts lang ctrlOrCmd)
@@ -91,15 +94,20 @@ keyNoTr str =
     key En (NoTr str)
 
 
-normalEditShortcuts : Language -> String -> List (Html msg)
-normalEditShortcuts lang ctrlOrCmd =
+normalEditShortcuts : Language -> String -> Bool -> List (Html msg)
+normalEditShortcuts lang ctrlOrCmd aiFeatureEnabled =
     [ shortcutRow lang EditCard [ key lang EnterKey ]
     , shortcutRow lang EditCardFullscreen [ key lang ShiftKey, key lang EnterKey ]
     , shortcutRow lang AddCardBelow [ keyNoTr ctrlOrCmd, keyNoTr "↓", text lang Or, keyNoTr ctrlOrCmd, keyNoTr "J" ]
     , shortcutRow lang AddCardAbove [ keyNoTr ctrlOrCmd, keyNoTr "↑", text lang Or, keyNoTr ctrlOrCmd, keyNoTr "K" ]
     , shortcutRow lang AddCardToRight [ keyNoTr ctrlOrCmd, keyNoTr "→", text lang Or, keyNoTr ctrlOrCmd, keyNoTr "L" ]
-    , shortcutRow lang DeleteCard [ keyNoTr ctrlOrCmd, key lang Backspace ]
     ]
+        ++ ternary aiFeatureEnabled
+            [ shortcutRow lang ToOpenAIPrompt [ key lang AltKey, keyNoTr "I" ]
+            ]
+            []
+        ++ [ shortcutRow lang DeleteCard [ keyNoTr ctrlOrCmd, key lang Backspace ]
+           ]
 
 
 normalNavigationShortcuts : Language -> String -> List (Html msg)

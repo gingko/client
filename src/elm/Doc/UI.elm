@@ -1,16 +1,15 @@
-module Doc.UI exposing (countWords, fillet, renderToast, viewAppLoadingSpinner, viewBreadcrumbs, viewConflict, viewDocumentLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewTemplateSelector, viewTooltip, viewWordCount)
+module Doc.UI exposing (countWords, fillet, renderToast, viewAIButton, viewAIPrompt, viewAppLoadingSpinner, viewBreadcrumbs, viewDocumentLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewTemplateSelector, viewTooltip, viewWordCount)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
 import Coders exposing (treeToMarkdownString)
-import Diff exposing (..)
-import Doc.Data.Conflict as Conflict exposing (Conflict, Op(..), Selection(..), opString)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils as TreeUtils exposing (..)
 import GlobalData exposing (GlobalData)
-import Html exposing (Html, a, button, del, div, fieldset, h2, h3, h5, hr, input, ins, label, li, pre, span, ul)
+import Html exposing (Html, a, div, h2, h3, h5, hr, input, li, pre, span, textarea)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onMouseEnter, onMouseLeave)
+import Html.Extra exposing (viewIf)
 import Import.Template exposing (Template(..))
 import Markdown.Block
 import Markdown.Html
@@ -379,14 +378,18 @@ viewMobileButtons msgs isEditing =
 
 viewShortcuts :
     { toggledShortcutTray : msg, tooltipRequested : String -> TooltipPosition -> TranslationId -> msg, tooltipClosed : msg }
-    -> Language
-    -> Bool
-    -> Bool
-    -> Children
-    -> TextCursorInfo
-    -> ViewMode
+    ->
+        { lang : Language
+        , isOpen : Bool
+        , isMac : Bool
+        , aiFeaturesEnabled : Bool
+        , isAIPromptOpen : Bool
+        , children : Children
+        , textCursorInfo : TextCursorInfo
+        , viewMode : ViewMode
+        }
     -> List (Html msg)
-viewShortcuts msgs lang isOpen isMac children textCursorInfo viewMode =
+viewShortcuts msgs { lang, isOpen, isMac, aiFeaturesEnabled, isAIPromptOpen, children, textCursorInfo, viewMode } =
     let
         isTextSelected =
             textCursorInfo.selected
@@ -460,27 +463,39 @@ viewShortcuts msgs lang isOpen isMac children textCursorInfo viewMode =
                 [ div
                     [ id "shortcuts-tray", classList [ ( "open", isOpen ) ], onClick msgs.toggledShortcutTray ]
                     [ div [ id "shortcuts" ]
-                        [ h3 [] [ text lang KeyboardShortcuts ]
-                        , h5 [] [ text lang EditCards ]
-                        , shortcutSpan [ EnterKey ] EnterAction
-                        , shortcutSpan [ ShiftKey, EnterKey ] EditFullscreenAction
-                        , viewIfNotOnly <| h5 [] [ text lang Navigate ]
-                        , viewIfNotOnly <| shortcutSpan [ NoTr "↑", NoTr "↓", NoTr "←", NoTr "→" ] ArrowsAction
-                        , h5 [] [ text lang AddNewCards ]
-                        , shortcutSpan [ NoTr ctrlOrCmd, NoTr "→" ] AddChildAction
-                        , shortcutSpan [ NoTr ctrlOrCmd, NoTr "↓" ] AddBelowAction
-                        , shortcutSpan [ NoTr ctrlOrCmd, NoTr "↑" ] AddAboveAction
-                        , viewIfNotOnly <| h5 [] [ text lang MoveAndDelete ]
-                        , viewIfNotOnly <| shortcutSpan [ AltKey, ArrowKeys ] MoveAction
-                        , viewIfNotOnly <| shortcutSpan [ NoTr ctrlOrCmd, Backspace ] DeleteAction
-                        , viewIfNotOnly <| h5 [] [ text lang MergeCards ]
-                        , viewIfNotOnly <| shortcutSpan [ NoTr ctrlOrCmd, ShiftKey, NoTr "↓" ] MergeDownAction
-                        , viewIfNotOnly <| shortcutSpan [ NoTr ctrlOrCmd, ShiftKey, NoTr "↑" ] MergeUpAction
-                        , hr [] []
-                        , h5 [] [ text lang OtherShortcuts ]
-                        , shortcutSpan [ NoTr "w" ] DisplayWordCounts
-                        , shortcutSpan [ NoTr ctrlOrCmd, NoTr "O" ] QuickDocumentSwitcher
-                        ]
+                        ([ h3 [] [ text lang KeyboardShortcuts ]
+                         , h5 [] [ text lang EditCards ]
+                         , shortcutSpan [ EnterKey ] EnterAction
+                         , shortcutSpan [ ShiftKey, EnterKey ] EditFullscreenAction
+                         , viewIfNotOnly <| h5 [] [ text lang Navigate ]
+                         , viewIfNotOnly <| shortcutSpan [ NoTr "↑", NoTr "↓", NoTr "←", NoTr "→" ] ArrowsAction
+                         , h5 [] [ text lang AddNewCards ]
+                         , shortcutSpan [ NoTr ctrlOrCmd, NoTr "→" ] AddChildAction
+                         , shortcutSpan [ NoTr ctrlOrCmd, NoTr "↓" ] AddBelowAction
+                         , shortcutSpan [ NoTr ctrlOrCmd, NoTr "↑" ] AddAboveAction
+                         ]
+                            ++ (if aiFeaturesEnabled then
+                                    [ h5 [] [ text lang AIFeatures ]
+                                    , shortcutSpan [ AltKey, NoTr "I" ] ToOpenAIPrompt
+                                    , viewIf isAIPromptOpen <| shortcutSpan [ NoTr ctrlOrCmd, NoTr "J" ] AIGenerateBelow
+                                    , viewIf isAIPromptOpen <| shortcutSpan [ NoTr ctrlOrCmd, NoTr "L" ] AIGenerateChildren
+                                    ]
+
+                                else
+                                    []
+                               )
+                            ++ [ viewIfNotOnly <| h5 [] [ text lang MoveAndDelete ]
+                               , viewIfNotOnly <| shortcutSpan [ AltKey, ArrowKeys ] MoveAction
+                               , viewIfNotOnly <| shortcutSpan [ NoTr ctrlOrCmd, Backspace ] DeleteAction
+                               , viewIfNotOnly <| h5 [] [ text lang MergeCards ]
+                               , viewIfNotOnly <| shortcutSpan [ NoTr ctrlOrCmd, ShiftKey, NoTr "↓" ] MergeDownAction
+                               , viewIfNotOnly <| shortcutSpan [ NoTr ctrlOrCmd, ShiftKey, NoTr "↑" ] MergeUpAction
+                               , hr [] []
+                               , h5 [] [ text lang OtherShortcuts ]
+                               , shortcutSpan [ NoTr "w" ] DisplayWordCounts
+                               , shortcutSpan [ NoTr ctrlOrCmd, NoTr "O" ] QuickDocumentSwitcher
+                               ]
+                        )
                     ]
                 ]
 
@@ -666,6 +681,48 @@ viewTooltip lang ( el, tipPos, content ) =
         [ text lang content, div [ class "tooltip-arrow" ] [] ]
 
 
+viewAIPrompt : String -> Bool -> (String -> msg) -> Html msg
+viewAIPrompt ctrlOrCmd isWaiting promptInputMsg =
+    let
+        shortCutKey k =
+            span [ class "shortcut-key" ] [ textNoTr k ]
+
+        shortCut keys str =
+            div [ class "ai-prompt-instruction" ]
+                (List.map shortCutKey keys
+                    ++ [ textNoTr str ]
+                )
+    in
+    div [ id "ai-prompt-container" ]
+        [ div [ id "ai-prompt" ]
+            [ textarea
+                [ id "ai-prompt-textarea"
+                , disabled isWaiting
+                , classList [ ( "mousetrap", True ) ]
+                , onInput promptInputMsg
+                ]
+                []
+            , if not isWaiting then
+                div [ class "ai-prompt-instructions" ]
+                    [ shortCut [ "Esc" ] " Cancel"
+                    , shortCut [ ctrlOrCmd, "J" ] " Generate Below"
+                    , shortCut [ ctrlOrCmd, "L" ] " Generate Children"
+                    ]
+
+              else
+                div [ class "switcher-instructions" ]
+                    [ div [ class "switcher-instruction" ] [ textNoTr "Generating..." ]
+                    ]
+            ]
+        ]
+
+
+viewAIButton : msg -> Html msg
+viewAIButton aiPromptMsg =
+    div [ id "ai-prompt-button", onClick aiPromptMsg ]
+        [ AntIcons.robotOutlined [ width 12, height 12 ] ]
+
+
 getStats : { m | activeCardId : String, workingTree : TreeStructure.Model } -> Stats
 getStats { activeCardId, workingTree } =
     let
@@ -762,109 +819,6 @@ count str =
                 |> List.length
     in
     ( wordCounts, charCounts )
-
-
-viewConflict : Language -> (String -> Selection -> String -> msg) -> (String -> msg) -> Conflict -> Html msg
-viewConflict language setSelectionMsg resolveMsg { id, opA, opB, selection, resolved } =
-    let
-        withManual cardId oursElement theirsElement =
-            li
-                []
-                [ fieldset []
-                    [ radio (setSelectionMsg id Original cardId) (selection == Original) emptyText
-                    , radio (setSelectionMsg id Ours cardId) (selection == Ours) oursElement
-                    , radio (setSelectionMsg id Theirs cardId) (selection == Theirs) theirsElement
-                    , radio (setSelectionMsg id Manual cardId) (selection == Manual) emptyText
-                    , label []
-                        [ input [ checked resolved, type_ "checkbox", onClick (resolveMsg id) ] []
-                        , emptyText
-                        ]
-                    ]
-                ]
-
-        withoutManual cardIdA cardIdB =
-            li
-                []
-                [ fieldset []
-                    [ radio (setSelectionMsg id Original "") (selection == Original) emptyText
-                    , radio (setSelectionMsg id Ours cardIdA) (selection == Ours) (text language <| NoTr <| ("Ours:" ++ (opString opA |> String.left 3)))
-                    , radio (setSelectionMsg id Theirs cardIdB) (selection == Theirs) (text language <| NoTr <| ("Theirs:" ++ (opString opB |> String.left 3)))
-                    , label []
-                        [ input [ checked resolved, type_ "checkbox", onClick (resolveMsg id) ] []
-                        , emptyText
-                        ]
-                    ]
-                ]
-
-        newConflictView cardId ourChanges theirChanges =
-            div [ class "flex-row" ]
-                [ div [ class "conflict-container flex-column" ]
-                    [ div
-                        [ classList [ ( "row option", True ), ( "selected", selection == Original ) ]
-                        , onClick (setSelectionMsg id Original cardId)
-                        ]
-                        [ emptyText ]
-                    , div [ class "row flex-row" ]
-                        [ div
-                            [ classList [ ( "option", True ), ( "selected", selection == Ours ) ]
-                            , onClick (setSelectionMsg id Ours cardId)
-                            ]
-                            [ emptyText
-                            , ul [ class "changelist" ] ourChanges
-                            ]
-                        , div
-                            [ classList [ ( "option", True ), ( "selected", selection == Theirs ) ]
-                            , onClick (setSelectionMsg id Theirs cardId)
-                            ]
-                            [ emptyText
-                            , ul [ class "changelist" ] theirChanges
-                            ]
-                        ]
-                    , div
-                        [ classList [ ( "row option", True ), ( "selected", selection == Manual ) ]
-                        , onClick (setSelectionMsg id Manual cardId)
-                        ]
-                        [ emptyText ]
-                    ]
-                , button [ onClick (resolveMsg id) ] [ emptyText ]
-                ]
-    in
-    case ( opA, opB ) of
-        ( Mod idA _ _ _, Mod _ _ _ _ ) ->
-            let
-                diffLinesString l r =
-                    diffLines l r
-                        |> List.filterMap
-                            (\c ->
-                                case c of
-                                    NoChange s ->
-                                        Nothing
-
-                                    Added s ->
-                                        Just (li [] [ ins [ class "diff" ] [ textNoTr s ] ])
-
-                                    Removed s ->
-                                        Just (li [] [ del [ class "diff" ] [ textNoTr s ] ])
-                            )
-            in
-            newConflictView idA [] []
-
-        ( Conflict.Ins idA _ _ _, Del idB _ ) ->
-            withoutManual idA idB
-
-        ( Del idA _, Conflict.Ins idB _ _ _ ) ->
-            withoutManual idA idB
-
-        _ ->
-            withoutManual "" ""
-
-
-radio : msg -> Bool -> Html msg -> Html msg
-radio msg bool labelElement =
-    label []
-        [ input [ type_ "radio", checked bool, onClick msg ] []
-        , labelElement
-        ]
 
 
 keyboardIconSvg w =

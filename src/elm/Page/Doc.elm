@@ -2,7 +2,7 @@ module Page.Doc exposing (Model, Msg, MsgToParent(..), getActiveId, getActiveTre
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
-import Coders exposing (collabStateEncoder, treeToValue)
+import Coders exposing (collabStateEncoder, treeToJSON, treeToValue)
 import Doc.Fonts as Fonts
 import Doc.Fullscreen as Fullscreen
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
@@ -135,6 +135,7 @@ type Msg
 type MsgToParent
     = ParentAddToast ToastPersistence Toast
     | CloseTooltip
+    | OpenAIPrompt
     | LocalSave CardTreeOp
     | Commit
 
@@ -801,6 +802,9 @@ incoming incomingMsg model =
 
                 "mod+shift+up" ->
                     normalMode model (mergeUp activeId)
+
+                "alt+i" ->
+                    openAIPrompt model
 
                 "h" ->
                     normalMode model (goLeft activeId)
@@ -1784,6 +1788,19 @@ mergeDown id ( model, prevCmd, prevMsgsToParent ) =
 setCursorPosition : Int -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 setCursorPosition pos ( model, prevCmd, prevMsgsToParent ) =
     ( model, Cmd.batch [ prevCmd, send (SetCursorPosition pos) ], prevMsgsToParent )
+
+
+openAIPrompt : ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
+openAIPrompt model =
+    case model.viewState.viewMode of
+        Normal _ ->
+            ( model
+            , Cmd.none
+            , [ OpenAIPrompt ]
+            )
+
+        _ ->
+            ( model, Cmd.none, [] )
 
 
 

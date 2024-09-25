@@ -130,6 +130,10 @@ type TranslationId
     | AddBelowAction
     | InsertBelowTitle
     | AddAboveAction
+    | AIFeatures
+    | ToOpenAIPrompt
+    | AIGenerateChildren
+    | AIGenerateBelow
     | SplitAtCursor
     | SplitChildAction
     | SplitBelowAction
@@ -3582,6 +3586,122 @@ tr lang trans =
                     , pl = "%pl:AddAboveAction%"
                     , uk = "%uk:AddAboveAction%"
                     , nb = "%nb:AddAboveAction%"
+                    }
+
+                AIFeatures ->
+                    { en = "AI Features (BETA)"
+                    , zh_hans = "%zh_hans:AIFeatures%"
+                    , zh_hant = "%zh_hant:AIFeatures%"
+                    , es = "%es:AIFeatures%"
+                    , ar = "%ar:AIFeatures%"
+                    , fr = "%fr:AIFeatures%"
+                    , ru = "%ru:AIFeatures%"
+                    , de = "%de:AIFeatures%"
+                    , ja = "%ja:AIFeatures%"
+                    , pes = "%pes:AIFeatures%"
+                    , it = "%it:AIFeatures%"
+                    , ro = "%ro:AIFeatures%"
+                    , hr = "%hr:AIFeatures%"
+                    , nl = "%nl:AIFeatures%"
+                    , hu = "%hu:AIFeatures%"
+                    , sv = "%sv:AIFeatures%"
+                    , ca = "%ca:AIFeatures%"
+                    , br = "%br:AIFeatures%"
+                    , mr = "%mr:AIFeatures%"
+                    , cs = "%cs:AIFeatures%"
+                    , fa = "%fa:AIFeatures%"
+                    , id = "%id:AIFeatures%"
+                    , ko = "%ko:AIFeatures%"
+                    , pl = "%pl:AIFeatures%"
+                    , uk = "%uk:AIFeatures%"
+                    , nb = "%nb:AIFeatures%"
+                    }
+
+                ToOpenAIPrompt ->
+                    { en = "to open AI Prompt"
+                    , zh_hans = "%zh_hans:ToOpenAIPrompt%"
+                    , zh_hant = "%zh_hant:ToOpenAIPrompt%"
+                    , es = "%es:ToOpenAIPrompt%"
+                    , ar = "%ar:ToOpenAIPrompt%"
+                    , fr = "%fr:ToOpenAIPrompt%"
+                    , ru = "%ru:ToOpenAIPrompt%"
+                    , de = "%de:ToOpenAIPrompt%"
+                    , ja = "%ja:ToOpenAIPrompt%"
+                    , pes = "%pes:ToOpenAIPrompt%"
+                    , it = "%it:ToOpenAIPrompt%"
+                    , ro = "%ro:ToOpenAIPrompt%"
+                    , hr = "%hr:ToOpenAIPrompt%"
+                    , nl = "%nl:ToOpenAIPrompt%"
+                    , hu = "%hu:ToOpenAIPrompt%"
+                    , sv = "%sv:ToOpenAIPrompt%"
+                    , ca = "%ca:ToOpenAIPrompt%"
+                    , br = "%br:ToOpenAIPrompt%"
+                    , mr = "%mr:ToOpenAIPrompt%"
+                    , cs = "%cs:ToOpenAIPrompt%"
+                    , fa = "%fa:ToOpenAIPrompt%"
+                    , id = "%id:ToOpenAIPrompt%"
+                    , ko = "%ko:ToOpenAIPrompt%"
+                    , pl = "%pl:ToOpenAIPrompt%"
+                    , uk = "%uk:ToOpenAIPrompt%"
+                    , nb = "%nb:ToOpenAIPrompt%"
+                    }
+
+                AIGenerateChildren ->
+                    { en = "Generate as Children of Current"
+                    , zh_hans = "%zh_hans:AIGenerateChildren%"
+                    , zh_hant = "%zh_hant:AIGenerateChildren%"
+                    , es = "%es:AIGenerateChildren%"
+                    , ar = "%ar:AIGenerateChildren%"
+                    , fr = "%fr:AIGenerateChildren%"
+                    , ru = "%ru:AIGenerateChildren%"
+                    , de = "%de:AIGenerateChildren%"
+                    , ja = "%ja:AIGenerateChildren%"
+                    , pes = "%pes:AIGenerateChildren%"
+                    , it = "%it:AIGenerateChildren%"
+                    , ro = "%ro:AIGenerateChildren%"
+                    , hr = "%hr:AIGenerateChildren%"
+                    , nl = "%nl:AIGenerateChildren%"
+                    , hu = "%hu:AIGenerateChildren%"
+                    , sv = "%sv:AIGenerateChildren%"
+                    , ca = "%ca:AIGenerateChildren%"
+                    , br = "%br:AIGenerateChildren%"
+                    , mr = "%mr:AIGenerateChildren%"
+                    , cs = "%cs:AIGenerateChildren%"
+                    , fa = "%fa:AIGenerateChildren%"
+                    , id = "%id:AIGenerateChildren%"
+                    , ko = "%ko:AIGenerateChildren%"
+                    , pl = "%pl:AIGenerateChildren%"
+                    , uk = "%uk:AIGenerateChildren%"
+                    , nb = "%nb:AIGenerateChildren%"
+                    }
+
+                AIGenerateBelow ->
+                    { en = "Generate Below Current"
+                    , zh_hans = "%zh_hans:AIGenerateBelow%"
+                    , zh_hant = "%zh_hant:AIGenerateBelow%"
+                    , es = "%es:AIGenerateBelow%"
+                    , ar = "%ar:AIGenerateBelow%"
+                    , fr = "%fr:AIGenerateBelow%"
+                    , ru = "%ru:AIGenerateBelow%"
+                    , de = "%de:AIGenerateBelow%"
+                    , ja = "%ja:AIGenerateBelow%"
+                    , pes = "%pes:AIGenerateBelow%"
+                    , it = "%it:AIGenerateBelow%"
+                    , ro = "%ro:AIGenerateBelow%"
+                    , hr = "%hr:AIGenerateBelow%"
+                    , nl = "%nl:AIGenerateBelow%"
+                    , hu = "%hu:AIGenerateBelow%"
+                    , sv = "%sv:AIGenerateBelow%"
+                    , ca = "%ca:AIGenerateBelow%"
+                    , br = "%br:AIGenerateBelow%"
+                    , mr = "%mr:AIGenerateBelow%"
+                    , cs = "%cs:AIGenerateBelow%"
+                    , fa = "%fa:AIGenerateBelow%"
+                    , id = "%id:AIGenerateBelow%"
+                    , ko = "%ko:AIGenerateBelow%"
+                    , pl = "%pl:AIGenerateBelow%"
+                    , uk = "%uk:AIGenerateBelow%"
+                    , nb = "%nb:AIGenerateBelow%"
                     }
 
                 SplitAtCursor ->

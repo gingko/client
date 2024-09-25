@@ -37,6 +37,9 @@ type Msg
     | PullData
     | SaveImportedData Enc.Value
     | SaveBulkImportedData Enc.Value
+      -- === AI ===
+    | GenerateChildren { prompt : String, id : String }
+    | GenerateBelow { prompt : String, id : String }
       -- === Collaboration ===
     | AddCollabRequest String String
     | RemoveCollabRequest String String
@@ -148,6 +151,13 @@ send info =
 
         NoDataToSave ->
             dataToSend "NoDataToSave" null
+
+        -- === AI ===
+        GenerateChildren { prompt, id } ->
+            dataToSend "GenerateChildren" (tupleToValue string ( id, prompt ))
+
+        GenerateBelow { prompt, id } ->
+            dataToSend "GenerateBelow" (tupleToValue string ( id, prompt ))
 
         -- === Collaboration ===
         AddCollabRequest treeId collabEmail ->
