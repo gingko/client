@@ -98,6 +98,7 @@ normalEditShortcuts lang ctrlOrCmd =
     , shortcutRow lang AddCardBelow [ keyNoTr ctrlOrCmd, keyNoTr "↓", text lang Or, keyNoTr ctrlOrCmd, keyNoTr "J" ]
     , shortcutRow lang AddCardAbove [ keyNoTr ctrlOrCmd, keyNoTr "↑", text lang Or, keyNoTr ctrlOrCmd, keyNoTr "K" ]
     , shortcutRow lang AddCardToRight [ keyNoTr ctrlOrCmd, keyNoTr "→", text lang Or, keyNoTr ctrlOrCmd, keyNoTr "L" ]
+    , shortcutRow lang ToOpenAIPrompt [ key lang AltKey, keyNoTr "I" ]
     , shortcutRow lang DeleteCard [ keyNoTr ctrlOrCmd, key lang Backspace ]
     ]
 

@@ -2283,12 +2283,20 @@ view ({ documentState } as model) =
                             , tooltipRequested = TooltipRequested
                             , tooltipClosed = TooltipClosed
                             }
-                            lang
-                            (Session.shortcutTrayOpen session)
-                            (GlobalData.isMac globalData)
-                            workingTree.tree.children
-                            (Page.Doc.getTextCursorInfo docModel)
-                            (Page.Doc.getViewMode docModel)
+                            { lang = lang
+                            , isOpen = Session.shortcutTrayOpen session
+                            , isMac = GlobalData.isMac globalData
+                            , isAIPromptOpen =
+                                case model.modalState of
+                                    AIPrompt _ _ ->
+                                        True
+
+                                    _ ->
+                                        False
+                            , children = workingTree.tree.children
+                            , textCursorInfo = Page.Doc.getTextCursorInfo docModel
+                            , viewMode = Page.Doc.getViewMode docModel
+                            }
                         ++ viewModal globalData session model.modalState
                     )
 

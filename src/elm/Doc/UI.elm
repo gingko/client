@@ -9,6 +9,7 @@ import GlobalData exposing (GlobalData)
 import Html exposing (Html, a, div, h2, h3, h5, hr, input, li, pre, span, textarea)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onMouseEnter, onMouseLeave)
+import Html.Extra exposing (viewIf)
 import Import.Template exposing (Template(..))
 import Markdown.Block
 import Markdown.Html
@@ -377,14 +378,17 @@ viewMobileButtons msgs isEditing =
 
 viewShortcuts :
     { toggledShortcutTray : msg, tooltipRequested : String -> TooltipPosition -> TranslationId -> msg, tooltipClosed : msg }
-    -> Language
-    -> Bool
-    -> Bool
-    -> Children
-    -> TextCursorInfo
-    -> ViewMode
+    ->
+        { lang : Language
+        , isOpen : Bool
+        , isMac : Bool
+        , isAIPromptOpen : Bool
+        , children : Children
+        , textCursorInfo : TextCursorInfo
+        , viewMode : ViewMode
+        }
     -> List (Html msg)
-viewShortcuts msgs lang isOpen isMac children textCursorInfo viewMode =
+viewShortcuts msgs { lang, isOpen, isMac, isAIPromptOpen, children, textCursorInfo, viewMode } =
     let
         isTextSelected =
             textCursorInfo.selected
@@ -468,6 +472,10 @@ viewShortcuts msgs lang isOpen isMac children textCursorInfo viewMode =
                         , shortcutSpan [ NoTr ctrlOrCmd, NoTr "→" ] AddChildAction
                         , shortcutSpan [ NoTr ctrlOrCmd, NoTr "↓" ] AddBelowAction
                         , shortcutSpan [ NoTr ctrlOrCmd, NoTr "↑" ] AddAboveAction
+                        , h5 [] [ text lang AIFeatures ]
+                        , shortcutSpan [ AltKey, NoTr "I" ] ToOpenAIPrompt
+                        , viewIf isAIPromptOpen <| shortcutSpan [ NoTr ctrlOrCmd, NoTr "J" ] AIGenerateBelow
+                        , viewIf isAIPromptOpen <| shortcutSpan [ NoTr ctrlOrCmd, NoTr "L" ] AIGenerateChildren
                         , viewIfNotOnly <| h5 [] [ text lang MoveAndDelete ]
                         , viewIfNotOnly <| shortcutSpan [ AltKey, ArrowKeys ] MoveAction
                         , viewIfNotOnly <| shortcutSpan [ NoTr ctrlOrCmd, Backspace ] DeleteAction
