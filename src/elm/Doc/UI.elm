@@ -1,4 +1,4 @@
-module Doc.UI exposing (countWords, fillet, renderToast, viewAIPrompt, viewAppLoadingSpinner, viewBreadcrumbs, viewDocumentLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewTemplateSelector, viewTooltip, viewWordCount)
+module Doc.UI exposing (countWords, fillet, renderToast, viewAIButton, viewAIPrompt, viewAppLoadingSpinner, viewBreadcrumbs, viewDocumentLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewTemplateSelector, viewTooltip, viewWordCount)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -670,8 +670,10 @@ viewAIPrompt ctrlOrCmd isWaiting promptInputMsg =
             span [ class "shortcut-key" ] [ textNoTr k ]
 
         shortCut keys str =
-            List.map shortCutKey keys
-                ++ [ textNoTr str ]
+            div [ class "ai-prompt-instruction" ]
+                (List.map shortCutKey keys
+                    ++ [ textNoTr str ]
+                )
     in
     div [ id "ai-prompt-container" ]
         [ div [ id "ai-prompt" ]
@@ -683,9 +685,10 @@ viewAIPrompt ctrlOrCmd isWaiting promptInputMsg =
                 ]
                 []
             , if not isWaiting then
-                div [ class "switcher-instructions" ]
-                    [ div [ class "switcher-instruction" ] (shortCut [ ctrlOrCmd, "J" ] " to Generate Below")
-                    , div [ class "switcher-instruction" ] (shortCut [ ctrlOrCmd, "L" ] " to Generate Children")
+                div [ class "ai-prompt-instructions" ]
+                    [ shortCut [ "Esc" ] " Cancel"
+                    , shortCut [ ctrlOrCmd, "J" ] " Generate Below"
+                    , shortCut [ ctrlOrCmd, "L" ] " Generate Children"
                     ]
 
               else
@@ -694,6 +697,12 @@ viewAIPrompt ctrlOrCmd isWaiting promptInputMsg =
                     ]
             ]
         ]
+
+
+viewAIButton : msg -> Html msg
+viewAIButton aiPromptMsg =
+    div [ id "ai-prompt-button", onClick aiPromptMsg ]
+        [ AntIcons.robotOutlined [ width 12, height 12 ] ]
 
 
 getStats : { m | activeCardId : String, workingTree : TreeStructure.Model } -> Stats

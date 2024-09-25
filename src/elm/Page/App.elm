@@ -404,6 +404,7 @@ type Msg
     | ImportJSONIdGenerated Tree String String
     | ImportSingleCompleted String
       -- AI
+    | AIButtonClicked
     | AIPromptFieldChanged String
       -- Misc UI
     | ToastMsg Toast.Msg
@@ -1569,6 +1570,9 @@ update msg model =
             ( model, Route.pushUrl model.navKey (Route.DocUntitled docId) )
 
         -- AI
+        AIButtonClicked ->
+            applyParentMsg OpenAIPrompt ( model, Cmd.none )
+
         AIPromptFieldChanged newField ->
             case model.modalState of
                 AIPrompt isWaiting _ ->
@@ -2344,7 +2348,7 @@ viewModal globalData session modalState =
     in
     case modalState of
         NoModal ->
-            [ emptyText ]
+            [ UI.viewAIButton AIButtonClicked ]
 
         FileSwitcher switcherModel ->
             Doc.Switcher.view SwitcherClosed FileSearchChanged switcherModel

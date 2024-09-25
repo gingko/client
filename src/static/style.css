@@ -3532,14 +3532,40 @@ div#breadcrumbs::-webkit-scrollbar {
   right: 0;
   display: flex;
   justify-content: center;
+  pointer-events: none;
+}
+
+#ai-prompt-container * {
+  pointer-events: auto;
+}
+
+#ai-prompt-button {
+  opacity: 0.3;
+  grid-area: document;
+  position: absolute;
+  left: 10px;
+  bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 10px;
+  background: var(--active-bg);
+  color: var(--ui-2-fg);
+  box-shadow: var(--small-shadow);
+  cursor: pointer;
+}
+#ai-prompt-button:hover {
+  opacity: 0.8;
+  transition: opacity 0.2s ease-out;
 }
 
 #ai-prompt {
   display: flex;
   flex-direction: column;
-  padding: 5px;
+  padding: 10px 10px 2px 10px;
   border-radius: 10px;
-  background: var(--ui-2-bg);
+  background: var(--background-sidebar);
   box-shadow: var(--small-shadow);
 }
 
@@ -3550,11 +3576,20 @@ div#breadcrumbs::-webkit-scrollbar {
   color: #333;
   transition: all 0.2s ease-out;
   box-shadow: inset 1px 1px 1px 0px rgb(129, 130, 136);
-  width: 350px;
+  width: 450px;
   min-height: 100px;
   pointer-events: auto;
   resize: none;
   outline: none;
+}
+
+.ai-prompt-instructions {
+  display: flex;
+  font-size: 13px;
+  opacity: 0.5;
+  padding: 5px 0;
+  justify-content: space-between;
+  align-items: center;
 }
 
 #search-field {
