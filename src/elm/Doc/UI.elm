@@ -717,9 +717,19 @@ viewAIPrompt ctrlOrCmd isWaiting promptInputMsg =
         ]
 
 
-viewAIButton : msg -> Html msg
-viewAIButton aiPromptMsg =
-    div [ id "ai-prompt-button", onClick aiPromptMsg ]
+viewAIButton :
+    { openAIPrompt : msg
+    , tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
+    , tooltipClosed : msg
+    }
+    -> Html msg
+viewAIButton msgs =
+    div
+        [ id "ai-prompt-button"
+        , onClick msgs.openAIPrompt
+        , onMouseEnter <| msgs.tooltipRequested "ai-prompt-button" RightTooltip TooltipAIPrompt
+        , onMouseLeave msgs.tooltipClosed
+        ]
         [ AntIcons.robotOutlined [ width 12, height 12 ] ]
 
 

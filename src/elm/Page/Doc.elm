@@ -797,7 +797,7 @@ incoming incomingMsg model =
                 "mod+shift+down" ->
                     normalMode model (mergeDown activeId)
 
-                "mod+shift+k" -> 
+                "mod+shift+k" ->
                     normalMode model (mergeUp activeId)
 
                 "mod+shift+up" ->

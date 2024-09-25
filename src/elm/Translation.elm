@@ -131,6 +131,7 @@ type TranslationId
     | InsertBelowTitle
     | AddAboveAction
     | AIFeatures
+    | TooltipAIPrompt
     | ToOpenAIPrompt
     | AIGenerateChildren
     | AIGenerateBelow
@@ -3615,6 +3616,35 @@ tr lang trans =
                     , pl = "%pl:AIFeatures%"
                     , uk = "%uk:AIFeatures%"
                     , nb = "%nb:AIFeatures%"
+                    }
+
+                TooltipAIPrompt ->
+                    { en = "AI Prompt"
+                    , zh_hans = "%zh_hans:TooltipAIPrompt%"
+                    , zh_hant = "%zh_hant:TooltipAIPrompt%"
+                    , es = "%es:TooltipAIPrompt%"
+                    , ar = "%ar:TooltipAIPrompt%"
+                    , fr = "%fr:TooltipAIPrompt%"
+                    , ru = "%ru:TooltipAIPrompt%"
+                    , de = "%de:TooltipAIPrompt%"
+                    , ja = "%ja:TooltipAIPrompt%"
+                    , pes = "%pes:TooltipAIPrompt%"
+                    , it = "%it:TooltipAIPrompt%"
+                    , ro = "%ro:TooltipAIPrompt%"
+                    , hr = "%hr:TooltipAIPrompt%"
+                    , nl = "%nl:TooltipAIPrompt%"
+                    , hu = "%hu:TooltipAIPrompt%"
+                    , sv = "%sv:TooltipAIPrompt%"
+                    , ca = "%ca:TooltipAIPrompt%"
+                    , br = "%br:TooltipAIPrompt%"
+                    , mr = "%mr:TooltipAIPrompt%"
+                    , cs = "%cs:TooltipAIPrompt%"
+                    , fa = "%fa:TooltipAIPrompt%"
+                    , id = "%id:TooltipAIPrompt%"
+                    , ko = "%ko:TooltipAIPrompt%"
+                    , pl = "%pl:TooltipAIPrompt%"
+                    , uk = "%uk:TooltipAIPrompt%"
+                    , nb = "%nb:TooltipAIPrompt%"
                     }
 
                 ToOpenAIPrompt ->

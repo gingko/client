@@ -1903,7 +1903,10 @@ applyParentMsg parentMsg ( prevModel, prevCmd ) =
             ( { prevModel | tooltip = Nothing }, prevCmd )
 
         OpenAIPrompt ->
-            ( { prevModel | modalState = AIPrompt False "" }
+            ( { prevModel
+                | modalState = AIPrompt False ""
+                , tooltip = Nothing
+              }
             , Cmd.batch
                 [ prevCmd
                 , Task.attempt (always NoOp) (Browser.Dom.focus "ai-prompt-textarea")
@@ -2360,7 +2363,12 @@ viewModal globalData session modalState =
     case modalState of
         NoModal ->
             if Feature.enabled AIPromptFeature session then
-                [ UI.viewAIButton AIButtonClicked ]
+                [ UI.viewAIButton
+                    { openAIPrompt = AIButtonClicked
+                    , tooltipRequested = TooltipRequested
+                    , tooltipClosed = TooltipClosed
+                    }
+                ]
 
             else
                 []
