@@ -4,14 +4,22 @@ import Css exposing (..)
 import Html exposing (Html)
 import Html.Styled exposing (div, label, text, textarea, toUnstyled)
 import Html.Styled.Attributes exposing (autofocus, css, for, id, rows)
-import Html.Styled.Events exposing (onInput)
+import Html.Styled.Events exposing (onClick, onInput)
 import SharedUI exposing (modalWrapper)
 import Styles exposing (colors)
 import Translation exposing (Language)
 
 
-viewAINewPrompt : Language -> { modalClosed : msg, promptInput : String -> msg } -> List (Html msg)
-viewAINewPrompt lang msgs =
+viewAINewPrompt :
+    Language
+    ->
+        { modalClosed : msg
+        , promptInput : String -> msg
+        , generateClicked : msg
+        }
+    -> Bool
+    -> List (Html msg)
+viewAINewPrompt lang msgs isWaiting =
     [ div [ css [ displayFlex, flexDirection column, property "gap" "10px" ] ]
         [ label [ for "ai-new-prompt", css [ fontWeight bold ] ] [ text "Prompt" ]
         , textarea
@@ -24,10 +32,15 @@ viewAINewPrompt lang msgs =
             []
         , div [ css [ displayFlex, justifyContent flexEnd ] ]
             [ div
-                [ css
+                [ onClick msgs.generateClicked
+                , css
                     [ fontWeight bold
                     , color colors.nearWhite
-                    , backgroundColor colors.green
+                    , if not isWaiting then
+                        backgroundColor colors.green
+
+                      else
+                        backgroundColor colors.gray
                     , padding (px 10)
                     , borderRadius (px 6)
                     , cursor pointer
@@ -35,7 +48,14 @@ viewAINewPrompt lang msgs =
                     , active [ marginTop (px 1) ]
                     ]
                 ]
-                [ text "Generate" ]
+                [ text
+                    (if not isWaiting then
+                        "Generate"
+
+                     else
+                        "Generating..."
+                    )
+                ]
             ]
         ]
     ]

@@ -114,7 +114,7 @@ type ModalState
     | MigrateModal
     | SidebarContextMenu String ( Float, Float )
     | TemplateSelector
-    | AINewPrompt String
+    | AINewPrompt Bool String
     | HelpScreen
     | VideoViewer VideoViewer.Model
     | Wordcount Page.Doc.Model
@@ -409,6 +409,7 @@ type Msg
     | ImportSingleCompleted String
       -- AI
     | AINewClicked
+    | AINewGenerateClicked
     | AIButtonClicked
     | AIPromptFieldChanged String
       -- Misc UI
@@ -566,6 +567,28 @@ update msg model =
 
                         DocNotFound _ _ ->
                             ( model, Cmd.none )
+
+                AIGenerateNewSuccess json ->
+                    let
+                        ( importTreeDecoder, newSeed ) =
+                            Import.Single.decoder (GlobalData.seed globalData)
+
+                        combinedTitleAndTreeDecoder =
+                            Json.map2 Tuple.pair
+                                (Json.field "items" importTreeDecoder)
+                                (Json.field "document-title" Json.string)
+
+                        newGlobalData =
+                            GlobalData.setSeed newSeed globalData
+                    in
+                    case Json.decodeValue combinedTitleAndTreeDecoder json of
+                        Ok ( tree, title ) ->
+                            ( { model | loading = True } |> updateGlobalData newGlobalData
+                            , RandomId.generate (ImportJSONIdGenerated tree title)
+                            )
+
+                        Err _ ->
+                            ( model |> updateGlobalData newGlobalData, Cmd.none )
 
                 AISuccess _ ->
                     case model.documentState of
@@ -1576,17 +1599,25 @@ update msg model =
 
         -- AI
         AINewClicked ->
-            ( { model | modalState = AINewPrompt "" }
+            ( { model | modalState = AINewPrompt False "" }
             , Task.attempt (always NoOp) (Browser.Dom.focus "ai-new-prompt")
             )
+
+        AINewGenerateClicked ->
+            case model.modalState of
+                AINewPrompt _ promptField ->
+                    ( { model | modalState = AINewPrompt True promptField }, send <| GenerateNew promptField )
+
+                _ ->
+                    ( model, Cmd.none )
 
         AIButtonClicked ->
             applyParentMsg OpenAIPrompt ( model, Cmd.none )
 
         AIPromptFieldChanged newField ->
             case model.modalState of
-                AINewPrompt _ ->
-                    ( { model | modalState = AINewPrompt newField }, Cmd.none )
+                AINewPrompt isWaiting _ ->
+                    ( { model | modalState = AINewPrompt isWaiting newField }, Cmd.none )
 
                 AIPrompt isWaiting _ ->
                     ( { model | modalState = AIPrompt isWaiting newField }, Cmd.none )
@@ -2458,11 +2489,13 @@ viewModal globalData session modalState =
                 , importJSONRequested = ImportJSONRequested
                 }
 
-        AINewPrompt _ ->
+        AINewPrompt isWaiting _ ->
             UIStyled.viewAINewPrompt language
                 { modalClosed = ModalClosed
                 , promptInput = AIPromptFieldChanged
+                , generateClicked = AINewGenerateClicked
                 }
+                isWaiting
 
         HelpScreen ->
             HelpScreen.view language
@@ -2574,6 +2607,7 @@ type IncomingAppMsg
     | HistoryDataReceived Enc.Value
     | PushOk (List String)
     | PushError
+    | AIGenerateNewSuccess Enc.Value
     | AISuccess Enc.Value
     | GitDataReceived Enc.Value
     | MetadataUpdate Metadata
@@ -2609,6 +2643,9 @@ subscribe tagger onError =
 
                 "PushError" ->
                     tagger PushError
+
+                "AIGenerateNewSuccess" ->
+                    tagger <| AIGenerateNewSuccess outsideInfo.data
 
                 "AISuccess" ->
                     tagger <| AISuccess outsideInfo.data

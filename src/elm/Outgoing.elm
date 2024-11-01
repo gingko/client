@@ -38,6 +38,7 @@ type Msg
     | SaveImportedData Enc.Value
     | SaveBulkImportedData Enc.Value
       -- === AI ===
+    | GenerateNew String
     | GenerateChildren { prompt : String, id : String }
     | GenerateBelow { prompt : String, id : String }
       -- === Collaboration ===
@@ -153,6 +154,9 @@ send info =
             dataToSend "NoDataToSave" null
 
         -- === AI ===
+        GenerateNew prompt ->
+            dataToSend "GenerateNew" (string prompt)
+
         GenerateChildren { prompt, id } ->
             dataToSend "GenerateChildren" (tupleToValue string ( id, prompt ))
 
@@ -217,7 +221,7 @@ send info =
 
         TextSurround id str ->
             dataToSend "TextSurround" (list string [ id, str ])
-        
+
         InsertMarkdownLink id ->
             dataToSend "InsertMarkdownLink" (string id)
 

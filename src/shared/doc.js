@@ -1,10 +1,16 @@
 // @format
 //import '../static/style.css'
 
-import * as data from "./data.js";
+import * as data from './data.js'
 //import Worker from "worker-loader!./data.worker.js";
-import hlc from '@tpp/hybrid-logical-clock';
-import uuid from '@tpp/simple-uuid';
+import hlc from '@tpp/hybrid-logical-clock'
+import uuid from '@tpp/simple-uuid'
+// Initialize Error Reporting
+import * as Sentry from '@sentry/browser'
+import LogRocket from 'logrocket'
+import PouchDB from 'pouchdb'
+import { ImmortalStorage, IndexedDbStore, LocalStorageStore, SessionStorageStore } from 'immortal-db'
+
 const dataWorker = new Worker('/data.worker.js');
 
 const _ = require("lodash");
@@ -15,10 +21,6 @@ const platform = require("platform");
 const config = require("../../config.js");
 const mycrypt = require("./encrypt.js");
 const PersistentWebSocket = require("pws");
-
-// Initialize Error Reporting
-import * as Sentry from '@sentry/browser';
-import LogRocket from 'logrocket';
 
 if(window.location.origin === config.PRODUCTION_SERVER) {
   Sentry.init({ dsn: config.SENTRY_DSN
@@ -34,9 +36,7 @@ if(window.location.origin === config.PRODUCTION_SERVER) {
   });
 }
 
-import PouchDB from "pouchdb";
 const Dexie = require("dexie").default;
-import { ImmortalStorage, IndexedDbStore, LocalStorageStore, SessionStorageStore } from 'immortal-db';
 let ImmortalDB;
 async function initImmortalDB() {
   const immortalStores = [await new IndexedDbStore(), await new LocalStorageStore(), await new SessionStorageStore()];
@@ -282,6 +282,10 @@ function initWebSocket () {
             let cards = await dexie.cards.where('treeId').equals(TREE_ID).toArray()
             pull(TREE_ID, getChk(TREE_ID, cards))
           }
+          break
+
+        case 'ai:generate-new':
+          toElm(data.d, 'appMsgs', 'AIGenerateNewSuccess');
           break
 
         case 'ai:success':
@@ -781,6 +785,10 @@ const fromElm = (msg, elmData) => {
     },
 
     // === AI ===
+    GenerateNew: async () => {
+      wsSend('ai:generate-new', elmData, false);
+    },
+
     GenerateChildren: async () => {
       const id = elmData[0];
       const userPrompt = elmData[1];
