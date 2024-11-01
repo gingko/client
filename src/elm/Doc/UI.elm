@@ -5,6 +5,8 @@ import Browser.Dom exposing (Element)
 import Coders exposing (treeToMarkdownString)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils as TreeUtils exposing (..)
+import Feature
+import Features exposing (Feature(..))
 import GlobalData exposing (GlobalData)
 import Html exposing (Html, a, div, h2, h3, h5, hr, input, li, pre, span, textarea)
 import Html.Attributes exposing (..)
@@ -18,6 +20,7 @@ import Markdown.Renderer exposing (Renderer)
 import Octicons as Icon exposing (defaultOptions)
 import Regex exposing (Regex, replace)
 import Route
+import Session exposing (LoggedIn)
 import SharedUI exposing (ctrlOrCmdText, modalWrapper)
 import Svg exposing (g, svg)
 import Svg.Attributes exposing (d, fill, fontFamily, fontSize, fontWeight, preserveAspectRatio, stroke, strokeDasharray, strokeDashoffset, strokeLinecap, strokeLinejoin, strokeMiterlimit, strokeWidth, textAnchor, version, viewBox)
@@ -189,16 +192,18 @@ viewDocumentLoadingSpinner =
 
 
 viewTemplateSelector :
-    Language
+    LoggedIn
+    -> Language
     ->
         { modalClosed : msg
+        , aiNewClicked : msg
         , importBulkClicked : msg
         , importTextClicked : msg
         , importOpmlRequested : msg
         , importJSONRequested : msg
         }
     -> List (Html msg)
-viewTemplateSelector language msgs =
+viewTemplateSelector session language msgs =
     [ div [ id "templates-block" ]
         [ h2 [] [ text language New ]
         , div [ class "template-row" ]
@@ -206,6 +211,14 @@ viewTemplateSelector language msgs =
                 [ div [ classList [ ( "template-thumbnail", True ), ( "new", True ) ] ] []
                 , div [ class "template-title" ] [ text language HomeBlank ]
                 ]
+            , if Feature.enabled AINewDocument session then
+                div [ id "template-ai-new", class "template-item", onClick msgs.aiNewClicked ]
+                    [ div [ classList [ ( "template-thumbnail", True ) ] ] [ Icon.circuitBoard (Icon.defaultOptions |> Icon.size 48) ]
+                    , div [ class "template-title" ] [ textNoTr "Generate with AI" ]
+                    ]
+
+              else
+                textNoTr ""
             ]
         , h2 [] [ text language ImportSectionTitle ]
         , div [ class "template-row" ]

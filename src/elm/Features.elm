@@ -7,6 +7,7 @@ type Feature
     = VotingAppLinkInMenu
     | VotingAppLinkInSidebar
     | AIPromptFeature
+    | AINewDocument
 
 
 decoder : Decoder (List Feature)
@@ -29,6 +30,9 @@ maybeFeature str =
 
         "ai-prompt-feature" ->
             Just AIPromptFeature
+
+        "ai-new-document" ->
+            Just AINewDocument
 
         _ ->
             Nothing

@@ -14,6 +14,7 @@ import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.Switcher
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.UI as UI
+import Doc.UIStyled as UIStyled
 import Doc.VideoViewer as VideoViewer
 import Feature
 import Features exposing (Feature(..))
@@ -113,6 +114,7 @@ type ModalState
     | MigrateModal
     | SidebarContextMenu String ( Float, Float )
     | TemplateSelector
+    | AINewPrompt String
     | HelpScreen
     | VideoViewer VideoViewer.Model
     | Wordcount Page.Doc.Model
@@ -406,6 +408,7 @@ type Msg
     | ImportJSONIdGenerated Tree String String
     | ImportSingleCompleted String
       -- AI
+    | AINewClicked
     | AIButtonClicked
     | AIPromptFieldChanged String
       -- Misc UI
@@ -1572,11 +1575,19 @@ update msg model =
             ( model, Route.pushUrl model.navKey (Route.DocUntitled docId) )
 
         -- AI
+        AINewClicked ->
+            ( { model | modalState = AINewPrompt "" }
+            , Task.attempt (always NoOp) (Browser.Dom.focus "ai-new-prompt")
+            )
+
         AIButtonClicked ->
             applyParentMsg OpenAIPrompt ( model, Cmd.none )
 
         AIPromptFieldChanged newField ->
             case model.modalState of
+                AINewPrompt _ ->
+                    ( { model | modalState = AINewPrompt newField }, Cmd.none )
+
                 AIPrompt isWaiting _ ->
                     ( { model | modalState = AIPrompt isWaiting newField }, Cmd.none )
 
@@ -2437,12 +2448,20 @@ viewModal globalData session modalState =
             ]
 
         TemplateSelector ->
-            UI.viewTemplateSelector language
+            UI.viewTemplateSelector session
+                language
                 { modalClosed = ModalClosed
+                , aiNewClicked = AINewClicked
                 , importBulkClicked = ImportBulkClicked
                 , importTextClicked = ImportTextClicked
                 , importOpmlRequested = ImportOpmlRequested
                 , importJSONRequested = ImportJSONRequested
+                }
+
+        AINewPrompt _ ->
+            UIStyled.viewAINewPrompt language
+                { modalClosed = ModalClosed
+                , promptInput = AIPromptFieldChanged
                 }
 
         HelpScreen ->
