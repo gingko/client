@@ -70,6 +70,28 @@ jobs:
       - name: Stop Test Server
         run: pm2 stop GingkoTest
 
+      - name: Maybe Migrate Database
+        if: "contains(github.event.head_commit.message, 'db:migrate')"
+        run: |
+          cd $HOME/production/data
+
+          echo "Backing up database..."
+          COMMIT_HASH=${{ github.sha }}
+          SHORT_COMMIT_HASH=${COMMIT_HASH:0:7}
+          sqlite3 data.sqlite "VACUUM INTO 'backup-pre-$SHORT_COMMIT_HASH.sqlite'"
+
+          echo "Migrating database..."
+          COMMIT_MESSAGE="${{ github.event.head_commit.message }}"
+          PREFIX=$(echo $COMMIT_MESSAGE | grep -oP 'db:migrate:\K\w+')
+          MIGRATION_FILE=$(ls $GITHUB_WORKSPACE/server/scripts/db/$PREFIX* | head -n 1)
+          if [ -f "$MIGRATION_FILE" ]; then
+            sqlite3 data.sqlite < "$MIGRATION_FILE"
+            echo "Migration $MIGRATION_FILE has been applied"
+          else
+            echo "Migration file with prefix $PREFIX does not exist"
+          exit 1
+          fi
+
       - name: Copy Build Files
         if: "!contains(github.event.head_commit.message, 'ci skip deploy')"
         run: |
