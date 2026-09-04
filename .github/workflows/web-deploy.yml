@@ -72,6 +72,8 @@ jobs:
 
       - name: Maybe Migrate Database
         if: "contains(github.event.head_commit.message, 'db:migrate')"
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
           cd $HOME/production/data
 
@@ -81,8 +83,11 @@ jobs:
           sqlite3 data.sqlite "VACUUM INTO 'backup-pre-$SHORT_COMMIT_HASH.sqlite'"
 
           echo "Migrating database..."
-          COMMIT_MESSAGE="${{ github.event.head_commit.message }}"
-          PREFIX=$(echo $COMMIT_MESSAGE | grep -oP 'db:migrate:\K\w+')
+          PREFIX=$(echo "$COMMIT_MESSAGE" | grep -oP 'db:migrate:\K\w+')
+          if [ -z "$PREFIX" ]; then
+            echo "Commit message contains 'db:migrate' but no valid db:migrate:XXXX id was found - skipping migration"
+            exit 1
+          fi
           MIGRATION_FILE=$(ls $GITHUB_WORKSPACE/server/scripts/db/$PREFIX* | head -n 1)
           if [ -f "$MIGRATION_FILE" ]; then
             sqlite3 data.sqlite < "$MIGRATION_FILE"
