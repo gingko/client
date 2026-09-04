@@ -1908,6 +1908,29 @@ span.trial-dark {
   z-index: -1;
 }
 
+#document.collapsed {
+  outline: 3px solid rgba(234, 179, 8, 0.9);
+  outline-offset: -3px;
+}
+
+#collapsed-banner {
+  grid-area: document;
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  background: rgba(234, 179, 8, 0.9);
+  color: #1a1a1a;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  pointer-events: none;
+  z-index: 10;
+}
+
 #document::-webkit-scrollbar {
   height: 10px;
 }
@@ -2162,6 +2185,21 @@ span.trial-dark {
   word-wrap: break-word;
   min-height: 56px;
   cursor: pointer;
+}
+#document.collapsed .card .view {
+  max-height: 56px;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+}
+#document.collapsed .card.root .view {
+  max-height: 70px;
+}
+#document.collapsed .card.editing .view {
+  max-height: none;
+  overflow: visible;
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 .card.active.has-children .view {
   padding-right: 26px;

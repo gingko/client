@@ -506,6 +506,7 @@ viewShortcuts msgs { lang, isOpen, isMac, aiFeaturesEnabled, isAIPromptOpen, chi
                                , hr [] []
                                , h5 [] [ text lang OtherShortcuts ]
                                , shortcutSpan [ NoTr "w" ] DisplayWordCounts
+                               , shortcutSpan [ NoTr "z" ] CollapseCards
                                , shortcutSpan [ NoTr ctrlOrCmd, NoTr "O" ] QuickDocumentSwitcher
                                ]
                         )

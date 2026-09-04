@@ -49,7 +49,7 @@ type Msg
     | SaveToFile String String
     | ExportToFile String String
       -- === DOM ===
-    | ScrollCards (List String) (List ( Int, ScrollPosition )) Int Bool
+    | ScrollCards (List String) (List ( Int, ScrollPosition )) Int Bool Bool
     | ScrollFullscreenCards String
     | DragStart Enc.Value
     | CopyCurrentSubtree Enc.Value
@@ -181,7 +181,7 @@ send info =
             dataToSend "ExportToFile" (tupleToValue string ( format, str ))
 
         -- === DOM ===
-        ScrollCards lastActives listScrollPositions colIdx instant ->
+        ScrollCards lastActives listScrollPositions colIdx instant waitForReflow ->
             dataToSend "ScrollCards"
                 (object
                     [ ( "columns"
@@ -198,6 +198,7 @@ send info =
                     , ( "lastActives", Enc.list string lastActives )
                     , ( "columnIdx", int colIdx )
                     , ( "instant", bool instant )
+                    , ( "waitForReflow", bool waitForReflow )
                     ]
                 )
 

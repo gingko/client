@@ -500,6 +500,7 @@ var shortcuts = [
   "pagedown",
   "/",
   "w",
+  "z",
   "?",
 ];
 
@@ -531,37 +532,52 @@ if (window.navigator.platform.toUpperCase().indexOf('MAC') < 0 ) {
 var casesShared = (elmData, params) => {
   return {
     ScrollCards: () => {
-      scrollColumns(elmData);
-      scrollHorizontal(elmData.columnIdx, elmData.instant);
-      params.lastActivesScrolled = elmData;
-      params.lastColumnScrolled = elmData.columnIdx;
-      if (params.localStore.isReady()) {
-        params.localStore.set('last-actives', elmData.lastActives);
-      }
+      let doScroll = () => {
+        scrollColumns(elmData);
+        scrollHorizontal(elmData.columnIdx, elmData.instant);
+        params.lastActivesScrolled = elmData;
+        params.lastColumnScrolled = elmData.columnIdx;
+        if (params.localStore.isReady()) {
+          params.localStore.set('last-actives', elmData.lastActives);
+        }
 
-      let columns = Array.from(document.getElementsByClassName("column"));
+        let columns = Array.from(document.getElementsByClassName("column"));
 
-      if (columns.length == 0) {
-        setTimeout(() => {
-          updateFillets();
-        }, 20);
-      }
+        if (columns.length == 0) {
+          setTimeout(() => {
+            updateFillets();
+          }, 20);
+        }
 
-      columns.map((c, i) => {
-        c.addEventListener('scroll', () => {
-          if(!params.ticking) {
-            params.ticking = true;
-            window.requestAnimationFrame(() => {
-              updateFillets(columns);
-              params.ticking = false;
-            })
-          }
+        columns.map((c, i) => {
+          c.addEventListener('scroll', () => {
+            if(!params.ticking) {
+              params.ticking = true;
+              window.requestAnimationFrame(() => {
+                updateFillets(columns);
+                params.ticking = false;
+              })
+            }
+          })
         })
-      })
 
-      window.requestAnimationFrame(() => {
-        updateFillets(columns);
-      });
+        window.requestAnimationFrame(() => {
+          updateFillets(columns);
+        });
+      };
+
+      if (elmData.waitForReflow) {
+        // Elm's own DOM patch is itself deferred to a rAF, so waiting for
+        // just one frame here can still read stale (pre-patch) element
+        // geometry. Only needed by callers whose scroll follows a
+        // card-size-changing CSS change (e.g. collapsed-card view toggle);
+        // regular navigation/search scrolling skips this to stay instant.
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(doScroll);
+        });
+      } else {
+        doScroll();
+      }
     },
 
     CopyCurrentSubtree: () => {

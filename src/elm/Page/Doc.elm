@@ -49,6 +49,7 @@ type alias ModelData =
     , dirty : Bool
     , textCursorInfo : TextCursorInfo
     , fileSearchField : String
+    , cardsCollapsed : Bool
 
     -- Settings
     , uid : String
@@ -88,6 +89,7 @@ init isNew globalData =
         , dirty = False
         , textCursorInfo = { selected = False, position = End, text = ( "", "" ) }
         , fileSearchField = ""
+        , cardsCollapsed = False
         , fonts = Fonts.default
         }
 
@@ -938,6 +940,33 @@ incoming incomingMsg model =
                             , []
                             )
 
+                "z" ->
+                    case vs.viewMode of
+                        Normal _ ->
+                            let
+                                scrollCmd =
+                                    case getTree activeId model.workingTree.tree of
+                                        Just activeTree ->
+                                            send
+                                                (ScrollCards
+                                                    (activeId :: vs.activePast)
+                                                    (getScrollPositions activeTree vs.activePast model.workingTree.tree)
+                                                    (getDepth 0 model.workingTree.tree activeId)
+                                                    True
+                                                    True
+                                                )
+
+                                        Nothing ->
+                                            Cmd.none
+                            in
+                            ( { model | cardsCollapsed = not model.cardsCollapsed }, scrollCmd, [] )
+
+                        _ ->
+                            ( model
+                            , Cmd.none
+                            , []
+                            )
+
                 _ ->
                     ( model
                     , Cmd.none
@@ -1084,7 +1113,7 @@ changeMode { to, instant, save } model =
                         identity
 
                 scrollCmd =
-                    send (ScrollCards (id :: newPast) scrollPositions colIdx instant)
+                    send (ScrollCards (id :: newPast) scrollPositions colIdx instant False)
 
                 updateCollabState : Bool -> CollabStateMode -> ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
                 updateCollabState condition newCollabState prevModel =
@@ -2119,9 +2148,18 @@ viewLoaded ({ docMsg } as appMsg) model =
                 Nothing ->
                     []
     in
-    [ lazy4 treeView (GlobalData.language model.globalData) (GlobalData.isMac model.globalData) model.viewState model.workingTree |> Html.map docMsg
+    [ lazy5 treeView (GlobalData.language model.globalData) (GlobalData.isMac model.globalData) model.viewState model.cardsCollapsed model.workingTree |> Html.map docMsg
     , if (not << List.isEmpty) cardTitles then
         UI.viewBreadcrumbs Activate cardTitles |> Html.map docMsg
+
+      else
+        text ""
+    , if model.cardsCollapsed then
+        div [ id "collapsed-banner" ]
+            [ text "Collapsed Mode  -  "
+            , span [ class "shortcut-key", style "margin-top" "unset", style "margin-left" "3px" ] [ text "z" ]
+            , text " to toggle"
+            ]
 
       else
         text ""
@@ -2151,8 +2189,8 @@ viewLoaded ({ docMsg } as appMsg) model =
            ]
 
 
-treeView : Language -> Bool -> ViewState -> TreeStructure.Model -> Html Msg
-treeView lang isMac vstate model =
+treeView : Language -> Bool -> ViewState -> Bool -> TreeStructure.Model -> Html Msg
+treeView lang isMac vstate cardsCollapsed model =
     let
         activeId =
             getActiveIdFromViewState vstate
@@ -2212,6 +2250,7 @@ treeView lang isMac vstate model =
     in
     div
         [ id "document"
+        , classList [ ( "collapsed", cardsCollapsed ) ]
         ]
         [ div [ class "left-padding-column" ] []
         , div [ id "column-container" ]

@@ -109,6 +109,7 @@ type TranslationId
     | InsertSelected
     | DragSelected
     | WordCounts
+    | CollapseCards
     | SwitchDocuments
     | ThisHelpScreen
     | Or
@@ -2978,6 +2979,35 @@ tr lang trans =
                     , pl = "%pl:WordCounts%"
                     , uk = "%uk:WordCounts%"
                     , nb = "%nb:WordCounts%"
+                    }
+
+                CollapseCards ->
+                    { en = "Collapse cards"
+                    , zh_hans = "%zh_hans:CollapseCards%"
+                    , zh_hant = "%zh_hant:CollapseCards%"
+                    , es = "%es:CollapseCards%"
+                    , ar = "%ar:CollapseCards%"
+                    , fr = "%fr:CollapseCards%"
+                    , ru = "%ru:CollapseCards%"
+                    , de = "%de:CollapseCards%"
+                    , ja = "%ja:CollapseCards%"
+                    , pes = "%pes:CollapseCards%"
+                    , it = "%it:CollapseCards%"
+                    , ro = "%ro:CollapseCards%"
+                    , hr = "%hr:CollapseCards%"
+                    , nl = "%nl:CollapseCards%"
+                    , hu = "%hu:CollapseCards%"
+                    , sv = "%sv:CollapseCards%"
+                    , ca = "%ca:CollapseCards%"
+                    , br = "%br:CollapseCards%"
+                    , mr = "%mr:CollapseCards%"
+                    , cs = "%cs:CollapseCards%"
+                    , fa = "%fa:CollapseCards%"
+                    , id = "%id:CollapseCards%"
+                    , ko = "%ko:CollapseCards%"
+                    , pl = "%pl:CollapseCards%"
+                    , uk = "%uk:CollapseCards%"
+                    , nb = "%nb:CollapseCards%"
                     }
 
                 SwitchDocuments ->

@@ -118,6 +118,7 @@ normalNavigationShortcuts lang ctrlOrCmd =
     , shortcutRow lang GoToBeginningOfColumn [ key lang HomeKey ]
     , shortcutRow lang GoToEndOfColumn [ key lang EndKey ]
     , shortcutRow lang MoveCurrentCard [ key lang AltKey, key lang AnyOfAbove, text lang Or, dragCommand lang DragCard ]
+    , shortcutRow lang CollapseCards [ keyNoTr "Z" ]
     ]
 
 
