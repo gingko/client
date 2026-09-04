@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "Node",
+    "allowSyntheticDefaultImports": true,
+    "strict": false,
+    "plugins": [
+      {
+        "name": "typescript-strict-plugin"
+      }
+    ],
+    "sourceMap": true
+  },
+  "include": [ "./src/**/*" ],
+  "exclude": [
+    "node_modules"
+  ]
+}

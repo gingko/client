@@ -1,0 +1,66 @@
+name: Server Deploy
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    if: "contains(github.event.head_commit.message, '[server deploy]')"
+    runs-on: [ self-hosted, gingkowriter ]
+    defaults:
+      run:
+        working-directory: server
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - name: Checkout server
+        uses: actions/checkout@v3
+        with:
+          repository: gingko/server
+          path: server
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Copy server config.js file
+        run: cp $HOME/server.config.js $GITHUB_WORKSPACE/server/config.js
+
+      - name: Check server config.js file
+        run: node $GITHUB_WORKSPACE/server/config-check.js
+
+      - name: Install Test Server Dependencies
+        run: npm i; npx tsc
+
+      - name: Maybe Migrate Database
+        if: "contains(github.event.head_commit.message, 'db:migrate')"
+        run: |
+          cd $HOME/production/data
+          
+          echo "Backing up database..."
+          COMMIT_HASH=${{ github.sha }}
+          SHORT_COMMIT_HASH=${COMMIT_HASH:0:7}
+          sqlite3 data.sqlite "VACUUM INTO 'backup-pre-$SHORT_COMMIT_HASH.sqlite'"
+          
+          echo "Migrating database..."
+          COMMIT_MESSAGE="${{ github.event.head_commit.message }}"
+          PREFIX=$(echo $COMMIT_MESSAGE | grep -oP 'db:migrate:\K\w+')
+          MIGRATION_FILE=$(ls $GITHUB_WORKSPACE/server/scripts/db/$PREFIX* | head -n 1)
+          if [ -f "$MIGRATION_FILE" ]; then
+            sqlite3 data.sqlite < "$MIGRATION_FILE"
+            echo "Migration $MIGRATION_FILE has been applied"
+          else
+            echo "Migration file with prefix $PREFIX does not exist"
+          exit 1
+          fi 
+
+      - name: Copy Build Files
+        run: cp -r $GITHUB_WORKSPACE/server/* $HOME/production/server
+
+      - name: Restart Production Server
+        run: pm2 restart GingkoProductionNew
