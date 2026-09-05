@@ -51,6 +51,18 @@ dexie.version(4).stores({
   tree_snapshots: "snapshot, treeId"
 });
 
+// Resolves once the server's first `trees` message has been written to Dexie.
+// A cold profile (new device, private window, cleared site data) starts with an
+// empty local document list, so LoadDocument has to wait for this before it can
+// conclude that a document doesn't exist.
+let resolveFirstTreesSync;
+const firstTreesSync = new Promise((resolve) => { resolveFirstTreesSync = resolve; });
+
+// How long LoadDocument waits for that first sync before giving up on it. The
+// socket may never deliver -- offline, or not logged in -- and a document that
+// genuinely doesn't exist should still reach the not-found screen.
+const FIRST_TREES_SYNC_TIMEOUT = 5000;
+
 const helpers = require("./doc-helpers");
 //import { Elm } from "../elm/Main";
 
@@ -298,6 +310,7 @@ function initWebSocket () {
 
         case 'trees':
           await dexie.trees.bulkPut(data.d.map(t => ({ ...t, synced: true })))
+          resolveFirstTreesSync()
           break
 
         case 'treesOk':
@@ -556,7 +569,18 @@ const fromElm = (msg, elmData) => {
 
       wsSend('rt:join', { tr: TREE_ID, uid: CLIENT_ID, m: COLLAB_STATE || null}, true);
       // Load title
-      const treeDoc = await dexie.trees.get(elmData);
+      let treeDoc = await dexie.trees.get(elmData);
+      if (!treeDoc) {
+        // Nothing locally yet. On a cold profile the document list is still in
+        // flight, so wait for it rather than declaring the document missing --
+        // NotFound sends the user to /<treeId>/404-not-found, which a refresh
+        // can't recover from, since that URL is itself the not-found route.
+        await Promise.race([
+          firstTreesSync,
+          new Promise((resolve) => setTimeout(resolve, FIRST_TREES_SYNC_TIMEOUT)),
+        ]);
+        treeDoc = await dexie.trees.get(elmData);
+      }
       if (treeDoc) {
         toElm(treeDocToMetadata(treeDoc), "appMsgs", "MetadataUpdate")
       } else {

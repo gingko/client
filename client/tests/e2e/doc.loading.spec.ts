@@ -8,14 +8,10 @@ test.use({ seed: 'twoTrees' });
 test.describe('Loading a document', () => {
   // Every Playwright test starts from a cold browser profile, which is exactly
   // the situation a real user is in on a new device, in a private window, or
-  // after clearing site data. `LoadDocument` in src/shared/doc.js decides
-  // NotFound off an empty Dexie, before the websocket has delivered the
-  // document list -- and the app then rewrites the URL to
-  // `/<treeId>/404-not-found`, so a refresh doesn't recover: the URL is now
-  // itself the 404 route. Only a second visit to the original URL works, by
-  // which point Dexie is warm.
-  test.fail();
-
+  // after clearing site data. Nothing is in Dexie yet, so this only passes
+  // because LoadDocument waits for the first `trees` sync before it will
+  // conclude a document is missing.
+  //
   // treeIds[0] is deliberately not the tree `/` redirects to, so this only
   // passes if the document was loaded from the URL.
   test('Loads a document opened directly by URL', async ({ page, login }) => {
