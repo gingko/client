@@ -1,4 +1,4 @@
-import { test as base, expect } from '@playwright/test';
+import { test as base, expect, type Page } from '@playwright/test';
 import { spawn, type ChildProcess } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -30,6 +30,12 @@ type WorkerOptions = {
 type TestFixtures = {
   /** Logs the test user in against this worker's server. */
   login: () => Promise<void>;
+  /**
+   * Auto fixture. Keeps the suite off the public internet: the app pulls in
+   * Stripe, LogRocket, Google Fonts, gravatar and gingkowriter.com images,
+   * which together cost more page-load time than the app itself.
+   */
+  blockThirdParty: void;
 };
 
 function waitForExit(child: ChildProcess): Promise<void> {
@@ -64,7 +70,7 @@ async function waitForServerReady(
       // Not listening yet.
     }
 
-    await new Promise(r => setTimeout(r, 100));
+    await new Promise(r => setTimeout(r, 25));
   }
 
   throw new Error(`Test server on port ${port} was not ready within 30s.\n${logs()}`);
@@ -115,7 +121,32 @@ export const test = base.extend<TestFixtures, WorkerOptions>({
     await use(`http://localhost:${workerSetup.port}`);
   },
 
-  login: async ({ page, baseURL }, use) => {
+  blockThirdParty: [async ({ context }, use) => {
+    await context.route('**/*', async route => {
+      const url = new URL(route.request().url());
+
+      // Let the app's own traffic through, including any page-level route a
+      // spec registered (those are consulted before this one).
+      if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+        return route.fallback();
+      }
+
+      // doc.js calls Stripe() at module scope, so this one can't just be
+      // aborted -- the bundle would throw before the app boots.
+      if (url.href.startsWith('https://js.stripe.com/v3/')) {
+        return route.fulfill({
+          contentType: 'application/javascript',
+          body: 'window.Stripe = () => ({ redirectToCheckout: () => {} });',
+        });
+      }
+
+      return route.abort();
+    });
+
+    await use();
+  }, { auto: true }],
+
+  login: async ({ page }, use) => {
     await use(async () => {
       const response = await page.request.post('/login', {
         data: { email: TEST_EMAIL, password: TEST_PASSWORD },
@@ -124,12 +155,17 @@ export const test = base.extend<TestFixtures, WorkerOptions>({
 
       // localStorage is per-origin, so it has to be seeded against this
       // worker's port rather than restored from a shared storageState file.
-      await page.goto('/');
-      await page.evaluate(email => {
-        localStorage.setItem(
-          'gingko-session-storage',
-          JSON.stringify({ email, language: 'en' })
-        );
+      // An init script does that on the test's own first navigation, instead
+      // of spending a whole extra page load here just to reach the origin.
+      // Only seed when absent: the app writes its own language preference
+      // into this key, and re-running on every navigation would clobber it.
+      await page.addInitScript(email => {
+        if (!localStorage.getItem('gingko-session-storage')) {
+          localStorage.setItem(
+            'gingko-session-storage',
+            JSON.stringify({ email, language: 'en' })
+          );
+        }
       }, TEST_EMAIL);
     });
   },
@@ -159,4 +195,29 @@ export function card(colNum: number, groupNum: number, cardNum: number) {
 
 export function group(colNum: number, groupNum: number) {
   return `#column-container > .column:nth-child(${colNum}) > .group:nth-child(${groupNum + 1})`;
+}
+
+/**
+ * Waits until the active-card position for the current document has been
+ * persisted.
+ *
+ * The app writes this synchronously from its ScrollCards handler (see
+ * `localStore.set('last-actives', ...)` in src/shared/doc-helpers.js), so
+ * polling for the value is the real signal -- no fixed sleep needed.
+ *
+ * `cardSelector` should point at the card expected to be active; its DOM id is
+ * `card-<cardId>` and `last-actives` stores the bare id.
+ */
+export async function expectLastActive(page: Page, cardSelector: string) {
+  const domId = await page.locator(cardSelector).getAttribute('id');
+  expect(domId).toMatch(/^card-/);
+  const cardId = domId!.replace(/^card-/, '');
+  const treeId = new URL(page.url()).pathname.replace(/^\//, '');
+
+  await expect
+    .poll(() => page.evaluate(
+      id => JSON.parse(localStorage.getItem(`gingko-local-store/${id}/settings`) || '{}')['last-actives'],
+      treeId
+    ))
+    .toContain(cardId);
 }

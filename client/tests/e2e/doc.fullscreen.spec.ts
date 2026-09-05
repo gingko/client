@@ -46,7 +46,7 @@ test('Can perform basic actions on New tree', async ({page, login}) => {
 
   // Test typing
   const focused = page.locator(':focus');
-  await focused.pressSequentially(' test', { delay: 50 });
+  await focused.pressSequentially(' test', { delay: 30 });
   await expect(page.locator('#save-indicator')).toContainText('Synced');
   await expect(focused).toHaveValue('# 3\nAnother Child card test');
 
@@ -55,7 +55,7 @@ test('Can perform basic actions on New tree', async ({page, login}) => {
   const firstTextarea = page.locator('textarea').first();
   await firstTextarea.click();
   await firstTextarea.press('Enter');
-  await firstTextarea.pressSequentially('abc', { delay: 50 });
+  await firstTextarea.pressSequentially('abc', { delay: 30 });
   await expect(page.locator('#fullscreen-buttons #save-indicator')).toContainText('Synced');
   await page.keyboard.press('Escape');
   await expect(page.locator('#app-fullscreen')).not.toBeVisible();
@@ -74,13 +74,13 @@ test('Can perform basic actions on New tree', async ({page, login}) => {
   await page.keyboard.press('Shift+Enter');
   // Wait for fullscreen to render before typing, or the first keystroke is lost.
   await expect(page.locator('#fullscreen-main')).toBeVisible();
-  await focused.pressSequentially('lmn', { delay: 50 });
+  await focused.pressSequentially('lmn', { delay: 30 });
   await page.locator('#fullscreen-exit').click();
   await expect(focused).toHaveValue('# 2\nChild card\nabclmn');
 
   // Save and exit edit mode on Ctrl+Enter
   await page.locator('.fullscreen-card-btn').click();
-  await focused.pressSequentially(' line', { delay: 50 });
+  await focused.pressSequentially(' line', { delay: 30 });
   await page.keyboard.press('Control+Enter');
   await expect(page.locator('#app-fullscreen')).not.toBeVisible();
   await expect(page.locator('#fullscreen-main')).not.toBeVisible();
@@ -93,7 +93,7 @@ test('Can perform basic actions on New tree', async ({page, login}) => {
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('Shift+Enter');
   await expect(page.locator('#fullscreen-main')).toBeVisible();
-  await focused.pressSequentially('xyz', { delay: 50 });
+  await focused.pressSequentially('xyz', { delay: 30 });
   await expect(page.locator('#fullscreen-buttons #save-indicator')).toContainText('Unsaved');
   await page.keyboard.press('Control+s');
   await expect(page.locator('#app-fullscreen')).toBeVisible();

@@ -1,4 +1,4 @@
-import { test, expect, card, group, setupLifecycleHooks } from './base';
+import { test, expect, card, group, expectLastActive, setupLifecycleHooks } from './base';
 import treeIds from './fixtures/twoTrees.ids.json';
 
 setupLifecycleHooks(test);
@@ -42,12 +42,10 @@ test.describe('Document Settings', () => {
 
     await expect(page.locator(card(2, 1, 1))).toHaveClass(/active/);
 
-    await page.waitForTimeout(400);
+    await expectLastActive(page, card(2, 1, 1));
 
     // Reload
     await page.reload();
-
-    await page.waitForTimeout(400);
 
     // First child should still be selected
     await expect(page.locator(card(2, 1, 1))).toHaveClass(/active/);
@@ -67,12 +65,12 @@ test.describe('Document Settings', () => {
 
     // Select second child
     await page.keyboard.press('ArrowRight');
-    await page.waitForTimeout(250);
+    await expect(page.locator(card(2, 1, 1))).toHaveClass(/active/);
     await page.keyboard.press('ArrowDown');
 
     await expect(page.locator(card(2, 1, 2))).toHaveClass(/active/);
 
-    await page.waitForTimeout(4000);
+    await expectLastActive(page, card(2, 1, 2));
 
     // Go back to first document
     await page.locator('#sidebar-document-list-wrap').getByText('Another doc, with title').click();
