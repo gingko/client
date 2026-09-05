@@ -74,10 +74,7 @@ test.describe('Document Exporting', () => {
   test('Exports correctly', async ({ page, login }) => {
     await login();
 
-    // Enter through the root rather than the tree URL directly: the document
-    // list arrives over the websocket after the page boots, and a cold browser
-    // profile navigated straight at /<treeId> renders "not found" first.
-    await page.goto('/');
+    await page.goto(`/${treeIds[0]}`);
     await expect(page).toHaveURL(`/${treeIds[0]}`);
     await expect(page.locator('div.spinner')).not.toBeVisible({ timeout: 20000 });
     await expect(page.locator('#app-root')).toContainText('Two noble families', { timeout: 20000 });

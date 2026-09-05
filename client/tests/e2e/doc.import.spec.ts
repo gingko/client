@@ -30,6 +30,8 @@ test.describe('Text Imports from Startup State', () => {
     // window, so this test must not reload the page partway through.
     await page.addInitScript(() => { (window as any).__E2E__ = true; });
 
+    // Starts at the root, as the original Cypress test did: the import flow
+    // begins from whichever document you happen to have open.
     await page.goto('/');
     await expect(page).toHaveURL(`/${treeIds[1]}`);
     await expect(page.locator('.spinner')).not.toBeVisible();

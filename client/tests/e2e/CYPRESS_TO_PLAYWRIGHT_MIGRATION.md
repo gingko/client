@@ -252,24 +252,20 @@ const cardView = page.locator('#column-container > .column:nth-child(2) .view');
 await expect(cardView).toContainText('text');
 ```
 
-### 5. Enter Through `/`, Not a Tree URL
+### 5. Cold Browser Profiles
 
-The document list arrives over the websocket *after* the page boots, and
-`LoadDocument` reads it from Dexie (IndexedDB). Playwright starts every test
-with a cold browser profile, so navigating straight to `/<treeId>` races that
-first sync and renders "Hmm, we couldn't find this document".
+Every Playwright test starts with empty IndexedDB, which Cypress tests never
+did -- `cy.signup_with` visited the app during setup, priming the local
+document list before any test navigated. Anything that reads from Dexie on
+first paint is therefore racing the websocket sync in a way it never used to.
 
-```typescript
-// ❌ FLAKY on a cold profile
-await page.goto(`/${treeIds[0]}`);
+Migrating the export test surfaced exactly this: `LoadDocument` declared a
+document missing before the document list had arrived, so the first visit to
+`/<treeId>` landed on `/<treeId>/404-not-found`. That's fixed (`LoadDocument`
+now waits for the first `trees` sync), and `doc.loading.spec.ts` guards it.
 
-// ✅ The root redirects to the last-edited tree, after the list has synced
-await page.goto('/');
-await expect(page).toHaveURL(`/${treeIds[0]}`);
-```
-
-Cypress didn't hit this because `cy.signup_with` visited the app once during
-setup, priming IndexedDB before the test navigated anywhere.
+The lesson generalises: when a migrated test fails only on a cold profile,
+suspect a real first-run bug before reaching for a workaround.
 
 ### 6. The File-Picker Stand-In (`window.__E2E__`)
 
