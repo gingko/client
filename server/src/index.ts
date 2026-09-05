@@ -40,7 +40,9 @@ import morgan from "morgan";
 
 /* ==== SQLite3 ==== */
 
-const db = new Database('../data/data.sqlite');
+// TEST_DB_PATH lets each Playwright worker point a server at its own throwaway
+// database copy. Unset everywhere else.
+const db = new Database(process.env.TEST_DB_PATH || '../data/data.sqlite');
 db.pragma('journal_mode = WAL');
 
 // Litestream Recommendations
@@ -1126,6 +1128,9 @@ function runFilterSnapshots(treeId, debounceMs) {
 
 
 /* ==== Static ==== */
+
+// Health check, used by the e2e harness to poll for server readiness.
+app.get('/uptime', (req, res) => res.status(200).send('ok'));
 
 app.use(express.static("../client/web"));
 

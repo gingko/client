@@ -45,12 +45,6 @@ jobs:
       - name: Install Test Server Dependencies
         run: cd server; npm i; npx tsc
 
-      - name: Stop Test Server
-        run: "pm2 stop --silent GingkoTest  || :"
-
-      - name: Start Test Server
-        run: NODE_ENV=production DEBUG=cards PORT=8000 pm2 start server/dist/index.js --name GingkoTest
-
       - name: Install client dependencies
         working-directory: client
         run: bun i
@@ -59,9 +53,21 @@ jobs:
         working-directory: client
         run: bun run newbuild
 
+      # Playwright starts its own server per worker, each against a throwaway
+      # copy of a committed SQLite fixture, so it needs no shared test server.
       - name: Playwright e2e Tests
         working-directory: client
         run: bun run test
+
+      - name: Stop Test Server
+        run: "pm2 stop --silent GingkoTest  || :"
+
+      # Cypress still uses the older shared-server seeding. Started from the
+      # server/ directory so its relative '../data/data.sqlite' and
+      # '../client/web' paths resolve inside the workspace.
+      - name: Start Test Server
+        working-directory: server
+        run: NODE_ENV=production DEBUG=cards PORT=8000 pm2 start dist/index.js --name GingkoTest
 
       - name: Cypress e2e Tests
         working-directory: client

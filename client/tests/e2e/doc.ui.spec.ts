@@ -1,19 +1,18 @@
-import { test, expect } from '@playwright/test';
-import config from '../../config.js';
-import { setupLifecycleHooks } from './shared';
+import { test, expect, setupLifecycleHooks, TEST_EMAIL } from './base';
 
 setupLifecycleHooks(test);
 
-test.use({ storageState: `${process.cwd()}/tests/e2e/.auth/user.json` });
+test.use({ seed: 'twoTrees' });
 
 test.describe('Document UI', () => {
-  const testEmail = 'cypress@testing.com';
 
-  test('Has working header menus and shortcut help', async ({ page }) => {
+  test('Has working header menus and shortcut help', async ({ page, login }) => {
     const emailText = 'Contact Support';
 
+    await login();
+
     // Visit a new document
-    await page.goto(config.TEST_SERVER + '/new');
+    await page.goto('/new');
 
     // Check URL pattern matches document ID
     await expect(page).toHaveURL(/\/[a-zA-Z0-9]{7}$/);
@@ -36,7 +35,7 @@ test.describe('Document UI', () => {
 
     // Check contact form is visible and has correct values
     await expect(page.locator('#contact-form')).toBeVisible();
-    await expect(page.locator('#contact-from-email')).toHaveValue(testEmail);
+    await expect(page.locator('#contact-from-email')).toHaveValue(TEST_EMAIL);
     await expect(page.locator('#contact-subject')).toHaveValue('Could you help me with this?');
 
     // Check body field has focus
@@ -118,7 +117,7 @@ test.describe('Document UI', () => {
 
     // Test "add child" button
     await page.locator('#mbtn-add-right').click();
-    await expect(textarea).toHaveValue(/.*/);  // Wait for textarea value to be set
+    await expect(textarea).toBeFocused();  // Wait for the new card's editor to be ready
     await textarea.pressSequentially('axc', { delay: 30 });
     await page.locator('#mbtn-save').click();
 
@@ -127,7 +126,7 @@ test.describe('Document UI', () => {
 
     // Test "add below" button
     await page.locator('#mbtn-add-down').click();
-    await expect(textarea).toHaveValue(/.*/);  // Wait for textarea value to be set
+    await expect(textarea).toBeFocused();  // Wait for the new card's editor to be ready
     await textarea.pressSequentially('sdf', { delay: 30 });
     await page.locator('#mbtn-save').click();
 
@@ -136,7 +135,7 @@ test.describe('Document UI', () => {
 
     // Test "add above" button
     await page.locator('#mbtn-add-up').click();
-    await expect(textarea).toHaveValue(/.*/);  // Wait for textarea value to be set
+    await expect(textarea).toBeFocused();  // Wait for the new card's editor to be ready
     await textarea.pressSequentially('lak', { delay: 30 });
     await page.locator('#mbtn-save').click();
 

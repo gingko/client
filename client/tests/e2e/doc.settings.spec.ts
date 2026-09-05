@@ -1,34 +1,16 @@
-import { test, expect } from '@playwright/test';
-import config from '../../config.js';
-import { setupLifecycleHooks, card, group, signupWith } from './shared';
-import treeIds from '../../cypress/fixtures/twoTrees.ids.json';
+import { test, expect, card, group, setupLifecycleHooks } from './base';
+import treeIds from './fixtures/twoTrees.ids.json';
 
 setupLifecycleHooks(test);
 
+test.use({ seed: 'twoTrees' });
+
 test.describe('Document Settings', () => {
-  const testEmail = 'cypress@testing.com';
-
-  test.beforeAll(async () => {
-    // Signup and seed database with twoTrees data
-    await signupWith(testEmail, 'twoTrees');
-  });
-
-  test('should load and save settings', async ({ page, context }) => {
-    // Login by setting up authentication
-    const response = await page.request.post(`${config.TEST_SERVER}/login`, {
-      data: { email: testEmail, password: 'testing' }
-    });
-
-    expect(response.status()).toBe(200);
-
-    // Set localStorage
-    await page.goto(config.TEST_SERVER);
-    await page.evaluate(() => {
-      localStorage.setItem('gingko-session-storage', JSON.stringify({ email: 'cypress@testing.com', language: 'en' }));
-    });
+  test('should load and save settings', async ({ page, login }) => {
+    await login();
 
     // Visit the test server again to load with auth
-    await page.goto(config.TEST_SERVER);
+    await page.goto('/');
     await expect(page).toHaveURL(/\/[a-zA-Z0-9]{5}$/);
 
     // Wait for loading to complete
@@ -44,7 +26,7 @@ test.describe('Document Settings', () => {
     await expect(page.locator('#app-root')).toContainText(/Sincronizado|%es:ChangesSynced%/i);
 
     // Persists language on reload
-    await page.goto(config.TEST_SERVER);
+    await page.goto('/');
     await expect(page).toHaveURL(/\/[a-zA-Z0-9]{5}$/);
     await expect(page.locator('#app-root')).toContainText(/Sincronizado|%es:ChangesSynced%/i);
 

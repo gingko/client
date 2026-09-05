@@ -1,21 +1,16 @@
-import {test, expect} from "@playwright/test";
-import { card, seedWith, setupLifecycleHooks } from "./shared";
-import config from "../../config";
-import treeIds from "../../cypress/fixtures/twoTrees.ids.json";
+import { test, expect, card, setupLifecycleHooks } from "./base";
+import treeIds from "./fixtures/twoTrees.ids.json";
 
 setupLifecycleHooks(test)
 
-test.beforeAll(async () => {
-  seedWith('twoTrees');
-})
+test.use({ seed: 'twoTrees' });
 
-test.use({storageState: `${process.cwd()}/tests/e2e/.auth/user.json`});
-
-test('Can perform basic actions on New tree', async ({page}) => {
-  await page.goto(`${config.TEST_SERVER}/`);
+test('Can perform basic actions on New tree', async ({page, login}) => {
+  await login();
+  await page.goto('/');
 
   // Should go to first doc
-  await expect(page).toHaveURL(`${config.TEST_SERVER}/${treeIds[1]}`);
+  await expect(page).toHaveURL(`/${treeIds[1]}`);
 
   const firstCard = page.locator('text=Another Child card');
   expect(firstCard).toBeVisible();
@@ -77,6 +72,8 @@ test('Can perform basic actions on New tree', async ({page}) => {
 
   // Field preserved when exiting fullscreen
   await page.keyboard.press('Shift+Enter');
+  // Wait for fullscreen to render before typing, or the first keystroke is lost.
+  await expect(page.locator('#fullscreen-main')).toBeVisible();
   await focused.pressSequentially('lmn', { delay: 50 });
   await page.locator('#fullscreen-exit').click();
   await expect(focused).toHaveValue('# 2\nChild card\nabclmn');
@@ -106,7 +103,7 @@ test('Can perform basic actions on New tree', async ({page}) => {
   await page.keyboard.press('Escape');
 
   // Saved fullscreen changes correctly
-  await page.goto(`${config.TEST_SERVER}/${treeIds[1]}`);
+  await page.goto(`/${treeIds[1]}`);
 
   expect(await page.locator(card(1,1,1)).innerHTML()).toContain('<p>Another Test doc</p>');
   expect(await page.locator(card(2,1,1)).innerHTML()).toContain('<p>Child card<br>abclmn line</p>');

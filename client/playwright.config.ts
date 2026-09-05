@@ -12,7 +12,7 @@ const config: PlaywrightTestConfig = {
 
   retries: process.env.CI ? 2 : 0,
 
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 2 : undefined,
 
   reporter: 'html',
   use: {
@@ -22,16 +22,12 @@ const config: PlaywrightTestConfig = {
 
   /* Configure projects */
   projects: [
-    { name: 'setup',
-      testMatch: 'auth.setup.ts',
-    },
     {
       name: 'tests',
       testMatch: '**/*.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
       },
-      dependencies: ['setup'],
     },
     /* TODO: Add more projects for other browsers */
   ],
