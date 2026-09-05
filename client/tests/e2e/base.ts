@@ -208,6 +208,34 @@ export function group(colNum: number, groupNum: number) {
  * `cardSelector` should point at the card expected to be active; its DOM id is
  * `card-<cardId>` and `last-actives` stores the bare id.
  */
+/**
+ * Waits until the currently-focused element stops being replaced.
+ *
+ * Creating a card renders its editor at least twice: once immediately as an
+ * unsaved placeholder, then again -- as a brand new DOM node -- once it syncs.
+ * A keystroke that lands on the old node before that swap disappears with it
+ * (see CYPRESS_TO_PLAYWRIGHT_MIGRATION.md, "Creating a Card Renders the
+ * Editor Twice").
+ *
+ * Waiting for `#save-indicator` to read "Synced" doesn't reliably catch this:
+ * if the indicator already read "Synced" from an earlier action (e.g. a prior
+ * card's save already settled), the wait resolves instantly without waiting
+ * for this card's swap at all. Marking the live element and polling for the
+ * marker's survival works regardless of what the indicator happens to say.
+ */
+export async function waitForStableFocus(page: Page): Promise<void> {
+  const mark = () => page.evaluate(() => { (document.activeElement as any).__pwStable = true; });
+  const isMarked = () => page.evaluate(() => !!(document.activeElement as any)?.__pwStable);
+
+  await mark();
+  for (let i = 0; i < 40; i++) {
+    await page.waitForTimeout(50);
+    if (await isMarked()) return;
+    await mark();
+  }
+  throw new Error('Focused element never stabilized -- it kept being replaced');
+}
+
 export async function expectLastActive(page: Page, cardSelector: string) {
   const domId = await page.locator(cardSelector).getAttribute('id');
   expect(domId).toMatch(/^card-/);

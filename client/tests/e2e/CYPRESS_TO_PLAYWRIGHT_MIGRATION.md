@@ -198,16 +198,30 @@ await page.locator('#mbtn-add-right').click();
 await expect(textarea).toBeFocused();
 await textarea.pressSequentially('text', { delay: 30 });
 
-// ✅ RELIABLE - the swap happens when the card syncs, so wait for that
+// ⚠️ STILL FLAKY - waiting for "Synced" only helps if the indicator wasn't
+// already showing "Synced" from an earlier action. If it was, this resolves
+// instantly and waits for nothing -- which is exactly what happens creating
+// a second or third card in a row.
 await page.locator('#mbtn-add-right').click();
 await expect(page.locator('#save-indicator')).toContainText('Synced');
 await expect(textarea).toBeFocused();
+await textarea.pressSequentially('text', { delay: 30 });
+
+// ✅ RELIABLE - wait for the focused node itself to stop being replaced,
+// regardless of what the indicator says.
+await page.locator('#mbtn-add-right').click();
+await expect(page.locator('#save-indicator')).toContainText('Synced');
+await expect(textarea).toBeFocused();
+await waitForStableFocus(page); // from ./base
 await textarea.pressSequentially('text', { delay: 30 });
 ```
 
 Verified with a MutationObserver under 20x CPU throttling: the first `<textarea>`
 appears while `#save-indicator` reads "Saved Offline", and a second, different
-node replaces it when the indicator reaches "Synced".
+node replaces it when the indicator reaches "Synced". `waitForStableFocus`
+(in `base.ts`) marks the live focused element and polls for the marker's
+survival, which catches the swap even when the indicator text itself doesn't
+change.
 
 **Do not** reach for `toHaveValue(/.*/)` here, which earlier revisions of this
 guide recommended. A new card's editor is empty, `/.*/` matches the empty
