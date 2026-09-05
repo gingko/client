@@ -185,23 +185,34 @@ page.locator('.card').nth(2)
 
 ## Gingko-Specific Considerations
 
-### 1. Custom Element Timing (`gw-textarea`)
+### 1. Creating a Card Renders the Editor Twice
 
-**Critical:** The `gw-textarea` custom element requires special handling for focus and input readiness.
+**Critical:** Creating a card renders its editor once while the card is still
+unsaved, and then again -- as a **brand new DOM node** -- once it syncs. Anything
+typed into the first node goes with it when it's swapped out, which shows up as
+a dropped leading character: `lak` arrives as `ak`.
 
 ```typescript
-// ❌ FLAKY - Focus state doesn't guarantee input readiness
+// ❌ FLAKY - focus lands on the first node, which is about to be replaced
 await page.locator('#mbtn-add-right').click();
 await expect(textarea).toBeFocused();
 await textarea.pressSequentially('text', { delay: 30 });
 
-// ✅ RELIABLE - Wait for value to be set (ensures connectedCallback complete)
+// ✅ RELIABLE - the swap happens when the card syncs, so wait for that
 await page.locator('#mbtn-add-right').click();
-await expect(textarea).toHaveValue(/.*/);  // Wait for any value
+await expect(page.locator('#save-indicator')).toContainText('Synced');
+await expect(textarea).toBeFocused();
 await textarea.pressSequentially('text', { delay: 30 });
 ```
 
-**Why:** The custom element's `connectedCallback()` sets the initial value at line 80 of `src/shared/doc-helpers.js`. Waiting for this ensures event listeners are attached and the element is ready for input.
+Verified with a MutationObserver under 20x CPU throttling: the first `<textarea>`
+appears while `#save-indicator` reads "Saved Offline", and a second, different
+node replaces it when the indicator reaches "Synced".
+
+**Do not** reach for `toHaveValue(/.*/)` here, which earlier revisions of this
+guide recommended. A new card's editor is empty, `/.*/` matches the empty
+string, and the assertion passes instantly without waiting for anything. Editing
+an *existing* card doesn't create anything, so it needs no such wait.
 
 ### 2. Card Button Overlays
 
@@ -243,7 +254,8 @@ When testing mobile buttons that create new cards:
 ```typescript
 // Pattern for mobile add buttons
 await page.locator('#mbtn-add-right').click();
-await expect(textarea).toHaveValue(/.*/);  // Wait for custom element initialization
+await expect(page.locator('#save-indicator')).toContainText('Synced');  // See #1
+await expect(textarea).toBeFocused();
 await textarea.pressSequentially('text', { delay: 30 });
 await page.locator('#mbtn-save').click();
 
@@ -361,7 +373,7 @@ When migrating a Cypress test to Playwright:
 - [ ] Use `pressSequentially` instead of Cypress `.type()`
 - [ ] Replace `cy.intercept` with `page.route`
 - [ ] Update viewport changes to `setViewportSize`
-- [ ] **Use `.toHaveValue(/.*/)` instead of `.toBeFocused()` for textarea waits**
+- [ ] **Wait for `#save-indicator` to read "Synced" before typing into a newly created card**
 - [ ] **Query `.view` div for card content assertions, not the card element**
 - [ ] Add `setupLifecycleHooks(test)` if needed (from `shared.ts`)
 - [ ] Use `storageState` for authenticated tests

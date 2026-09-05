@@ -117,7 +117,12 @@ test.describe('Document UI', () => {
 
     // Test "add child" button
     await page.locator('#mbtn-add-right').click();
-    await expect(textarea).toBeFocused();  // Wait for the new card's editor to be ready
+    // Creating a card renders the editor twice: once while the card is still
+    // unsaved, then again -- as a brand new DOM node -- once it syncs. Typing
+    // into the first one loses whatever was typed before the swap, so wait for
+    // the sync before touching it.
+    await expect(page.locator('#save-indicator')).toContainText('Synced');
+    await expect(textarea).toBeFocused();
     await textarea.pressSequentially('axc', { delay: 30 });
     await page.locator('#mbtn-save').click();
 
@@ -126,7 +131,12 @@ test.describe('Document UI', () => {
 
     // Test "add below" button
     await page.locator('#mbtn-add-down').click();
-    await expect(textarea).toBeFocused();  // Wait for the new card's editor to be ready
+    // Creating a card renders the editor twice: once while the card is still
+    // unsaved, then again -- as a brand new DOM node -- once it syncs. Typing
+    // into the first one loses whatever was typed before the swap, so wait for
+    // the sync before touching it.
+    await expect(page.locator('#save-indicator')).toContainText('Synced');
+    await expect(textarea).toBeFocused();
     await textarea.pressSequentially('sdf', { delay: 30 });
     await page.locator('#mbtn-save').click();
 
@@ -135,7 +145,12 @@ test.describe('Document UI', () => {
 
     // Test "add above" button
     await page.locator('#mbtn-add-up').click();
-    await expect(textarea).toBeFocused();  // Wait for the new card's editor to be ready
+    // Creating a card renders the editor twice: once while the card is still
+    // unsaved, then again -- as a brand new DOM node -- once it syncs. Typing
+    // into the first one loses whatever was typed before the swap, so wait for
+    // the sync before touching it.
+    await expect(page.locator('#save-indicator')).toContainText('Synced');
+    await expect(textarea).toBeFocused();
     await textarea.pressSequentially('lak', { delay: 30 });
     await page.locator('#mbtn-save').click();
 
