@@ -252,6 +252,41 @@ const cardView = page.locator('#column-container > .column:nth-child(2) .view');
 await expect(cardView).toContainText('text');
 ```
 
+### 5. Enter Through `/`, Not a Tree URL
+
+The document list arrives over the websocket *after* the page boots, and
+`LoadDocument` reads it from Dexie (IndexedDB). Playwright starts every test
+with a cold browser profile, so navigating straight to `/<treeId>` races that
+first sync and renders "Hmm, we couldn't find this document".
+
+```typescript
+// ❌ FLAKY on a cold profile
+await page.goto(`/${treeIds[0]}`);
+
+// ✅ The root redirects to the last-edited tree, after the list has synced
+await page.goto('/');
+await expect(page).toHaveURL(`/${treeIds[0]}`);
+```
+
+Cypress didn't hit this because `cy.signup_with` visited the app once during
+setup, priming IndexedDB before the test navigated anywhere.
+
+### 6. The File-Picker Stand-In (`window.__E2E__`)
+
+No test runner can drive the OS file picker, so `IntegrationTestEvent` in
+`src/shared/doc.js` hands the app a canned set of files instead. It's gated on
+`window.Cypress || window.__E2E__`, so a Playwright test has to opt in:
+
+```typescript
+await page.addInitScript(() => { (window as any).__E2E__ = true; });
+```
+
+The counter that walks through the successive file sets lives on `window`, so a
+test that reloads the page partway through starts over from the first set.
+
+**Remember to rebuild the bundle (`bun esbuild.mjs`) after touching
+`src/shared/*.js`** -- the server serves `web/doc.js`, not the source.
+
 ## Testing Tips
 
 ### 1. Use `pressSequentially` for Realistic Typing
@@ -343,6 +378,12 @@ See `tests/e2e/doc.ui.spec.ts` for a complete example of a migrated test.
 
 **Before (Cypress):** `cypress/e2e/doc.ui.cy.js`
 **After (Playwright):** `tests/e2e/doc.ui.spec.ts`
+
+`tests/e2e/doc.export.spec.ts` is a good example of turning nested Cypress
+`describe` blocks into `test.step`s, and of checking content that renders
+asynchronously (see its `checkPreview` helper: poll on what *should* appear,
+then assert what shouldn't against that settled content -- a bare negative
+assertion will happily pass against a preview that hasn't re-rendered yet).
 
 Key improvements:
 - ~50% faster execution (7-8s vs 10s)
