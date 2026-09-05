@@ -68,10 +68,14 @@ const ladyCapulet = {
 };
 
 test.describe('Document Exporting', () => {
-  // Deliberately left on the default 15s budget. This runs in ~8s against the
-  // 873-card Romeo & Juliet fixture, so the timeout doubles as a coarse guard
-  // against load- or render-time regressions on a large tree.
+  // Runs in ~8s locally against the 873-card Romeo & Juliet fixture -- loading
+  // that tree plus nine polled preview re-renders. The default 15s budget left
+  // too little headroom on the shared CI runner (2 workers, slower CPU), where
+  // it timed out mid-test; 30s still catches a gross load- or render-time
+  // regression on a large tree without flaking on runner contention.
   test('Exports correctly', async ({ page, login }) => {
+    test.setTimeout(30_000);
+
     await login();
 
     await page.goto(`/${treeIds[0]}`);
