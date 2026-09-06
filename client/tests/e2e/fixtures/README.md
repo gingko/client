@@ -1,10 +1,14 @@
 # e2e database fixtures
 
-`db/*.sqlite` are small, ready-to-go SQLite databases. Each Playwright worker copies
-one to `test-results/dbs/db-worker-<N>.sqlite` and starts its own server against that
-copy, so tests never touch the dev database in `data/`.
+`db/*.sqlite` are small, ready-to-go SQLite databases. Every test copies one to
+`test-results/dbs/db-<spec file name>-p<N>.sqlite` and boots its own server
+against that copy, so tests never touch the dev database in `data/` and no two
+spec files -- nor a spec file and a copy of it -- can ever share a database. The
+`testServer` fixture in `base.ts` does this automatically, keyed on the spec
+file's name; there is nothing per-file to configure for isolation.
 
-Pick one per spec file:
+The one knob is which fixture to start from -- set it per spec file, or leave it
+at the `twoTrees` default:
 
 ```ts
 test.use({ seed: 'oneTree' });

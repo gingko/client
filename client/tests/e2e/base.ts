@@ -16,19 +16,23 @@ export const TEST_PASSWORD = 'testing';
 
 export type SeedName = 'twoTrees' | 'oneTree' | 'oneEmptyTree' | 'fourSmallTrees' | 'empty' | 'noUser';
 
-type WorkerOptions = {
+type TestOptions = {
   /**
-   * Which prebuilt SQLite fixture this worker's server boots against. Set it
-   * per spec file with `test.use({ seed: 'oneTree' })`. It is a worker option,
-   * so Playwright starts a fresh worker (and a fresh database) whenever the
-   * value changes between files.
+   * Which prebuilt SQLite fixture this test's server boots against. Set it per
+   * spec file with `test.use({ seed: 'oneTree' })`; defaults to `twoTrees`.
    */
   seed: SeedName;
-  workerSetup: { port: number; dbPath: string };
 };
 
 type TestFixtures = {
-  /** Logs the test user in against this worker's server. */
+  /**
+   * Auto fixture. Boots a dedicated server for the test against a fresh copy of
+   * the `seed` fixture, on its own port, and tears it down afterwards. The copy
+   * is named after the spec file, so no two files -- and no copy of a file --
+   * can ever share a database. Nothing here touches the dev database in `data/`.
+   */
+  testServer: { port: number; dbPath: string };
+  /** Logs the test user in against this test's server. */
   login: () => Promise<void>;
   /**
    * Auto fixture. Keeps the suite off the public internet: the app pulls in
@@ -76,13 +80,20 @@ async function waitForServerReady(
   throw new Error(`Test server on port ${port} was not ready within 30s.\n${logs()}`);
 }
 
-export const test = base.extend<TestFixtures, WorkerOptions>({
-  seed: ['twoTrees', { option: true, scope: 'worker' }],
+export const test = base.extend<TestFixtures & TestOptions>({
+  seed: ['twoTrees', { option: true }],
 
-  workerSetup: [async ({ seed }, use, workerInfo) => {
-    const port = portBase + workerInfo.workerIndex;
+  testServer: [async ({ seed }, use, testInfo) => {
+    // The database copy and the log tag are named after the spec file. A copied
+    // spec file therefore gets its own database automatically -- there is no
+    // per-file setting to update and forget.
+    const specName = path.basename(testInfo.file).replace(/\.spec\.ts$/, '');
+
+    // parallelIndex is 0..workers-1 and only one test occupies it at a time;
+    // the server is torn down before the slot is reused, so the port is free.
+    const port = portBase + testInfo.parallelIndex;
     const dbDir = path.join(cwd, 'test-results', 'dbs');
-    const dbPath = path.join(dbDir, `db-worker-${workerInfo.workerIndex}.sqlite`);
+    const dbPath = path.join(dbDir, `db-${specName}-p${testInfo.parallelIndex}.sqlite`);
 
     // Start from a pristine copy of the fixture. Nothing here ever touches the
     // dev database at data/data.sqlite.
@@ -105,7 +116,7 @@ export const test = base.extend<TestFixtures, WorkerOptions>({
     let output = '';
     server.stdout?.on('data', d => { output += d; });
     server.stderr?.on('data', d => { output += d; });
-    const logs = () => `--- server output (port ${port}) ---\n${output}`;
+    const logs = () => `--- server output (${specName}, port ${port}) ---\n${output}`;
 
     try {
       await waitForServerReady(port, server, logs);
@@ -116,10 +127,10 @@ export const test = base.extend<TestFixtures, WorkerOptions>({
         await waitForExit(server);
       }
     }
-  }, { scope: 'worker', auto: true }],
+  }, { auto: true }],
 
-  baseURL: async ({ workerSetup }, use) => {
-    await use(`http://localhost:${workerSetup.port}`);
+  baseURL: async ({ testServer }, use) => {
+    await use(`http://localhost:${testServer.port}`);
   },
 
   blockThirdParty: [async ({ context }, use) => {

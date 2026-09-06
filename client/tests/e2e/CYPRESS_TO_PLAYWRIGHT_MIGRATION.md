@@ -318,7 +318,7 @@ Signing up from scratch needs things the other specs get for free:
   `test.use({ seed: 'noUser' })` -- `fixtures/db/noUser.sqlite`, made from
   `empty.sqlite` with `DELETE FROM users`.
 - **CouchDB cleanup between runs.** `POST /signup` creates a CouchDB database
-  `userdb-<hex(email)>` that outlives the per-worker SQLite fixture. If it's
+  `userdb-<hex(email)>` that outlives the per-test SQLite fixture copy. If it's
   still there from a previous run, signup *hangs* rather than erroring. The
   spec's first `test.step` calls `DELETE /test/user` to drop it; it's in the
   test (not a `beforeAll`) so a CI retry re-runs it too. This also means the
@@ -413,6 +413,9 @@ When migrating a Cypress test to Playwright:
 - [ ] **Wait for `#save-indicator` to read "Synced" before typing into a newly created card**
 - [ ] **Query `.view` div for card content assertions, not the card element**
 - [ ] Add `setupLifecycleHooks(test)` if needed (from `shared.ts`)
+- [ ] Set `test.use({ seed: '...' })` if the `twoTrees` default isn't the right
+      starting fixture. Each test gets its own server and database copy keyed on
+      the spec file's name -- nothing else to configure (see `fixtures/README.md`)
 - [ ] Use `storageState` for authenticated tests
 - [ ] Test the migration by running multiple times
 - [ ] Delete the old Cypress test file
