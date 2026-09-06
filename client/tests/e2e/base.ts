@@ -14,7 +14,7 @@ const nodeBin = process.env.E2E_NODE ?? 'node';
 export const TEST_EMAIL = 'cypress@testing.com';
 export const TEST_PASSWORD = 'testing';
 
-export type SeedName = 'twoTrees' | 'oneTree' | 'oneEmptyTree' | 'fourSmallTrees' | 'empty';
+export type SeedName = 'twoTrees' | 'oneTree' | 'oneEmptyTree' | 'fourSmallTrees' | 'empty' | 'noUser';
 
 type WorkerOptions = {
   /**
@@ -98,6 +98,7 @@ export const test = base.extend<TestFixtures, WorkerOptions>({
         ...process.env,
         TEST_DB_PATH: dbPath,
         PORT: String(port),
+        E2E_NO_EMAIL: 'true',
       },
     });
 

@@ -234,6 +234,18 @@ const mg = mailgun.client({
   key: config.MAILGUN_API_KEY,
 });
 
+// E2E runs must never send real mail; client/tests/e2e/base.ts sets this on the
+// test server it spawns.
+const emailSuppressed = process.env.E2E_NO_EMAIL === 'true';
+
+async function sendEmail(msg) {
+  if (emailSuppressed) {
+    console.log('[e2e] suppressed email to', msg.to);
+    return;
+  }
+  return mg.messages.create(config.MAILGUN_DOMAIN, msg);
+}
+
 
 /* ==== Start Server ==== */
 
@@ -775,7 +787,7 @@ app.post('/forgot-password', async (req, res) => {
       html: `The reset link: https://app.gingkowriter.com/reset-password/${token}`
     }
 
-    await mg.messages.create(config.MAILGUN_DOMAIN, msg);
+    await sendEmail(msg);
     res.status(200).send({email: email})
   } catch (err) {
     console.error(err);
@@ -878,10 +890,10 @@ app.post('/pleasenospam', async (req, res) => {
   }
 
   try {
-    await mg.messages.create(config.MAILGUN_DOMAIN, msg);
+    await sendEmail(msg);
 
     if (req.body.toEmail == config.SUPPORT_URGENT_EMAIL) {
-      await mg.messages.create(config.MAILGUN_DOMAIN, urgentAutoresponse);
+      await sendEmail(urgentAutoresponse);
     }
 
     res.status(201).send();

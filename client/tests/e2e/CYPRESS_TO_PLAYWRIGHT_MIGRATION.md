@@ -309,6 +309,29 @@ test that reloads the page partway through starts over from the first set.
 **Remember to rebuild the bundle (`bun esbuild.mjs`) after touching
 `src/shared/*.js`** -- the server serves `web/doc.js`, not the source.
 
+### 7. The Signup Flow (`auth.spec.ts`)
+
+Signing up from scratch needs things the other specs get for free:
+
+- **A user-less database.** Every other fixture already contains
+  `cypress@testing.com`, so `POST /signup` would 409. `auth.spec.ts` uses
+  `test.use({ seed: 'noUser' })` -- `fixtures/db/noUser.sqlite`, made from
+  `empty.sqlite` with `DELETE FROM users`.
+- **CouchDB cleanup between runs.** `POST /signup` creates a CouchDB database
+  `userdb-<hex(email)>` that outlives the per-worker SQLite fixture. If it's
+  still there from a previous run, signup *hangs* rather than erroring. The
+  spec's first `test.step` calls `DELETE /test/user` to drop it; it's in the
+  test (not a `beforeAll`) so a CI retry re-runs it too. This also means the
+  Playwright suite now needs CouchDB on `:5984`.
+- **No real email.** `POST /forgot-password` calls Mailgun server-side, which no
+  browser route can intercept. `server/src/index.ts` routes every send through a
+  `sendEmail` helper that no-ops when `E2E_NO_EMAIL=true`; `base.ts` sets that on
+  the test server it spawns. After touching `server/src/*.ts`, rebuild:
+  `cd server && npm run build` (Node 18 -- `nvm use 18`).
+
+The old `GET /db/userdb-...` assertions from the Cypress test were dropped: the
+app reads its data from SQLite now, so that request no longer proves anything.
+
 ## Testing Tips
 
 ### 1. Use `pressSequentially` for Realistic Typing

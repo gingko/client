@@ -13,13 +13,14 @@ test.use({ seed: 'oneTree' });
 | fixture | contents |
 | --- | --- |
 | `empty` | the test user, no documents |
+| `noUser` | no user and no documents -- for the signup flow, which needs `cypress@testing.com` *not* to exist yet |
 | `oneEmptyTree` | one empty document |
 | `twoTrees` | two small documents (the default) |
 | `fourSmallTrees` | four small documents |
 | `oneTree` | one large document (873 cards) |
 
-All of them contain the user `cypress@testing.com` / `testing`, confirmed, with a trial
-that expires in 2100 so the fixtures don't go stale.
+All of them except `noUser` contain the user `cypress@testing.com` / `testing`, confirmed,
+with a trial that expires in 2100 so the fixtures don't go stale.
 
 ## Keeping them current
 
