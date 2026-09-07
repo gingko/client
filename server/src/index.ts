@@ -75,6 +75,7 @@ const expireTestUser = db.prepare("UPDATE users SET paymentStatus='trial:' || CA
 const resetToken = db.prepare('SELECT * FROM resetTokens WHERE token = ?');
 const resetTokenInsert = db.prepare('INSERT INTO resetTokens (token, email, createdAt) VALUES (?, ?, ?)');
 const resetTokenDelete = db.prepare('DELETE FROM resetTokens WHERE email = ?');
+const resetTokenLatestByEmail = db.prepare('SELECT createdAt FROM resetTokens WHERE email = ? ORDER BY createdAt DESC LIMIT 1').pluck();
 
 // Trees Table
 const treesByOwner = db.prepare('SELECT * FROM trees WHERE owner = ?');
@@ -763,21 +764,26 @@ app.post('/logout', async (req, res) => {
 });
 
 
+const RESET_EMAIL_COOLDOWN_MS = 15 * 60 * 1000;
+
 app.post('/forgot-password', async (req, res) => {
-  let email = req.body.email;
+  const email = (req.body.email || '').toLowerCase();
+
+  // Answer identically, and before doing any work, whether or not the account
+  // exists, so this endpoint can't be used to enumerate registered users.
+  res.status(200).send({email: email});
+
   try {
-    let user = userByEmail.get(email);
+    const user = userByEmail.get(email);
+    if (!user) return;
 
-    if (!user) {
-      res.status(404).send();
-      return;
-    }
+    // One reset email per address per cooldown window, so the endpoint can't be
+    // used to mail-bomb a user or run up email-delivery costs.
+    const lastSentAt = resetTokenLatestByEmail.get(email);
+    if (lastSentAt && Date.now() - lastSentAt < RESET_EMAIL_COOLDOWN_MS) return;
 
-    let token = newToken();
-    user.resetToken = hashToken(token);
-    user.tokenCreatedAt = Date.now();
-
-    resetTokenInsert.run(user.resetToken, email, user.tokenCreatedAt);
+    const token = newToken();
+    resetTokenInsert.run(hashToken(token), email, Date.now());
 
     const msg = {
       from: config.SUPPORT_EMAIL,
@@ -788,10 +794,8 @@ app.post('/forgot-password', async (req, res) => {
     }
 
     await sendEmail(msg);
-    res.status(200).send({email: email})
   } catch (err) {
     console.error(err);
-    res.status(err.statusCode).send();
   }
 });
 
