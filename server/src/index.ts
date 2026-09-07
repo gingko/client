@@ -256,9 +256,10 @@ const server = app.listen(port, () => console.log(`Example app listening at http
 
 const RedisStore = redisConnect(session);
 const redis = createClient({legacyMode: true});
+const sessionStore = new RedisStore({ client: redis });
 
 const sessionParser = session({
-    store: new RedisStore({ client: redis }),
+    store: sessionStore,
     secret: config.SESSION_SECRET,
     resave: false, // required: force lightweight session keep alive (touch)
     saveUninitialized: false, // recommended: don't save empty sessions
@@ -752,6 +753,29 @@ function doLogin(req, res, user) {
 }
 
 
+// Kill every stored session for a user, so a password change actually evicts
+// anyone else holding a cookie for the account (CWE-613). Skips `keepSid` so the
+// browser performing the reset stays logged in.
+function revokeUserSessions(userId, keepSid) {
+  sessionStore.all((err, sessions) => {
+    if (err) { console.error('Failed to scan sessions for revocation:', err); return; }
+    for (const sess of sessions || []) {
+      if (sess.user === userId && sess.id !== keepSid) {
+        sessionStore.destroy(sess.id, (destroyErr) => {
+          if (destroyErr) { console.error('Failed to destroy session:', destroyErr); }
+        });
+      }
+    }
+  });
+
+  // The WebSocket upgrade checks the session only once, so a socket opened
+  // before the reset would keep syncing. `userToWs` has every open one.
+  for (const ws of userToWs.get(userId) || []) {
+    ws.close();
+  }
+}
+
+
 app.post('/logout', async (req, res) => {
   if (req.session) {
     req.session.destroy((err) => {
@@ -818,6 +842,7 @@ app.post('/reset-password', async (req, res) => {
             const salt = crypto.randomBytes(16).toString('hex');
             let hash = crypto.pbkdf2Sync(newPassword, salt, iterations, keylen, digest).toString(encoding);
             userChangePassword.run(salt, hash, user.id);
+            revokeUserSessions(user.id, req.sessionID);
             const updatedUser = userByEmail.get(tokenRow.email);
             doLogin(req, res, updatedUser);
         } else {
