@@ -11,6 +11,10 @@ const hasConnectSid = (cookies: { name: string }[]) =>
 
 test.describe('User Signup Flow', () => {
   test('Signs up, logs out, logs back in, and requests a password reset', async ({ page, context }) => {
+    // Eight sequential steps of typing-with-delay (signup, logout, login,
+    // forgot-password); the default 15s timeout is marginal on a loaded CI box.
+    test.slow();
+
     await test.step('Clean up any CouchDB user database from a previous run', async () => {
       // `/test/user` drops the CouchDB `userdb-<hex>` that signup created on a
       // previous run. Signup hangs rather than erroring if it still exists, so

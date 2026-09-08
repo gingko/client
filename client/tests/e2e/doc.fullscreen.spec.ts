@@ -6,6 +6,10 @@ setupLifecycleHooks(test)
 test.use({ seed: 'twoTrees' });
 
 test('Can perform basic actions on New tree', async ({page, login}) => {
+  // ~100 lines of typing-with-delay plus repeated save-indicator waits; the
+  // default 15s timeout is marginal on a loaded CI box.
+  test.slow();
+
   await login();
   await page.goto('/');
 

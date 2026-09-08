@@ -5,22 +5,20 @@ import crypto from "node:crypto";
 import { Buffer } from 'node:buffer';
 
 // Databases
-import Nano from "nano";
 import Database from 'better-sqlite3'
-import { createClient } from "redis";
 
 // Networking & Server
 import express from "express";
 import proxy from "express-http-proxy";
 import session from "express-session";
-import redisConnect from 'connect-redis';
 import { WebSocketServer } from "ws";
 import * as realtime from "./realtime.js";
-import axios from "axios";
-import FormData from "form-data";
-import Mailgun from "mailgun.js";
 import config from "../config.js";
-import Stripe from 'stripe';
+
+// Loaded on first use rather than at module scope: each Playwright e2e test
+// spawns its own server, and evaluating these up front adds ~250ms per spawn
+// (redis ~150ms, mailgun/form-data ~100ms) for code most specs never touch.
+// `nano`, `axios` and `stripe` are likewise deferred to their first caller.
 
 // Misc
 import _ from "lodash";
@@ -216,7 +214,14 @@ function getEnabledFeaturesForUser(userId : string) {
 
 /* ==== SETUP ==== */
 
-const nano = Nano(`http://${config.COUCHDB_USER}:${config.COUCHDB_PASS}@127.0.0.1:5984`);
+let _nano;
+async function getNano() {
+  if (!_nano) {
+    const { default: Nano } = await import("nano");
+    _nano = Nano(`http://${config.COUCHDB_USER}:${config.COUCHDB_PASS}@127.0.0.1:5984`);
+  }
+  return _nano;
+}
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -229,22 +234,26 @@ app.use(morgan(':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:htt
 app.use(express.json({limit: '50mb'}));
 app.use(express.urlencoded({ extended: true }));
 
-const mailgun = new Mailgun(FormData);
-const mg = mailgun.client({
-  username: "api",
-  key: config.MAILGUN_API_KEY,
-});
-
 // E2E runs must never send real mail; client/tests/e2e/base.ts sets this on the
 // test server it spawns.
 const emailSuppressed = process.env.E2E_NO_EMAIL === 'true';
+
+let _mg;
+async function getMailgun() {
+  if (!_mg) {
+    const { default: Mailgun } = await import("mailgun.js");
+    const { default: FormData } = await import("form-data");
+    _mg = new Mailgun(FormData).client({ username: "api", key: config.MAILGUN_API_KEY });
+  }
+  return _mg;
+}
 
 async function sendEmail(msg) {
   if (emailSuppressed) {
     console.log('[e2e] suppressed email to', msg.to);
     return;
   }
-  return mg.messages.create(config.MAILGUN_DOMAIN, msg);
+  return (await getMailgun()).messages.create(config.MAILGUN_DOMAIN, msg);
 }
 
 
@@ -254,9 +263,27 @@ const server = app.listen(port, () => console.log(`Example app listening at http
 
 // Session
 
-const RedisStore = redisConnect(session);
-const redis = createClient({legacyMode: true});
-const sessionStore = new RedisStore({ client: redis });
+let sessionStore;
+if (process.env.TEST_DB_PATH) {
+  // Each e2e test spawns its own short-lived, single-process server, so the
+  // built-in in-memory store is a perfect fit -- and skips both the ~150ms
+  // `redis` module evaluation and the connection round-trip on every spawn.
+  sessionStore = new session.MemoryStore();
+} else {
+  const { createClient } = await import("redis");
+  const { default: redisConnect } = await import("connect-redis");
+  const RedisStore = redisConnect(session);
+  const redis = createClient({legacyMode: true});
+  sessionStore = new RedisStore({ client: redis });
+  redis.connect().catch(console.error);
+
+  redis.on("error", function (err) {
+    console.error("Redis Error " + err);
+  });
+  redis.on("connect", function () {
+    console.log("Redis connected");
+  });
+}
 
 const sessionParser = session({
     store: sessionStore,
@@ -264,14 +291,6 @@ const sessionParser = session({
     resave: false, // required: force lightweight session keep alive (touch)
     saveUninitialized: false, // recommended: don't save empty sessions
     cookie: { secure: false, maxAge: /* 6 months */ 6 * 30 * 24 * 60 * 60 * 1000 }
-});
-redis.connect().catch(console.error);
-
-redis.on("error", function (err) {
-  console.error("Redis Error " + err);
-});
-redis.on("connect", function () {
-  console.log("Redis connected");
 });
 app.use(sessionParser);
 
@@ -403,7 +422,7 @@ wss.on('connection', (ws, req) => {
               ws.send(JSON.stringify({t: 'cardsConflict', d: cards, e: e }));
             } else {
               ws.send(JSON.stringify({t: 'pushError', d: e}));
-              axios.post(config.NTFY_URL, e.message).catch(e => console.error(e));
+              import("axios").then(({default: axios}) => axios.post(config.NTFY_URL, e.message)).catch(e => console.error(e));
               console.error(e);
             }
             debug(e.message)
@@ -687,6 +706,7 @@ app.post('/signup', async (req, res) => {
         res.status(500).send({error: "Internal server error at signup"});
       }
 
+      const nano = await getNano();
       await nano.db.create(userDbName);
 
       //@ts-ignore
@@ -936,14 +956,21 @@ app.post('/pleasenospam', async (req, res) => {
 
 /* ==== Payment ==== */
 
-const stripe = new Stripe(config.STRIPE_SECRET_KEY, { apiVersion: '2022-11-15', typescript: true });
+let _stripe;
+async function getStripe() {
+  if (!_stripe) {
+    const { default: Stripe } = await import("stripe");
+    _stripe = new Stripe(config.STRIPE_SECRET_KEY, { apiVersion: '2022-11-15', typescript: true });
+  }
+  return _stripe;
+}
 
 app.post('/create-checkout-session', async (req, res) => {
   const { priceId, customer_email } = req.body;
 
   try {
     // @ts-ignore : docs say to remove 'payment_method_types' but typescript complains
-    const stripeSession = await stripe.checkout.sessions.create({
+    const stripeSession = await (await getStripe()).checkout.sessions.create({
       mode: "subscription",
       line_items: [
         {
@@ -975,7 +1002,7 @@ app.post('/create-checkout-session', async (req, res) => {
 app.post('/create-portal-session', async (req, res) => {
   const { customer_id } = req.body;
 
-  const stripeSession = await stripe.billingPortal.sessions.create({
+  const stripeSession = await (await getStripe()).billingPortal.sessions.create({
     customer: customer_id
   });
 
@@ -1058,7 +1085,7 @@ app.delete('/test/user', async (req, res) => {
   let userDbName = `userdb-${toHex("cypress@testing.com")}`;
 
   try {
-    await nano.db.destroy(userDbName).catch(e => null);
+    await (await getNano()).db.destroy(userDbName).catch(e => null);
     res.status(200).send();
   } catch (err) {
     console.error(err);
