@@ -1,0 +1,40 @@
+{
+  "id": "evt_0IJkGjbEm7WWhuzYCMunA12c",
+  "object": "event",
+  "api_version": "2013-08-13",
+  "created": 1613069521,
+  "data":
+    { "object":
+      {"id": "cs_test_a1E7DwORXtU2qZELDD2wkILXGoWtUNR9UDQX885VOnhMuyr88xYsh8dkB0",
+        "object": "checkout.session",
+        "allow_promotion_codes": null,
+        "amount_subtotal": 1000,
+        "amount_total": 1000,
+        "billing_address_collection": null,
+        "cancel_url": "http://localhost:3000",
+        "client_reference_id": null,
+        "currency": "usd",
+        "customer": "cus_Ivbdy1DbP4Y9GD",
+        "customer_details": { "email": "cypress@testing.com", "tax_exempt": "none", "tax_ids": [] },
+        "customer_email": "cypress@testing.com",
+        "livemode": false,
+        "locale": null,
+        "metadata": {},
+        "mode": "subscription",
+        "payment_intent": null,
+        "payment_method_types": [ "card" ],
+        "payment_status": "paid",
+        "setup_intent": null,
+        "shipping": null,
+        "shipping_address_collection": null,
+        "submit_type": null,
+        "subscription": "sub_IvbdggSzRkFSvZ",
+        "success_url": "http://localhost:3000/upgrade/success?session_id={CHECKOUT_SESSION_ID}",
+        "total_details": { "amount_discount": 0, "amount_tax": 0 }
+      }
+    },
+  "livemode": false,
+  "pending_webhooks": 5,
+  "request": "req_NeWmGPfbTXbvSR",
+  "type": "checkout.session.completed"
+}
