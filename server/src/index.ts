@@ -1125,6 +1125,32 @@ app.post('/test/confirm', async (req, res) => {
   }
 });
 
+// Force a history snapshot for a tree, synchronously and right now.
+//
+// The normal path (`takeSnapshotDebounced` after a push) is a 6-hour
+// leading-edge debounce, so a tree created inside a single e2e test only ever
+// gets one snapshot -- its initial empty state -- which is not enough to test
+// undo/restore. This lets a test take a snapshot at a chosen point. Guarded on
+// TEST_DB_PATH so it exists only on the per-test e2e server.
+app.post('/test/snapshot', async (req, res) => {
+  if (!process.env.TEST_DB_PATH) {
+    res.status(403).send('Forbidden');
+    return;
+  }
+  const treeId = req.body && req.body.treeId;
+  if (typeof treeId !== 'string' || treeId.length === 0) {
+    res.status(400).send('Missing treeId');
+    return;
+  }
+  try {
+    takeSnapshotSQL.run({ treeId });
+    res.status(200).send();
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err);
+  }
+});
+
 
 
 
