@@ -1,9 +1,25 @@
+import { type Page } from "@playwright/test";
 import { test, expect, card, setupLifecycleHooks } from "./base";
 import treeIds from "./fixtures/twoTrees.ids.json";
 
 setupLifecycleHooks(test)
 
 test.use({ seed: 'twoTrees' });
+
+/**
+ * Waits until fullscreen mode has rendered *and* its editor has taken focus.
+ *
+ * Elm re-renders on the next animation frame, so right after the click or
+ * keypress that enters fullscreen the card's own textarea is still in the DOM
+ * and still focused. A `page.locator(':focus')` resolved in that window points
+ * at a node that is about to be destroyed, and the first character typed into
+ * it disappears with it. Focus then arrives asynchronously via Elm's
+ * `Browser.Dom.focus` -- the fullscreen editor does not self-focus (see the
+ * `!this.isFullscreen` guard in src/shared/doc-helpers.js).
+ */
+async function waitForFullscreenEditor(page: Page): Promise<void> {
+  await expect(page.locator('#fullscreen-main textarea:focus')).toBeVisible();
+}
 
 test('Can perform basic actions on New tree', async ({page, login}) => {
   // ~100 lines of typing-with-delay plus repeated save-indicator waits; the
@@ -76,14 +92,15 @@ test('Can perform basic actions on New tree', async ({page, login}) => {
 
   // Field preserved when exiting fullscreen
   await page.keyboard.press('Shift+Enter');
-  // Wait for fullscreen to render before typing, or the first keystroke is lost.
-  await expect(page.locator('#fullscreen-main')).toBeVisible();
+  // Wait for fullscreen to render and focus its editor, or the first keystroke is lost.
+  await waitForFullscreenEditor(page);
   await focused.pressSequentially('lmn', { delay: 30 });
   await page.locator('#fullscreen-exit').click();
   await expect(focused).toHaveValue('# 2\nChild card\nabclmn');
 
   // Save and exit edit mode on Ctrl+Enter
   await page.locator('.fullscreen-card-btn').click();
+  await waitForFullscreenEditor(page);
   await focused.pressSequentially(' line', { delay: 30 });
   await page.keyboard.press('Control+Enter');
   await expect(page.locator('#app-fullscreen')).not.toBeVisible();
@@ -96,7 +113,7 @@ test('Can perform basic actions on New tree', async ({page, login}) => {
   // Save and don't exit edit mode on Ctrl+S
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('Shift+Enter');
-  await expect(page.locator('#fullscreen-main')).toBeVisible();
+  await waitForFullscreenEditor(page);
   await focused.pressSequentially('xyz', { delay: 30 });
   await expect(page.locator('#fullscreen-buttons #save-indicator')).toContainText('Unsaved');
   await page.keyboard.press('Control+s');

@@ -228,7 +228,41 @@ guide recommended. A new card's editor is empty, `/.*/` matches the empty
 string, and the assertion passes instantly without waiting for anything. Editing
 an *existing* card doesn't create anything, so it needs no such wait.
 
-### 2. Card Button Overlays
+### 2. Entering Fullscreen Drops the First Keystroke
+
+**Critical:** Elm re-renders on the *next animation frame*, so the click or
+`Shift+Enter` that enters fullscreen returns while the card's own `<textarea>` is
+still in the DOM and still focused. The fullscreen editor does not self-focus
+(the `gw-textarea` custom element focuses only when `!this.isFullscreen`, see
+`src/shared/doc-helpers.js`) -- focus arrives a beat later via Elm's
+`Browser.Dom.focus` task. A `page.locator(':focus')` resolved in that window
+points at the dying node, and the first character typed into it vanishes with
+it: `' line'` lands as `line`.
+
+```typescript
+// ❌ FLAKY - :focus still resolves to the card's textarea, which is about to
+// be swapped out; the leading space is lost.
+await page.locator('.fullscreen-card-btn').click();
+await focused.pressSequentially(' line', { delay: 30 });
+
+// ⚠️ STILL FLAKY - #fullscreen-main is visible before its editor is focused.
+await page.keyboard.press('Shift+Enter');
+await expect(page.locator('#fullscreen-main')).toBeVisible();
+await focused.pressSequentially('lmn', { delay: 30 });
+
+// ✅ RELIABLE - wait for the fullscreen editor itself to hold focus.
+await page.locator('.fullscreen-card-btn').click();
+await waitForFullscreenEditor(page); // local helper in doc.fullscreen.spec.ts
+await focused.pressSequentially(' line', { delay: 30 });
+```
+
+`waitForFullscreenEditor` (a local helper in `doc.fullscreen.spec.ts`, the only
+spec that enters fullscreen) asserts on `#fullscreen-main textarea:focus`, which
+is only satisfied once fullscreen has rendered *and* focus has landed.
+`waitForStableFocus` is the wrong tool here -- it can mark `document.body` during
+the focus gap and return with focus still on `body`.
+
+### 3. Card Button Overlays
 
 **Critical:** Card elements contain button overlays that appear in text content assertions.
 
@@ -252,7 +286,7 @@ await expect(card).toContainText('expected text');
 </div>
 ```
 
-### 3. Save Indicator Pattern
+### 4. Save Indicator Pattern
 
 Always wait for the save indicator after typing to ensure data is synced:
 
@@ -261,7 +295,7 @@ await page.locator('textarea').pressSequentially('text', { delay: 30 });
 await expect(page.locator('#save-indicator')).toContainText('Synced');
 ```
 
-### 4. Mobile Button Workflows
+### 5. Mobile Button Workflows
 
 When testing mobile buttons that create new cards:
 
@@ -278,7 +312,7 @@ const cardView = page.locator('#column-container > .column:nth-child(2) .view');
 await expect(cardView).toContainText('text');
 ```
 
-### 5. Cold Browser Profiles
+### 6. Cold Browser Profiles
 
 Every Playwright test starts with empty IndexedDB, which Cypress tests never
 did -- `cy.signup_with` visited the app during setup, priming the local
@@ -293,7 +327,7 @@ now waits for the first `trees` sync), and `doc.loading.spec.ts` guards it.
 The lesson generalises: when a migrated test fails only on a cold profile,
 suspect a real first-run bug before reaching for a workaround.
 
-### 6. The File-Picker Stand-In (`window.__E2E__`)
+### 7. The File-Picker Stand-In (`window.__E2E__`)
 
 No test runner can drive the OS file picker, so `IntegrationTestEvent` in
 `src/shared/doc.js` hands the app a canned set of files instead. It's gated on
@@ -309,7 +343,7 @@ test that reloads the page partway through starts over from the first set.
 **Remember to rebuild the bundle (`bun esbuild.mjs`) after touching
 `src/shared/*.js`** -- the server serves `web/doc.js`, not the source.
 
-### 7. The Signup Flow (`auth.spec.ts`)
+### 8. The Signup Flow (`auth.spec.ts`)
 
 Signing up from scratch needs things the other specs get for free:
 
