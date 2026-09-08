@@ -51,6 +51,8 @@ test.describe('User Signup Flow', () => {
     await test.step('Imports the Welcome Tree', async () => {
       await expect(page).not.toHaveURL(/\/import\/welcome$/);
       await expect(page).toHaveURL(/\/[a-zA-Z0-9]{7}$/);
+      await expect(page.locator('#title')).toContainText(/welcome/i);
+      await expect(page.locator('#-welcome-to-gingko-writer')).toContainText('Welcome to Gingko Writer');
       await expect(page.locator('#app-root')).toContainText('Welcome to Gingko Writer');
     });
 
