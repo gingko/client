@@ -1287,7 +1287,11 @@ function setSessionData(data, source) {
 
 async function logout() {
   try {
-    if (db) {
+    // CouchDB is legacy: only "couchdb"-location trees still need a pre-logout
+    // push to the remote before local data is destroyed. Skip that step -- a
+    // full, often stall-prone replication -- when the account has none.
+    const hasCouchDocs = (await dexie.trees.filter((t) => t.location === "couchdb").count()) > 0;
+    if (db && hasCouchDocs) {
       await db.replicate.to(remoteDB);
       await db.destroy();
     }
