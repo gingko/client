@@ -148,13 +148,3 @@ test.afterAll( async () => {
 function getCard(rootEl : Page, colNum : number, groupNum : number, cardNum : number) {
   return rootEl.locator(`#column-container > .column:nth-child(${colNum}) > .group:nth-child(${groupNum + 1}) > .card:nth-child(${cardNum})`);
 }
-/*
-Cypress.Commands.add('getColumn', (colNum) => {
-  cy.get(`#column-container > .column:nth-child(${colNum})`)
-})
-
-
-Cypress.Commands.add('getGroup', (colNum, groupNum) => {
-  cy.get(`#column-container > .column:nth-child(${colNum}) > .group:nth-child(${groupNum + 1})`)
-})
- */

@@ -22,8 +22,6 @@ npm-debug.log
 config.js
 hidden-config.js
 .idea
-cypress/screenshots
-cypress/videos
 test-results/
 playwright-report/
 elm-home/

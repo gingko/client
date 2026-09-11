@@ -997,8 +997,8 @@ const fromElm = (msg, elmData) => {
 
     IntegrationTestEvent: () => {
       // Stands in for the OS file picker, which no test runner can drive.
-      // Cypress sets window.Cypress itself; Playwright sets __E2E__.
-      if (window.Cypress || window.__E2E__) {
+      // Playwright sets window.__E2E__.
+      if (window.__E2E__) {
         switch (elmData) {
           case "ImportTextRequested":
             let files;

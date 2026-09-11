@@ -59,23 +59,6 @@ jobs:
         working-directory: client
         run: bun run test
 
-      - name: Stop Test Server
-        run: "pm2 stop --silent GingkoTest  || :"
-
-      # Cypress still uses the older shared-server seeding. Started from the
-      # server/ directory so its relative '../data/data.sqlite' and
-      # '../client/web' paths resolve inside the workspace.
-      - name: Start Test Server
-        working-directory: server
-        run: NODE_ENV=production DEBUG=cards PORT=8000 pm2 start dist/index.js --name GingkoTest
-
-      - name: Cypress e2e Tests
-        working-directory: client
-        run: bunx cypress run
-
-      - name: Stop Test Server
-        run: pm2 stop GingkoTest
-
       - name: Maybe Migrate Database
         if: "contains(github.event.head_commit.message, 'db:migrate')"
         env:
