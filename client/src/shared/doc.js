@@ -697,7 +697,14 @@ const fromElm = (msg, elmData) => {
             return;
           }
 
-          const cards = await dexie.cards.where({ treeId: TREE_ID, deleted: 0 }).toArray();
+          // dexie.cards is an append-only log (a new row per edit, keyed by
+          // updatedAt), so a plain query returns every past revision of every
+          // card, not just its current one. Dedupe to the latest row per card
+          // id -- as saveBackupToImmortalDB/getTreeString do -- before
+          // snapshotting, or the reconstructed tree ends up with stale/duplicate
+          // nodes for any card that was edited more than once.
+          const allCards = await dexie.cards.where({ treeId: TREE_ID, deleted: 0 }).toArray();
+          const cards = _.chain(allCards).sortBy('updatedAt').reverse().uniqBy('id').value();
           const lastUpdatedTime = cards.map((c) => c.updatedAt.split(':')[0]).reduce((a, b) => Math.max(a, b));
           const snapshotId = `${lastUpdatedTime}:${TREE_ID}`;
           const snapshotData = cards.map((c) => ({ ...c, snapshot: snapshotId, delta: 0}));

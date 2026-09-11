@@ -366,6 +366,61 @@ Signing up from scratch needs things the other specs get for free:
 The old `GET /db/userdb-...` assertions from the Cypress test were dropped: the
 app reads its data from SQLite now, so that request no longer proves anything.
 
+### 9. Card-Based History Is Entirely Local -- No Server Snapshot Needed
+
+`doc.editing.spec.ts`'s undo/restore step doesn't force a server-side snapshot.
+It doesn't need to: every save that adds or removes a card (`SaveCardBased` in
+`src/shared/doc.js`) already writes a full tree snapshot straight into
+IndexedDB (`dexie.tree_snapshots`), and the history slider/restore UI is built
+from that table alone. The server's own snapshotting (`takeSnapshotDebounced`,
+6-hour leading-edge) is a separate, independent mechanism that this UI doesn't
+depend on. An earlier revision of this test assumed otherwise and added a
+`POST /test/snapshot` e2e-only server hook to force one -- that hook turned out
+to be unnecessary and was removed.
+
+While chasing this, a real (if narrow) bug surfaced and was fixed: the
+snapshot-capture code queried `dexie.cards` directly without deduping to each
+card's latest row. `dexie.cards` is an append-only log (a new row per edit,
+keyed by `updatedAt`), so any card edited more than once ended up with
+stale/duplicate rows baked into its history snapshot. Fixed in
+`src/shared/doc.js` (`SaveCardBased`) by deduping the same way
+`saveBackupToImmortalDB`/`getTreeString` already did.
+
+### 10. History Restore Leaves the Column View Stale
+
+After clicking `#history-restore`, IndexedDB is correctly updated (verified
+directly against `dexie.cards`) and the breadcrumb trail (built straight from
+`workingTree.tree`) reflects the restored content immediately -- but `#document`
+itself renders empty. Elm's `workingTree.columns` (what the card/column view
+actually reads) doesn't get rebuilt from the post-restore tree until something
+else forces it; a page reload does, ordinary DOM events after Restore don't.
+This is real app behaviour, not a Playwright timing artifact -- it reproduces
+with a plain keyboard `Control+z` → `#history-restore` click, no slider
+manipulation involved.
+
+The Cypress original never catches this: it only asserts against `#app-root`
+text (which the breadcrumb alone satisfies) and never re-checks real card
+selectors until well after a page reload two steps later ("Has saved the
+content... across a reload" happens *before* the history section, not after
+restore). `doc.editing.spec.ts` works around the same way Cypress accidentally
+does -- reload (`page.goto(treeUrl)`) right after restore -- but asserts against
+real card selectors (`card(1,1,1)`, `card(2,1,1)`) instead of loose text, which
+is a stronger check than the Cypress version ever made.
+
+### 11. Copy/Paste Needs an Explicit Clipboard Permission Grant
+
+`mod+c`/`mod+v` round-trip through the *real* system clipboard
+(`navigator.clipboard.writeText`/`readText` in `src/shared/doc.js`), unlike
+every other keyboard shortcut in the editor, which is all internal Elm state.
+Without granting clipboard permissions, `readText()` rejects (denied) and paste
+silently no-ops -- no error, no dialog, just nothing happens. Cypress doesn't
+need this because Chrome-under-Cypress grants clipboard access to the test
+origin by default; Playwright doesn't. Fix:
+
+```typescript
+await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+```
+
 ## Testing Tips
 
 ### 1. Use `pressSequentially` for Realistic Typing
