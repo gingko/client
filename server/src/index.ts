@@ -907,6 +907,12 @@ app.get('/public/:page', (req, res) => {
 
 app.use('/db', proxy('http://127.0.0.1:5984', {
   proxyReqOptDecorator: function(proxyReqOpts, srcReq) {
+    // Never forward client-supplied CouchDB proxy-auth headers
+    for (const h of Object.keys(proxyReqOpts.headers)) {
+      if (h.toLowerCase().startsWith('x-auth-couchdb-')) {
+        delete proxyReqOpts.headers[h];
+      }
+    }
     if (srcReq.session.user) {
       proxyReqOpts.headers['X-Auth-CouchDB-UserName'] = srcReq.session.user;
       proxyReqOpts.headers['X-Auth-CouchDB-Roles'] = '';
