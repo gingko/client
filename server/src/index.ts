@@ -67,6 +67,7 @@ const userConfirm = db.prepare('UPDATE users SET confirmedAt = ? WHERE id = ?');
 const userChangePassword = db.prepare('UPDATE users SET salt = ?, password = ? WHERE id = ?');
 const userSetLanguage = db.prepare('UPDATE users SET language = ? WHERE id = ?');
 const userSetPaymentStatus = db.prepare('UPDATE users SET paymentStatus = ? WHERE id = ?');
+const userByPaymentStatus = db.prepare('SELECT * FROM users WHERE paymentStatus = ?');
 const expireTestUser = db.prepare("UPDATE users SET paymentStatus='trial:' || CAST(1000*(unixepoch() - 2*24*60*60) AS TEXT) WHERE id = 'cypress@testing.com'");
 
 // Reset Token Table
@@ -231,7 +232,8 @@ app.use(morgan(':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:htt
 // Use morgan to log responses separately:
 app.use(morgan(':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :response-time ms'));
 
-app.use(express.json({limit: '50mb'}));
+// Stripe webhook signatures are computed over the exact request bytes, so keep them for /hooks.
+app.use(express.json({limit: '50mb', verify: (req, res, buf) => { if (req.originalUrl === '/hooks') req.rawBody = buf; }}));
 app.use(express.urlencoded({ extended: true }));
 
 // E2E runs must never send real mail; client/tests/e2e/base.ts sets this on the
@@ -1017,7 +1019,13 @@ app.post('/create-portal-session', async (req, res) => {
 
 
 app.post('/hooks', async (req, res) => {
-  let event = req.body;
+  let event;
+  try {
+    event = (await getStripe()).webhooks.constructEvent(req.rawBody, req.headers['stripe-signature'], config.STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    console.error(`Webhook signature verification failed: ${err.message}`);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
 
   // Handle the event
   switch (event.type) {
@@ -1028,6 +1036,15 @@ app.post('/hooks', async (req, res) => {
       userSetPaymentStatus.run("customer:" + custId, email);
       sendUpdatedUserData(email);
       break;
+    case 'customer.subscription.updated':
+    case 'customer.subscription.deleted':
+      try {
+        await handleSubscriptionChange(event.data.object);
+      } catch (err) {
+        console.error(err);
+        return res.status(500).send();
+      }
+      break;
     // ... handle other event types
     default:
       console.log(`Unhandled event type ${event.type}`);
@@ -1036,6 +1053,41 @@ app.post('/hooks', async (req, res) => {
   // Return a res to acknowledge receipt of the event
   res.json({received: true});
 });
+
+// Keep app access in sync with the subscription. 'past_due' keeps access while Stripe retries the card;
+// once it gives up ('unpaid'/'canceled'), the user is set to an already-expired trial so the client shows the upgrade screen.
+async function handleSubscriptionChange(subscription) {
+  const custId = subscription.customer;
+  const user = userByPaymentStatus.get("customer:" + custId) || await userByStripeCustomerEmail(custId);
+  if (!user) {
+    console.log(`No user found for Stripe customer ${custId}`);
+    return;
+  }
+
+  let newStatus;
+  if (['active', 'trialing'].includes(subscription.status)) {
+    newStatus = "customer:" + custId;
+  } else if (['unpaid', 'canceled', 'incomplete_expired'].includes(subscription.status)) {
+    newStatus = "trial:" + Date.now();
+  } else {
+    return;
+  }
+
+  // A user may have several subscriptions (e.g. re-subscribed after a lapse): don't let an old one revoke a current one.
+  if (newStatus.startsWith("trial:") && user.paymentStatus !== "customer:" + custId) {
+    return;
+  }
+
+  if (newStatus !== user.paymentStatus) {
+    userSetPaymentStatus.run(newStatus, user.id);
+    sendUpdatedUserData(user.id);
+  }
+}
+
+async function userByStripeCustomerEmail(custId) {
+  const customer = await (await getStripe()).customers.retrieve(custId);
+  return customer.deleted ? null : userByEmail.get(customer.email);
+}
 
 
 
