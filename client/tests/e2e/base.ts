@@ -1,5 +1,6 @@
 import { test as base, expect, type Page } from '@playwright/test';
 import { spawn, type ChildProcess } from 'node:child_process';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -13,6 +14,20 @@ const nodeBin = process.env.E2E_NODE ?? 'node';
 
 export const TEST_EMAIL = 'cypress@testing.com';
 export const TEST_PASSWORD = 'testing';
+
+// Passed to the test server so specs can sign fake Stripe webhook events.
+const STRIPE_WEBHOOK_SECRET = 'whsec_e2e_test';
+
+// Same scheme as Stripe: HMAC-SHA256 over `${timestamp}.${payload}`.
+export function signedStripeEvent(event: object) {
+  const payload = JSON.stringify(event);
+  const timestamp = Math.floor(Date.now() / 1000);
+  const signature = crypto.createHmac('sha256', STRIPE_WEBHOOK_SECRET).update(`${timestamp}.${payload}`).digest('hex');
+  return {
+    data: payload,
+    headers: { 'Content-Type': 'application/json', 'Stripe-Signature': `t=${timestamp},v1=${signature}` },
+  };
+}
 
 export type SeedName = 'twoTrees' | 'oneTree' | 'oneEmptyTree' | 'fourSmallTrees' | 'empty' | 'noUser';
 
@@ -110,6 +125,7 @@ export const test = base.extend<TestFixtures & TestOptions>({
         TEST_DB_PATH: dbPath,
         PORT: String(port),
         E2E_NO_EMAIL: 'true',
+        STRIPE_WEBHOOK_SECRET,
       },
     });
 

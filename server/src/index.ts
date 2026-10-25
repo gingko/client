@@ -1020,8 +1020,9 @@ app.post('/create-portal-session', async (req, res) => {
 
 app.post('/hooks', async (req, res) => {
   let event;
+  // STRIPE_WEBHOOK_SECRET env lets Playwright e2e tests sign their own fake events. Unset everywhere else.
   try {
-    event = (await getStripe()).webhooks.constructEvent(req.rawBody, req.headers['stripe-signature'], config.STRIPE_WEBHOOK_SECRET);
+    event = (await getStripe()).webhooks.constructEvent(req.rawBody, req.headers['stripe-signature'], process.env.STRIPE_WEBHOOK_SECRET || config.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
     console.error(`Webhook signature verification failed: ${err.message}`);
     return res.status(400).send(`Webhook Error: ${err.message}`);

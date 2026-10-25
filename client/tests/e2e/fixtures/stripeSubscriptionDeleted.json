@@ -1,0 +1,24 @@
+{
+  "id": "evt_0IJkHqbEm7WWhuzYPq2Xc7Lm",
+  "object": "event",
+  "api_version": "2020-08-27",
+  "created": 1613155921,
+  "data":
+    { "object":
+      { "id": "sub_IvbdggSzRkFSvZ",
+        "object": "subscription",
+        "cancel_at_period_end": false,
+        "canceled_at": 1613155920,
+        "collection_method": "charge_automatically",
+        "customer": "cus_Ivbdy1DbP4Y9GD",
+        "ended_at": 1613155920,
+        "livemode": false,
+        "metadata": {},
+        "status": "canceled"
+      }
+    },
+  "livemode": false,
+  "pending_webhooks": 1,
+  "request": null,
+  "type": "customer.subscription.deleted"
+}

@@ -1,6 +1,7 @@
-import { test, expect, card, setupLifecycleHooks } from './base';
+import { test, expect, card, setupLifecycleHooks, signedStripeEvent } from './base';
 import treeIds from './fixtures/twoTrees.ids.json';
 import stripeSuccess from './fixtures/stripeSuccess.json';
+import stripeSubscriptionDeleted from './fixtures/stripeSubscriptionDeleted.json';
 
 setupLifecycleHooks(test);
 
@@ -67,7 +68,7 @@ test.describe('Payment', () => {
     await test.step('Unlocks the trees after a successful checkout webhook', async () => {
       await page.goto('/upgrade/success');
 
-      const hook = await page.request.post('/hooks', { data: stripeSuccess });
+      const hook = await page.request.post('/hooks', signedStripeEvent(stripeSuccess));
       expect(hook.ok()).toBeTruthy();
 
       await page.locator('.message-cta').click();
@@ -83,6 +84,23 @@ test.describe('Payment', () => {
       await page.locator(card(1, 1, 1)).click();
       await page.keyboard.press('Enter');
       await expect(page.locator('textarea')).toHaveValue('Another Test doc');
+      await page.keyboard.press('Escape');
     });
+
+    await test.step('Locks again when the subscription is canceled', async () => {
+      const hook = await page.request.post('/hooks', signedStripeEvent(stripeSubscriptionDeleted));
+      expect(hook.ok()).toBeTruthy();
+      await expect(page.locator('#upgrade-cta')).toContainText('Trial Expired');
+    });
+  });
+
+  test('Rejects webhook events without a valid Stripe signature', async ({ page }) => {
+    const unsigned = await page.request.post('/hooks', { data: stripeSuccess });
+    expect(unsigned.status()).toBe(400);
+
+    const tampered = signedStripeEvent(stripeSuccess);
+    tampered.data = tampered.data.replace('cypress@testing.com', 'attacker@example.com');
+    const forged = await page.request.post('/hooks', tampered);
+    expect(forged.status()).toBe(400);
   });
 });
