@@ -24,7 +24,7 @@ For code contributions, see [client/CONTRIBUTING.md](./client/CONTRIBUTING.md).
 
 ### 1. Prerequisites
 
-- [Node.js](https://nodejs.org)
+- [Node.js](https://nodejs.org) 24 (see `.nvmrc`)
 - [Bun](https://bun.sh)
 - [SQLite](https://sqlite.org)
 - [Redis](https://redis.io) — for server-side sessions

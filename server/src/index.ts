@@ -1490,7 +1490,7 @@ function toHex(str) {
 
 
 function newToken() {
- return URLSafeBase64.encode(uuid.v4(null, new Buffer(16)));
+ return URLSafeBase64.encode(uuid.v4(null, Buffer.alloc(16)));
 }
 
 

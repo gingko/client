@@ -9,7 +9,7 @@ const portBase = Number.parseInt(process.env.PLAYWRIGHT_PORT_BASE ?? '3100', 10)
 
 // The server is native-module heavy (better-sqlite3), so it must run under the
 // same Node version its node_modules were built for. Override if that isn't the
-// `node` on PATH, e.g. E2E_NODE=~/.nvm/versions/node/v18.12.0/bin/node.
+// `node` on PATH, e.g. E2E_NODE=~/.nvm/versions/node/v24.22.1/bin/node.
 const nodeBin = process.env.E2E_NODE ?? 'node';
 
 export const TEST_EMAIL = 'cypress@testing.com';
