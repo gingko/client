@@ -372,9 +372,17 @@ decodePaymentStatus =
     Dec.string
         |> Dec.andThen
             (\str ->
+                let
+                    trial valString =
+                        Trial (String.toInt valString |> Maybe.withDefault 0 |> Time.millisToPosix) |> Dec.succeed
+                in
                 case str |> String.split ":" of
                     "trial" :: valString :: [] ->
-                        Trial (String.toInt valString |> Maybe.withDefault 0 |> Time.millisToPosix) |> Dec.succeed
+                        trial valString
+
+                    -- Locked after a lapsed subscription: "trial:<time>:<custId>". Only the server uses the custId.
+                    "trial" :: valString :: _ :: [] ->
+                        trial valString
 
                     "customer" :: custId :: [] ->
                         Customer custId |> Dec.succeed

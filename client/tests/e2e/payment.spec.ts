@@ -87,6 +87,22 @@ test.describe('Payment', () => {
       await page.keyboard.press('Escape');
     });
 
+    await test.step('Locks while the subscription is paused, and unlocks on resume', async () => {
+      const updated = (pause_collection: object | null) => ({
+        ...stripeSubscriptionDeleted,
+        type: 'customer.subscription.updated',
+        data: { object: { ...stripeSubscriptionDeleted.data.object, status: 'active', canceled_at: null, ended_at: null, pause_collection } },
+      });
+
+      const paused = await page.request.post('/hooks', signedStripeEvent(updated({ behavior: 'void', resumes_at: null })));
+      expect(paused.ok()).toBeTruthy();
+      await expect(page.locator('#upgrade-cta')).toContainText('Trial Expired');
+
+      const resumed = await page.request.post('/hooks', signedStripeEvent(updated(null)));
+      expect(resumed.ok()).toBeTruthy();
+      await expect(page.locator('#document-header')).not.toContainText('Upgrade');
+    });
+
     await test.step('Locks again when the subscription is canceled', async () => {
       const hook = await page.request.post('/hooks', signedStripeEvent(stripeSubscriptionDeleted));
       expect(hook.ok()).toBeTruthy();

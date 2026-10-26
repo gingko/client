@@ -68,6 +68,7 @@ const userChangePassword = db.prepare('UPDATE users SET salt = ?, password = ? W
 const userSetLanguage = db.prepare('UPDATE users SET language = ? WHERE id = ?');
 const userSetPaymentStatus = db.prepare('UPDATE users SET paymentStatus = ? WHERE id = ?');
 const userByPaymentStatus = db.prepare('SELECT * FROM users WHERE paymentStatus = ?');
+const userByLockedCustomer = db.prepare("SELECT * FROM users WHERE paymentStatus GLOB 'trial:*:' || ?");
 const expireTestUser = db.prepare("UPDATE users SET paymentStatus='trial:' || CAST(1000*(unixepoch() - 2*24*60*60) AS TEXT) WHERE id = 'cypress@testing.com'");
 
 // Reset Token Table
@@ -1057,19 +1058,25 @@ app.post('/hooks', async (req, res) => {
 
 // Keep app access in sync with the subscription. 'past_due' keeps access while Stripe retries the card;
 // once it gives up ('unpaid'/'canceled'), the user is set to an already-expired trial so the client shows the upgrade screen.
+// A paused subscription (customer portal) stays 'active' but isn't billed, so it locks too; resuming unlocks.
+// The lock keeps the customer id ("trial:<time>:<custId>") so a resume or card fix finds the user again,
+// even if they changed their email in the portal.
 async function handleSubscriptionChange(subscription) {
   const custId = subscription.customer;
-  const user = userByPaymentStatus.get("customer:" + custId) || await userByStripeCustomerEmail(custId);
+  const user = userByPaymentStatus.get("customer:" + custId) || userByLockedCustomer.get(custId) || await userByStripeCustomerEmail(custId);
   if (!user) {
     console.log(`No user found for Stripe customer ${custId}`);
     return;
   }
 
+  const locked = "trial:" + Date.now() + ":" + custId;
   let newStatus;
-  if (['active', 'trialing'].includes(subscription.status)) {
+  if (subscription.pause_collection) {
+    newStatus = locked;
+  } else if (['active', 'trialing'].includes(subscription.status)) {
     newStatus = "customer:" + custId;
   } else if (['unpaid', 'canceled', 'incomplete_expired'].includes(subscription.status)) {
-    newStatus = "trial:" + Date.now();
+    newStatus = locked;
   } else {
     return;
   }
