@@ -1,2 +1,4 @@
 /data/
 .idea/
+test-results/
+playwright-report/
