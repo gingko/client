@@ -364,6 +364,11 @@ function initWebSocket () {
           toElm(data.d, 'docMsgs', 'RecvCollabUsers');
           break;
 
+        case 'collab.addError':
+        case 'collab.removeError':
+          toElm(data.d, 'appMsgs', 'CollabError');
+          break;
+
         case 'removedFrom':
           await dexie.trees.delete(data.d);
           if (data.d === TREE_ID) {

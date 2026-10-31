@@ -598,7 +598,7 @@ viewWordcountProgress current session =
 toastConfig : (Toast.Msg -> msg) -> Toast.Config msg
 toastConfig msg =
     Toast.config msg
-        |> Toast.withTrayAttributes [ class "flex flex-column gap-4 fixed top-14 right-4 z-10" ]
+        |> Toast.withTrayAttributes [ class "flex flex-column gap-4 fixed top-14 right-4 z-[101]" ]
         |> Toast.withTransitionAttributes [ class "translate-x-96 opacity-0" ]
 
 

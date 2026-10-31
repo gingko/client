@@ -666,6 +666,9 @@ update msg model =
                 ErrorAlert alertMsg ->
                     ( { model | errorState = True }, delay 0 (AddToast Persistent (Toast Error alertMsg)) )
 
+                CollabError errorMsg ->
+                    ( model, delay 0 (AddToast Temporary (Toast Error errorMsg)) )
+
                 NotFound dbName ->
                     ( model, Route.pushUrl model.navKey (Route.NotFound dbName) )
 
@@ -2613,6 +2616,7 @@ type IncomingAppMsg
     | MetadataUpdate Metadata
     | SavedRemotely Time.Posix
     | ErrorAlert String
+    | CollabError String
     | NotFound String
 
 
@@ -2673,6 +2677,14 @@ subscribe tagger onError =
                     case decodeValue Json.string outsideInfo.data of
                         Ok msg ->
                             tagger (ErrorAlert msg)
+
+                        Err err ->
+                            onError (errorToString err)
+
+                "CollabError" ->
+                    case decodeValue Json.string outsideInfo.data of
+                        Ok msg ->
+                            tagger (CollabError msg)
 
                         Err err ->
                             onError (errorToString err)

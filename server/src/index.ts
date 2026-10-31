@@ -463,7 +463,7 @@ wss.on('connection', (ws, req) => {
           break;
 
         case 'rt:addCollab': {
-          const collabEmail = msg.d.c;
+          const collabEmail = msg.d.c.toLowerCase();
           const treeId = msg.d.tr;
           const collabTree = treeById.get(treeId);
           if (collabTree.owner !== userId) {
@@ -484,7 +484,7 @@ wss.on('connection', (ws, req) => {
 
           } catch (e) {
             if (e.code && e.code === "SQLITE_CONSTRAINT_FOREIGNKEY") {
-              ws.send(JSON.stringify({t: 'collab.addError', d: 'User does not exist'}));
+              ws.send(JSON.stringify({t: 'collab.addError', d: 'No Gingko account found for that email. They need to sign up first.'}));
             } else {
               console.error(e);
             }
