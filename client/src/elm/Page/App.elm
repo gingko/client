@@ -383,8 +383,6 @@ type Msg
     | ClickedEmailSupport
     | ContactFormMsg ContactForm.Model ContactForm.Msg
     | CopyEmailClicked Bool
-    | ContactFormSubmitted ContactForm.Model
-    | ContactFormSent (Result Http.Error ())
       -- Account menu
     | ToggledAccountMenu Bool
     | LanguageMenuRequested (Maybe String)
@@ -1347,12 +1345,8 @@ update msg model =
             ( { model | modalState = NoModal }, send <| ShowWidget )
 
         ClickedEmailSupport ->
-            let
-                fromEmail =
-                    Session.name session
-            in
-            ( { model | modalState = ContactForm (ContactForm.init fromEmail), sidebarMenuState = NoSidebarMenu }
-            , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "contact-body")
+            ( { model | modalState = ContactForm (ContactForm.init (Session.name session)), sidebarMenuState = NoSidebarMenu }
+            , Cmd.none
             )
 
         ContactFormMsg formModel formMsg ->
@@ -1360,21 +1354,10 @@ update msg model =
 
         CopyEmailClicked isUrgent ->
             if isUrgent then
-                ( model, send <| CopyToClipboard "{%SUPPORT_URGENT_EMAIL%}" "#email-copy-btn" )
+                ( model, send <| CopyToClipboard "{%SUPPORT_URGENT_EMAIL%}" "#email-copy-btn-urgent" )
 
             else
-                ( model, send <| CopyToClipboard "{%SUPPORT_EMAIL%}" "#email-copy-btn" )
-
-        ContactFormSubmitted formModel ->
-            ( model, ContactForm.send ContactFormSent formModel )
-
-        ContactFormSent res ->
-            case res of
-                Ok _ ->
-                    ( { model | modalState = NoModal }, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
+                ( model, send <| CopyToClipboard "{%SUPPORT_EMAIL%}" "#email-copy-btn-standard" )
 
         -- Account menu TODO
         ToggledAccountMenu isOpen ->
@@ -2534,7 +2517,6 @@ viewModal globalData session modalState =
         ContactForm contactFormModel ->
             ContactForm.view language
                 { closeMsg = ModalClosed
-                , submitMsg = ContactFormSubmitted
                 , tagger = ContactFormMsg contactFormModel
                 , copyEmail = CopyEmailClicked
                 }

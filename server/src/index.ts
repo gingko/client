@@ -927,42 +927,6 @@ app.use('/db', proxy('http://127.0.0.1:5984', {
 }));
 
 
-/* ==== Contact Us Route ==== */
-
-app.post('/pleasenospam', async (req, res) => {
-  const msg = {
-    from: config.SUPPORT_EMAIL,
-    to: [req.body.toEmail],
-    'h:Reply-To': req.body.fromEmail,
-    cc: [req.body.fromEmail],
-    subject: req.body.subject,
-    text: req.body.body,
-    html: req.body.body,
-  }
-
-  const urgentAutoresponse = {
-    from: config.SUPPORT_URGENT_EMAIL,
-    to: [req.body.fromEmail],
-    subject: config.URGENT_MESSAGE_SUBJECT,
-    html: config.URGENT_MESSAGE_BODY,
-  }
-
-  try {
-    await sendEmail(msg);
-
-    if (req.body.toEmail == config.SUPPORT_URGENT_EMAIL) {
-      await sendEmail(urgentAutoresponse);
-    }
-
-    res.status(201).send();
-  } catch (err) {
-    console.error(err)
-    res.status(err.code || 400).send(err);
-  }
-});
-
-
-
 /* ==== Payment ==== */
 
 let _stripe;

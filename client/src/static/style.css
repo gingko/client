@@ -225,7 +225,7 @@ body {
   text-decoration: none;
   color: #84b1c7;
 }
-#form-page input:not([type='checkbox']), #contact-form input:not([type='radio']), #contact-form textarea {
+#form-page input:not([type='checkbox']) {
   border: 1px solid gray;
   padding: .5em 1em;
   font-size: 1em;
@@ -1419,51 +1419,100 @@ ul.dropdown > li > span.no-interaction:hover {
   top: 39px;
 }
 
-.modal.red-alert {
-  background: #ffebee;
+.contact-modal .modal-guts {
+  background-color: hsl(202deg 62% 92%);
 }
-.modal.red-alert .modal-header{
-  background: #ef5350;
-  color: white;
-}
-.modal.red-alert #contact-send {
-  background: #f44336;
-}
-.modal:not(.red-alert) #urg-req-info, .modal.red-alert #std-req-info {
-  visibility: hidden;
-}
-.modal.red-alert #urg-req-info, .modal:not(.red-alert) #std-req-info {
-  visibility: visible;
-}
-
-#contact-form {
+#contact-tabs {
   display: flex;
-  flex-direction: column;
+  gap: 4px;
 }
-#contact-form input, #contact-form textarea, #contact-form button {
-  margin-bottom: 10px;
-}
-#contact-send {
+.contact-tab {
   height: auto;
+  padding: 8px 16px;
+  background: #f0f0f0;
+  color: inherit;
+  font-size: 100%;
+  border: 1px solid #ddd;
+  border-radius: 4px 4px 0 0;
+  margin-bottom: -1px;
+  cursor: pointer;
+}
+.contact-tab.urgent {
+  background: #ffebee;
+  border-color: #ef5350;
+}
+.contact-tab.active {
+  background: white;
+  font-weight: bold;
+  border-bottom-color: white;
+  position: relative;
+}
+.contact-tab.urgent.active {
+  background: #ffebee;
+  border-bottom-color: #ffebee;
+}
+#contact-panel {
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 0 4px 4px 4px;
+  background: white;
+}
+#contact-panel.urgent {
+  background: #ffebee;
+  border-color: #ef5350;
+}
+#contact-panel > p {
+  margin: 0 0 16px;
+}
+.contact-panel-footer {
+  display: flex;
+  justify-content: center;
+}
+.contact-mailto {
   padding: 6px 12px;
   background: var(--selection-color);
   color: white;
-  font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Ubuntu,sans-serif;
   font-weight: bold;
   font-size: 90%;
   border-radius: 4px;
-  cursor: pointer;
-  align-self: center;
-  border: none;
+  text-decoration: none;
 }
-#contact-form ~ p {
-  text-align: center;
+#contact-panel.urgent .contact-mailto {
+  background: #f44336;
 }
-#email-copy-btn {
-  background-color: #e8e8e8;
-  padding: 4px;
-  border-radius: 4px;
-  margin-left: 4px;
+#contact-fallback {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 80%;
+  font-style: italic;
+  color: #666;
+}
+.contact-address {
+  display: flex;
+}
+#contact-address-field {
+  width: 24ch;
+  height: auto;
+  padding: 4px 8px;
+  background: white;
+  color: #333;
+  font-size: inherit;
+  border: 1px solid #bbb;
+  border-right: none;
+  border-radius: 4px 0 0 4px;
+}
+.email-copy-btn {
+  height: auto;
+  padding: 4px 12px;
+  background: #e8e8e8;
+  color: #333;
+  font-size: inherit;
+  border: 1px solid #bbb;
+  border-radius: 0 4px 4px 0;
   cursor: pointer;
 }
 

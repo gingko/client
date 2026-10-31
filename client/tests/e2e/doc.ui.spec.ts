@@ -33,27 +33,29 @@ test.describe('Document UI', () => {
     // Click email support link
     await page.locator('#email-support').click();
 
-    // Check contact form is visible and has correct values
-    await expect(page.locator('#contact-form')).toBeVisible();
-    await expect(page.locator('#contact-from-email')).toHaveValue(TEST_EMAIL);
-    await expect(page.locator('#contact-subject')).toHaveValue('Could you help me with this?');
+    // Check both mailto options are offered, with the account email prefilled
+    await expect(page.locator('#contact-options')).toBeVisible();
+    const accountEmail = encodeURIComponent(TEST_EMAIL);
+    await expect(page.locator('#contact-mailto-standard')).toHaveText('Email Support');
+    await expect(page.locator('#contact-mailto-standard')).toHaveAttribute('href', new RegExp(`^mailto:.*${accountEmail}`));
+    await expect(page.locator('#contact-mailto-standard')).toHaveAttribute('target', '_blank');
+    const standardAddress = await page.locator('#contact-address-field').inputValue();
+    expect(standardAddress).toContain('@');
+    await page.locator('#contact-address-field').click();
+    await expect.poll(() => page.evaluate(() => window.getSelection()?.toString())).toBe(standardAddress);
+    await page.locator('#contact-tab-urgent').click();
+    await expect(page.locator('#contact-address-field')).not.toHaveValue(standardAddress);
+    await expect(page.locator('#contact-panel.urgent')).toBeVisible();
+    await expect(page.locator('#contact-mailto-standard')).not.toBeVisible();
+    await expect(page.locator('#contact-mailto-urgent')).toHaveText('Email Support');
+    await expect(page.locator('#contact-mailto-urgent')).toHaveAttribute('href', new RegExp(`^mailto:.*${accountEmail}`));
 
-    // Check body field has focus
-    await expect(page.locator('#contact-body')).toBeFocused();
-
-    // Type in the contact body
-    await page.locator('#contact-body').pressSequentially('doc.ui', { delay: 30 });
-
-    // Intercept the contact form submission
-    await page.route('/pleasenospam', async route => {
-      await route.fulfill({ status: 200, body: '' });
-    });
-
-    // Submit the form
-    await page.locator('#contact-send').click();
-
-    // Wait for form to disappear
-    await expect(page.locator('#contact-form')).not.toBeVisible();
+    // Closing returns to the help modal, which then closes too
+    await page.locator('.modal .close-button').click();
+    await expect(page.locator('#contact-options')).not.toBeVisible();
+    await expect(page.locator('.modal.help-modal')).toBeVisible();
+    await page.locator('.modal.help-modal .close-button').click();
+    await expect(page.locator('.modal.help-modal')).not.toBeVisible();
 
     // Test sidebar toggle via brand icon
     await expect(page.locator('#sidebar-document-list-wrap')).not.toBeVisible();

@@ -1443,6 +1443,13 @@ window.addEventListener("message", (ev) => {
 });
 
 
+// Elm blocks inline "on*" attributes, so select the support address from here.
+document.addEventListener('focusin', (ev) => {
+  if (ev.target.id === 'contact-address-field') {
+    ev.target.select();
+  }
+});
+
 window.onresize = () => {
   if (lastActivesScrolled) {
     debouncedScrollColumns(lastActivesScrolled);

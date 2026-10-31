@@ -1,10 +1,8 @@
-module Doc.ContactForm exposing (Model, Msg, init, send, toValue, update, view)
+module Doc.ContactForm exposing (Model, Msg, init, update, view)
 
-import Html exposing (Html, a, br, button, div, form, input, label, p, small, span, text, textarea)
-import Html.Attributes as A exposing (checked, class, for, href, id, name, placeholder, readonly, rows, style, title, type_, value)
-import Html.Events exposing (onClick, onInput, onSubmit)
-import Http
-import Json.Encode as Enc
+import Html exposing (Html, a, button, div, input, p, span, text)
+import Html.Attributes exposing (attribute, class, classList, href, id, readonly, rel, target, type_, value)
+import Html.Events exposing (onClick)
 import SharedUI exposing (modalWrapper)
 import Translation exposing (Language, TranslationId(..), tr)
 import Url.Builder exposing (string, toQuery)
@@ -15,9 +13,7 @@ import Url.Builder exposing (string, toQuery)
 
 
 type alias Model =
-    { fromField : String
-    , bodyField : String
-    , subjectField : String
+    { accountEmail : String
     , requestType : RequestType
     }
 
@@ -28,10 +24,8 @@ type RequestType
 
 
 init : String -> Model
-init email =
-    { fromField = email
-    , bodyField = ""
-    , subjectField = "Could you help me with this?"
+init accountEmail =
+    { accountEmail = accountEmail
     , requestType = Standard
     }
 
@@ -41,130 +35,132 @@ init email =
 
 
 type Msg
-    = UpdateFromField String
-    | UpdateSubjectField String
-    | UpdateBodyField String
-    | UpdateRequestType RequestType
+    = SelectedRequestType RequestType
 
 
 update : Msg -> Model -> Model
-update msg model =
-    case msg of
-        UpdateFromField newStr ->
-            { model | fromField = newStr }
-
-        UpdateSubjectField newStr ->
-            { model | subjectField = newStr }
-
-        UpdateBodyField newStr ->
-            { model | bodyField = newStr }
-
-        UpdateRequestType newReqType ->
-            { model | requestType = newReqType }
-
-
-send : (Result Http.Error () -> msg) -> Model -> Cmd msg
-send msg model =
-    Http.post
-        { body = Http.jsonBody (toValue model)
-        , expect = Http.expectWhatever msg
-        , url = "/pleasenospam"
-        }
-
-
-toValue : Model -> Enc.Value
-toValue model =
-    Enc.object
-        [ ( "toEmail", Enc.string <| supportEmailString model.requestType )
-        , ( "fromEmail", Enc.string model.fromField )
-        , ( "subject", Enc.string model.subjectField )
-        , ( "body", Enc.string model.bodyField )
-        ]
+update (SelectedRequestType requestType) model =
+    { model | requestType = requestType }
 
 
 
 -- VIEW
 
 
-view : Language -> { closeMsg : msg, submitMsg : Model -> msg, tagger : Msg -> msg, copyEmail : Bool -> msg } -> Model -> List (Html msg)
-view lang { closeMsg, submitMsg, tagger, copyEmail } model =
-    [ div [ id "contact-form" ]
-        [ input
-            [ id "contact-from-email"
-            , type_ "email"
-            , value model.fromField
-            , placeholder "Your Email"
-            , onInput <| tagger << UpdateFromField
+view : Language -> { closeMsg : msg, tagger : Msg -> msg, copyEmail : Bool -> msg } -> Model -> List (Html msg)
+view lang { closeMsg, tagger, copyEmail } model =
+    [ div [ id "contact-options" ]
+        [ div [ id "contact-tabs", attribute "role" "tablist" ]
+            [ viewTab tagger model.requestType Standard
+            , viewTab tagger model.requestType Urgent
             ]
-            []
-        , input [ id "contact-subject", value model.subjectField, onInput <| tagger << UpdateSubjectField ] []
-        , textarea [ id "contact-body", onInput <| tagger << UpdateBodyField, rows 7 ] []
-        , div []
-            [ input
-                [ id "contact-urgency-standard"
-                , name "contact-urgency"
-                , type_ "radio"
-                , value "standard"
-                , onClick <| tagger <| UpdateRequestType Standard
-                , checked (model.requestType == Standard)
-                ]
-                []
-            , label [ for "contact-urgency-standard" ] [ span [] [ text "Standard Request " ], span [ id "std-req-info", class "extra-info" ] [ text " (Checked every Wednesday)" ] ]
-            ]
-        , div []
-            [ input
-                [ id "contact-urgency-urgent"
-                , name "contact-urgency"
-                , type_ "radio"
-                , value "urgent"
-                , onClick <| tagger <| UpdateRequestType Urgent
-                , checked (model.requestType == Urgent)
-                ]
-                []
-            , label [ for "contact-urgency-urgent" ] [ span [] [ text "Urgent Request " ], span [ id "urg-req-info", class "extra-info" ] [ text " (Notification to Developer's Phone)" ] ]
-            ]
-        , br [] []
-        , button
-            [ id "contact-send"
-            , onClick <| submitMsg model
-            , A.disabled (model.bodyField == "")
-            , style "opacity"
-                (if model.bodyField == "" then
-                    "0.5"
-
-                 else
-                    "1"
-                )
-            , style "cursor"
-                (if model.bodyField == "" then
-                    "not-allowed"
-
-                 else
-                    "pointer"
-                )
-            , title
-                (if model.bodyField == "" then
-                    "Please enter a message"
-
-                 else
-                    ""
-                )
-            ]
-            [ text "Send Now" ]
-        ]
-    , p [] [ text "or" ]
-    , p []
-        [ text "send an email instead : "
-        , br [] []
-        , a [ href <| mailto model ] [ text <| supportEmailString model.requestType ]
-        , small [ id "email-copy-btn", onClick <| copyEmail (model.requestType == Urgent) ] [ text "copy" ]
+        , viewPanel model
+        , viewFallback copyEmail model.requestType
         ]
     ]
-        |> modalWrapper closeMsg Nothing (Just [ ( "red-alert", model.requestType == Urgent ) ]) (tr lang ContactSupport)
+        |> modalWrapper closeMsg Nothing (Just [ ( "contact-modal", True ) ]) (tr lang ContactSupport)
 
 
-supportEmailString req =
-    case req of
+viewTab : (Msg -> msg) -> RequestType -> RequestType -> Html msg
+viewTab tagger selected requestType =
+    button
+        [ id ("contact-tab-" ++ idSuffix requestType)
+        , type_ "button"
+        , attribute "role" "tab"
+        , attribute "aria-selected"
+            (if selected == requestType then
+                "true"
+
+             else
+                "false"
+            )
+        , classList
+            [ ( "contact-tab", True )
+            , ( "active", selected == requestType )
+            , ( "urgent", requestType == Urgent )
+            ]
+        , onClick (tagger (SelectedRequestType requestType))
+        ]
+        [ text (tabTitle requestType) ]
+
+
+viewPanel : Model -> Html msg
+viewPanel { accountEmail, requestType } =
+    div
+        [ id "contact-panel"
+        , attribute "role" "tabpanel"
+        , classList [ ( "urgent", requestType == Urgent ) ]
+        ]
+        [ p [] [ text (description requestType) ]
+        , div [ class "contact-panel-footer" ]
+            [ a
+                [ id ("contact-mailto-" ++ idSuffix requestType)
+                , class "contact-mailto"
+                , href (mailto (supportAddress requestType) (emailSubject requestType) accountEmail)
+                , target "_blank"
+                , rel "noopener"
+                ]
+                [ text "Email Support" ]
+            ]
+        ]
+
+
+viewFallback : (Bool -> msg) -> RequestType -> Html msg
+viewFallback copyEmail requestType =
+    div [ id "contact-fallback" ]
+        [ span [] [ text "Button not working? Send an email to" ]
+        , div [ class "contact-address" ]
+            [ input
+                [ id "contact-address-field"
+                , type_ "text"
+                , readonly True
+                , value (supportAddress requestType)
+                ]
+                []
+            , button
+                [ id ("email-copy-btn-" ++ idSuffix requestType)
+                , class "email-copy-btn"
+                , type_ "button"
+                , onClick (copyEmail (requestType == Urgent))
+                ]
+                [ text "copy" ]
+            ]
+        ]
+
+
+idSuffix : RequestType -> String
+idSuffix requestType =
+    case requestType of
+        Standard ->
+            "standard"
+
+        Urgent ->
+            "urgent"
+
+
+tabTitle : RequestType -> String
+tabTitle requestType =
+    case requestType of
+        Standard ->
+            "Standard Request"
+
+        Urgent ->
+            "Urgent Request"
+
+
+description : RequestType -> String
+description requestType =
+    case requestType of
+        Standard ->
+            "Checked once per week."
+
+        Urgent ->
+            "For outages or data loss only. This sends a notification to the developer's phone."
+
+
+supportAddress : RequestType -> String
+supportAddress requestType =
+    case requestType of
         Standard ->
             "{%SUPPORT_EMAIL%}"
 
@@ -172,10 +168,20 @@ supportEmailString req =
             "{%SUPPORT_URGENT_EMAIL%}"
 
 
-mailto : Model -> String
-mailto model =
-    ("mailto:" ++ supportEmailString model.requestType)
+emailSubject : RequestType -> String
+emailSubject requestType =
+    case requestType of
+        Standard ->
+            "Could you help me with this?"
+
+        Urgent ->
+            "Urgent: Could you help me with this?"
+
+
+mailto : String -> String -> String -> String
+mailto address subject accountEmail =
+    ("mailto:" ++ address)
         ++ toQuery
-            [ string "subject" model.subjectField
-            , string "body" model.bodyField
+            [ string "subject" subject
+            , string "body" ("\n\n\n--\nGingko Writer account: " ++ accountEmail)
             ]
